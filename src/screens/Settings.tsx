@@ -6,6 +6,8 @@ import { db } from '../db/db';
 import { currentSeasonByDate } from '../lib/season';
 import { Modal } from '../components/Modal';
 import { useHaveSet } from '../components/usePantry';
+import { useIntensity } from '../components/useIntensity';
+import { INTENSITY_DESC } from '../lib/intensity';
 import {
   DEFAULT_NOTIF_PREFS,
   getNotifPrefs,
@@ -31,6 +33,7 @@ export function Settings({
   onClose: () => void;
 }) {
   const haveSet = useHaveSet();
+  const { intensity, setIntensity } = useIntensity();
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
   const [perm, setPerm] = useState<NotificationPermission>(permissionStatus());
   const [testMsg, setTestMsg] = useState('');
@@ -113,6 +116,26 @@ export function Settings({
           Inverno
         </button>
       </div>
+
+      {/* Intensità */}
+      <h3 className="section-label">Intensità della dieta</h3>
+      <div className="segmented">
+        <button
+          className={intensity === 'moderata' ? 'active' : ''}
+          onClick={() => setIntensity('moderata')}
+        >
+          Moderata
+        </button>
+        <button
+          className={intensity === 'intensiva' ? 'active' : ''}
+          onClick={() => setIntensity('intensiva')}
+        >
+          Intensiva
+        </button>
+      </div>
+      <p className="small muted" style={{ marginTop: 6 }}>
+        {INTENSITY_DESC[intensity]}
+      </p>
 
       {/* Notifiche */}
       <h3 className="section-label">Promemoria locali</h3>

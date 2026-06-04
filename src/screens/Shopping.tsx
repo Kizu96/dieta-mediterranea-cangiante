@@ -7,12 +7,15 @@ import { buildShoppingList } from '../lib/shopping';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { useHaveSet } from '../components/usePantry';
+import { useIntensity } from '../components/useIntensity';
+import { scaleQty } from '../lib/intensity';
 import { CATEGORY_LABEL, formatQty } from '../components/labels';
 
 export function Shopping({ season }: { season: Season }) {
   const [days, setDays] = useState<3 | 7>(7);
   const today = useMemo(() => new Date(), []);
   const haveSet = useHaveSet();
+  const { factor } = useIntensity();
 
   const groups = useMemo(
     () => buildShoppingList(haveSet, today, days, season),
@@ -75,7 +78,7 @@ export function Shopping({ season }: { season: Season }) {
                     key={it.ingredient.id}
                     checked={boughtSet.has(it.ingredient.id)}
                     title={it.ingredient.name}
-                    detail={`Serve circa ${formatQty(it.qty)} ${it.unit}`}
+                    detail={`Serve circa ${formatQty(scaleQty(it.qty, factor))} ${it.unit}`}
                     onToggle={() => toggleBought(it.ingredient.id, !boughtSet.has(it.ingredient.id))}
                   />
                 ))}

@@ -1,9 +1,11 @@
 import type { Recipe } from '../data/types';
 import { ingredientById } from '../lib/shopping';
+import { scaleQty, scaleRound } from '../lib/intensity';
 import { EQUIPMENT_LABEL, SLOT_LABEL, SEASON_LABEL, formatQty } from './labels';
 
 // Dettaglio ricetta: ingredienti (qty+unità), passi numerati, macro, conservazione, tips, attrezzatura.
-export function RecipeDetail({ recipe }: { recipe: Recipe }) {
+// `factor` scala porzioni e macro secondo l'intensità scelta (1 = porzione base).
+export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: number }) {
   return (
     <div>
       <div className="pill-row" style={{ marginBottom: 10 }}>
@@ -30,27 +32,26 @@ export function RecipeDetail({ recipe }: { recipe: Recipe }) {
 
       <div className="stat-grid" style={{ marginBottom: 14 }}>
         <div className="stat">
-          <div className="stat-num">{recipe.kcal}</div>
+          <div className="stat-num">{scaleRound(recipe.kcal, factor)}</div>
           <div className="stat-label">kcal</div>
         </div>
         <div className="stat">
-          <div className="stat-num">{recipe.protein} g</div>
+          <div className="stat-num">{scaleRound(recipe.protein, factor)} g</div>
           <div className="stat-label">Proteine</div>
         </div>
         <div className="stat">
-          <div className="stat-num">{recipe.carbs} g</div>
+          <div className="stat-num">{scaleRound(recipe.carbs, factor)} g</div>
           <div className="stat-label">Carboidrati</div>
         </div>
         <div className="stat">
-          <div className="stat-num">{recipe.fat} g</div>
+          <div className="stat-num">{scaleRound(recipe.fat, factor)} g</div>
           <div className="stat-label">Grassi</div>
         </div>
       </div>
-      {recipe.fiber !== undefined && (
-        <p className="small muted" style={{ marginTop: -6 }}>
-          Fibre: {recipe.fiber} g · Dose per 1 persona
-        </p>
-      )}
+      <p className="small muted" style={{ marginTop: -6 }}>
+        {recipe.fiber !== undefined ? `Fibre: ${scaleRound(recipe.fiber, factor)} g · ` : ''}
+        Dose per 1 persona{factor !== 1 ? ' · porzione Moderata (+30%)' : ''}
+      </p>
 
       <h3 className="section-label">Ingredienti</h3>
       <ul className="clean" style={{ marginBottom: 14 }}>
@@ -60,7 +61,7 @@ export function RecipeDetail({ recipe }: { recipe: Recipe }) {
             <li key={i} className="meal-row">
               <span className="grow">{ing ? ing.name : ri.ingredientId}</span>
               <span className="nowrap muted">
-                {formatQty(ri.qty)} {ri.unit}
+                {formatQty(scaleQty(ri.qty, factor))} {ri.unit}
                 {ri.note ? ` · ${ri.note}` : ''}
               </span>
             </li>

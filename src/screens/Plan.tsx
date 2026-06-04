@@ -4,6 +4,8 @@ import { addDays, getDayTemplate, getRecipesForDate, toISODate } from '../lib/pl
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
+import { useIntensity } from '../components/useIntensity';
+import { scaleRound } from '../lib/intensity';
 import { SLOT_LABEL, formatLongDate, formatShortDate } from '../components/labels';
 
 type Mode = 'giorno' | 'settimana' | 'mese';
@@ -13,6 +15,7 @@ export function Plan({ season }: { season: Season }) {
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [offset, setOffset] = useState(0); // giorni rispetto a oggi (per modalità Giorno)
   const today = useMemo(() => new Date(), []);
+  const { factor } = useIntensity();
 
   return (
     <div>
@@ -37,16 +40,19 @@ export function Plan({ season }: { season: Season }) {
           onNext={() => setOffset((o) => o + 1)}
           onToday={() => setOffset(0)}
           onOpen={setDetail}
+          factor={factor}
         />
       )}
 
-      {mode === 'settimana' && <WeekView start={today} season={season} onOpen={setDetail} />}
+      {mode === 'settimana' && (
+        <WeekView start={today} season={season} onOpen={setDetail} factor={factor} />
+      )}
 
       {mode === 'mese' && <MonthView start={today} season={season} />}
 
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)}>
-          <RecipeDetail recipe={detail} />
+          <RecipeDetail recipe={detail} factor={factor} />
         </Modal>
       )}
     </div>
@@ -61,6 +67,7 @@ function DayView({
   onNext,
   onToday,
   onOpen,
+  factor,
 }: {
   date: Date;
   season: Season;
@@ -69,6 +76,7 @@ function DayView({
   onNext: () => void;
   onToday: () => void;
   onOpen: (r: Recipe) => void;
+  factor: number;
 }) {
   const tpl = getDayTemplate(date, season);
   const meals = getRecipesForDate(date, season);
@@ -102,7 +110,7 @@ function DayView({
             <span className="pill olive">Obiettivo {tpl.kcalTarget} kcal</span>
           </>
         )}
-        <span className="pill">Totale pasti {total} kcal</span>
+        <span className="pill">Totale pasti {scaleRound(total, factor)} kcal</span>
       </div>
 
       {meals.length === 0 ? (
@@ -131,10 +139,12 @@ function WeekView({
   start,
   season,
   onOpen,
+  factor,
 }: {
   start: Date;
   season: Season;
   onOpen: (r: Recipe) => void;
+  factor: number;
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const todayISO = toISODate(start);
@@ -172,7 +182,7 @@ function WeekView({
                   >
                     <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
                     <span className="grow small">{m.recipe.name}</span>
-                    <span className="nowrap muted small">{m.recipe.kcal}</span>
+                    <span className="nowrap muted small">{scaleRound(m.recipe.kcal, factor)}</span>
                   </li>
                 ))}
               </ul>

@@ -6,6 +6,8 @@ import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { useHaveSet } from '../components/usePantry';
+import { useIntensity } from '../components/useIntensity';
+import { scaleRound } from '../lib/intensity';
 import { EQUIPMENT_LABEL, SEASON_LABEL, SLOT_LABEL } from '../components/labels';
 
 const SLOTS: MealSlot[] = ['colazione', 'pranzo', 'spuntino', 'cena'];
@@ -21,6 +23,7 @@ export function Recipes({ season }: { season: Season }) {
   const [detail, setDetail] = useState<Recipe | null>(null);
 
   const haveSet = useHaveSet();
+  const { factor } = useIntensity();
 
   const filtered = useMemo(() => {
     const makeableIds = new Set(makeableRecipes(haveSet, season).map((r) => r.id));
@@ -115,7 +118,7 @@ export function Recipes({ season }: { season: Season }) {
               >
                 <div className="flex-between">
                   <h3 style={{ margin: 0 }}>{r.name}</h3>
-                  <span className="pill olive nowrap">{r.kcal} kcal</span>
+                  <span className="pill olive nowrap">{scaleRound(r.kcal, factor)} kcal</span>
                 </div>
                 <div className="pill-row" style={{ marginTop: 8 }}>
                   {r.slot.map((s) => (
@@ -138,7 +141,7 @@ export function Recipes({ season }: { season: Season }) {
 
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)}>
-          <RecipeDetail recipe={detail} />
+          <RecipeDetail recipe={detail} factor={factor} />
         </Modal>
       )}
     </div>

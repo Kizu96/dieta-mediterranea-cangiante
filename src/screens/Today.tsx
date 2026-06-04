@@ -12,6 +12,8 @@ import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { useHaveSet } from '../components/usePantry';
+import { useIntensity } from '../components/useIntensity';
+import { INTENSITY_LABEL, scaleRound } from '../lib/intensity';
 import { SLOT_LABEL, formatLongDate, mondayIndex } from '../components/labels';
 import type { Recipe } from '../data/types';
 
@@ -32,6 +34,7 @@ export function Today({
   const meals = getRecipesForDate(today, season);
   const mealsTomorrow = getRecipesForDate(tomorrow, season);
   const haveSet = useHaveSet();
+  const { intensity, factor, setIntensity } = useIntensity();
   const missing = missingForDate(haveSet, tomorrow, season);
 
   const [detail, setDetail] = useState<Recipe | null>(null);
@@ -126,6 +129,23 @@ export function Today({
             Inverno
           </button>
         </div>
+        <p className="small muted" style={{ margin: '12px 0 4px' }}>
+          Intensità: <b>{INTENSITY_LABEL[intensity]}</b>
+        </p>
+        <div className="segmented" style={{ marginBottom: 0 }}>
+          <button
+            className={intensity === 'moderata' ? 'active' : ''}
+            onClick={() => setIntensity('moderata')}
+          >
+            Moderata
+          </button>
+          <button
+            className={intensity === 'intensiva' ? 'active' : ''}
+            onClick={() => setIntensity('intensiva')}
+          >
+            Intensiva
+          </button>
+        </div>
       </Card>
 
       {missing.length > 0 && (
@@ -141,7 +161,7 @@ export function Today({
       )}
 
       <div className="dash-grid">
-      <Card title="Pasti di oggi" icon="🍽️" action={<span className="pill olive">{totalKcal} kcal</span>}>
+      <Card title="Pasti di oggi" icon="🍽️" action={<span className="pill olive">{scaleRound(totalKcal, factor)} kcal</span>}>
         {meals.length === 0 ? (
           <p className="muted small">Nessun pasto pianificato per oggi.</p>
         ) : (
@@ -150,14 +170,14 @@ export function Today({
               <li key={i} className="meal-row" onClick={() => setDetail(m.recipe)} style={{ cursor: 'pointer' }}>
                 <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
                 <span className="grow">{m.recipe.name}</span>
-                <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
+                <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
               </li>
             ))}
           </ul>
         )}
       </Card>
 
-      <Card title="Pasti di domani" icon="🌙" action={<span className="pill">{totalKcalTomorrow} kcal</span>}>
+      <Card title="Pasti di domani" icon="🌙" action={<span className="pill">{scaleRound(totalKcalTomorrow, factor)} kcal</span>}>
         {mealsTomorrow.length === 0 ? (
           <p className="muted small">Nessun pasto pianificato per domani.</p>
         ) : (
@@ -166,7 +186,7 @@ export function Today({
               <li key={i} className="meal-row" onClick={() => setDetail(m.recipe)} style={{ cursor: 'pointer' }}>
                 <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
                 <span className="grow">{m.recipe.name}</span>
-                <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
+                <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
               </li>
             ))}
           </ul>
@@ -251,7 +271,7 @@ export function Today({
 
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)}>
-          <RecipeDetail recipe={detail} />
+          <RecipeDetail recipe={detail} factor={factor} />
         </Modal>
       )}
     </div>

@@ -95,8 +95,18 @@ PDF: script Node che renderizza i contenuti guida → `public/Guida-Dieta.pdf`.
 - **GitHub Action** `.github/workflows/deploy.yml`: a ogni push su main fa `npm ci` + `npm run build` + deploy Netlify via `netlify-cli`. Richiede 2 secrets nel repo: `NETLIFY_AUTH_TOKEN` (PAT Netlify) e `NETLIFY_SITE_ID` (API ID del sito mydieting). PDF/icone versionati → niente Edge in CI.
 - 7 ricette nuove ora **integrate nella rotazione** di `mealPlan.ts` (estate+inverno); cous-cous-feta solo estate, zuppa-lenticchie-farro solo inverno.
 
-### Origine ricette (nota onestà)
-Le ricette sono combinazioni mediterranee standard scritte da modello (io/agente) su conoscenza culinaria, NON copiate da un ricettario né verificate una-per-una su banca dati. I **macro/kcal sono stime ragionevoli**, non valori da tabella ufficiale. La SCIENZA della dieta (green-MED, OEA, sulforafano, ecc.) ha invece fonti reali citate. TODO se serve precisione: validare i macro su CREA/USDA FoodData Central.
+### Origine ricette + validazione macro
+Le ricette sono combinazioni mediterranee standard (non copiate da ricettario). I macro erano stime;
+ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-data.mjs`) via
+`npm run validate:macros` → riscrive i valori in `recipes.ts`. La scienza della dieta ha fonti reali citate.
+- **Finding** (`npm run check:days`): con i macro reali i totali/giorno sono ~1440–1770 kcal, **SOTTO** i
+  kcalTarget del piano (1900/2200). Deficit più aggressivo del previsto vs TDEE ~2700–2900.
+  Soluzione adottata: **toggle Intensità** (sotto).
+
+### Toggle Intensità (moderata / intensiva)
+- `src/lib/intensity.ts` (fattore porzioni: moderata ×1.3 ≈ target ~1900-2200, intensiva ×1.0 ≈ ~1450-1770) + hook `src/components/useIntensity.ts` (setting `intensity`, default `moderata`).
+- Applicato a display di kcal/macro e quantità spesa: `Today`, `Plan`, `Recipes`, `RecipeDetail`, `Shopping`. Toggle in `Settings` e quick-toggle su `Oggi`.
+- I macro base salvati in `recipes.ts` restano l'intensiva (×1); la moderata è scalata a runtime. Il PDF mostra le porzioni base.
 
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
