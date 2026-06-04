@@ -583,13 +583,23 @@ ol.steps li {
   margin-bottom: 4px;
 }
 
-/* ---- Recipe / card grid (responsive su mobile e desktop) ---- */
-.recipe-grid {
+/* ---- Griglie responsive (mobile = 1 colonna) ---- */
+.recipe-grid,
+.week-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
+  align-items: start;
 }
-.recipe-grid .card {
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.recipe-grid .card,
+.week-grid .card,
+.dash-grid .card {
   margin-bottom: 0;
 }
 
@@ -684,6 +694,11 @@ ol.steps li {
     max-height: 86dvh;
     border-radius: 20px;
     margin: 0 16px;
+  }
+
+  /* Dashboard a 2 colonne (Oggi, Peso) su desktop */
+  .dash-grid {
+    grid-template-columns: 1fr 1fr;
   }
 
   /* Su schermi molto larghi, lo stat-grid usa più colonne */

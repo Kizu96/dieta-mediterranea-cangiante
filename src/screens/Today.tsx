@@ -138,6 +138,7 @@ export function Today({
         </div>
       )}
 
+      <div className="dash-grid">
       <Card title="Pasti di oggi" icon="🍽️" action={<span className="pill olive">{totalKcal} kcal</span>}>
         {meals.length === 0 ? (
           <p className="muted small">Nessun pasto pianificato per oggi.</p>
@@ -227,6 +228,7 @@ export function Today({
           </p>
         )}
       </Card>
+      </div>
 
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)}>

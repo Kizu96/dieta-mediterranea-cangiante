@@ -141,6 +141,7 @@ function WeekView({
   return (
     <div>
       <p className="small muted">Prossimi 7 giorni (menù stagionale ciclico).</p>
+      <div className="week-grid">
       {days.map((d, i) => {
         const tpl = getDayTemplate(d, season);
         const meals = getRecipesForDate(d, season);
@@ -179,6 +180,7 @@ function WeekView({
           </Card>
         );
       })}
+      </div>
     </div>
   );
 }

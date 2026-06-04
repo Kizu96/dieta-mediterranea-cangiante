@@ -1,21 +1,13 @@
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 import { db, getSetting, setSetting } from '../db/db';
 import { toISODate } from '../lib/planning';
 import { bmi, bmiClass, DEFAULT_PROFILE, weeklyLoss, weeksToTarget } from '../lib/nutrition';
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { formatShortDate } from '../components/labels';
+
+const WeightChart = lazy(() => import('../components/WeightChart'));
 
 interface Profile {
   heightCm: number;
@@ -77,6 +69,7 @@ export function Weight() {
 
   return (
     <div>
+      <div className="dash-grid">
       <Card title="Registra peso" icon="⚖️">
         <div className="row">
           <div className="field grow" style={{ marginBottom: 0 }}>
@@ -135,38 +128,15 @@ export function Weight() {
           </div>
         )}
       </Card>
+      </div>
 
       <Card title="Andamento" icon="📈">
         {chartData.length < 2 ? (
           <p className="muted small">Registra almeno 2 pesate per vedere il grafico.</p>
         ) : (
-          <div style={{ width: '100%', height: 240 }}>
-            <ResponsiveContainer>
-              <LineChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2d6c2" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} width={40} />
-                <Tooltip
-                  formatter={(v) => [`${v} kg`, 'Peso']}
-                  contentStyle={{ borderRadius: 10, border: '1px solid #e2d6c2' }}
-                />
-                <ReferenceLine
-                  y={profile?.targetKg ?? DEFAULT_PROFILE.targetKg}
-                  stroke="#c0612f"
-                  strokeDasharray="4 4"
-                  label={{ value: 'Obiettivo', fontSize: 10, fill: '#a44e22' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="kg"
-                  stroke="#6b7a3a"
-                  strokeWidth={3}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <Suspense fallback={<p className="muted small">Carico il grafico…</p>}>
+            <WeightChart data={chartData} target={profile?.targetKg ?? DEFAULT_PROFILE.targetKg} />
+          </Suspense>
         )}
       </Card>
 

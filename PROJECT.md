@@ -76,6 +76,15 @@ PDF: script Node che renderizza i contenuti guida → `public/Guida-Dieta.pdf`.
 - Tutto in CSS (`src/index.css`, media query) + brand in `BottomNav.tsx` + wrapper `.recipe-grid` in `Recipes.tsx`.
 - Verificato con screenshot Edge headless a 1440px e 412px.
 
+### Rifiniture (giro 2)
+- Dashboard multi-colonna su desktop: `.dash-grid` (Oggi: Pasti+Pilastri+Allenamento+Pesata; Peso: Registra+Indicatori), `.week-grid` (Piano settimana). Mobile resta 1 colonna.
+- **Grafico Peso lazy** (`src/components/WeightChart.tsx` + `React.lazy`): recharts in chunk separato (~345 KB) → bundle iniziale da ~751 KB a ~407 KB.
+- **Icone PNG** generate con `sharp` (`scripts/build-icons.mjs`, `npm run build:icons`): pwa-192/512, maskable 192/512, apple-touch-icon 180 in `public/`; manifest in `vite.config.ts` aggiornato (PNG + SVG fallback).
+- Rasterizzazione via Edge headless inaffidabile su questa macchina (singleton/hand-off) → usato sharp. Per screenshot Edge: killare prima i processi headless (`MainWindowHandle -eq 0`).
+
+### Deploy automatico
+- `gh` autenticato (Kizu96). Repo GitHub creato e pushato → collegare il sito Netlify esistente (mydieting.netlify.app) al repo in dashboard per deploy continuo. PDF/icone versionati, build cloud = `npm run build` (no Edge richiesto).
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.
