@@ -1,6 +1,6 @@
 name: Deploy su Netlify
 
-# Builda e pubblica il sito a ogni push su main (e manualmente da Actions).
+# Builda a ogni push su main; pubblica su Netlify solo se i secret sono configurati.
 on:
   push:
     branches: [main]
@@ -16,6 +16,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -28,10 +31,8 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build # PDF e icone sono già versionati in public/ → niente Edge in CI
+        run: npm run build # PDF e icone già versionati in public/ → niente Edge in CI
 
       - name: Deploy su Netlify (produzione)
+        if: ${{ env.NETLIFY_AUTH_TOKEN != '' }}
         run: npx --yes netlify-cli@latest deploy --prod --dir=dist --message "CI ${{ github.sha }}"
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
