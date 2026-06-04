@@ -11,12 +11,13 @@ import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
+import { ExerciseDetail } from '../components/ExerciseDetail';
 import { useHaveSet } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
-import { INTENSITY_LABEL, scaleRound } from '../lib/intensity';
-import { exerciseVideoUrl } from '../lib/exerciseVideo';
+import { scaleRound } from '../lib/intensity';
+import { hasExerciseVideo } from '../lib/exerciseVideo';
 import { SLOT_LABEL, formatLongDate, mondayIndex } from '../components/labels';
-import type { Recipe } from '../data/types';
+import type { Recipe, WorkoutExercise } from '../data/types';
 
 export function Today({
   season,
@@ -35,10 +36,11 @@ export function Today({
   const meals = getRecipesForDate(today, season);
   const mealsTomorrow = getRecipesForDate(tomorrow, season);
   const haveSet = useHaveSet();
-  const { intensity, factor, setIntensity } = useIntensity();
+  const { factor } = useIntensity();
   const missing = missingForDate(haveSet, tomorrow, season);
 
   const [detail, setDetail] = useState<Recipe | null>(null);
+  const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);
 
   // --- Daily essentials log (keyed date+essentialId) ---
   const todayEssentials = useLiveQuery(
@@ -130,23 +132,6 @@ export function Today({
             Inverno
           </button>
         </div>
-        <p className="small muted" style={{ margin: '12px 0 4px' }}>
-          Intensità: <b>{INTENSITY_LABEL[intensity]}</b>
-        </p>
-        <div className="segmented" style={{ marginBottom: 0 }}>
-          <button
-            className={intensity === 'moderata' ? 'active' : ''}
-            onClick={() => setIntensity('moderata')}
-          >
-            Moderata
-          </button>
-          <button
-            className={intensity === 'intensiva' ? 'active' : ''}
-            onClick={() => setIntensity('intensiva')}
-          >
-            Intensiva
-          </button>
-        </div>
       </Card>
 
       {missing.length > 0 && (
@@ -232,17 +217,20 @@ export function Today({
             {todayWorkout.exercises.length > 0 && (
               <ul className="clean" style={{ marginTop: 8 }}>
                 {todayWorkout.exercises.map((ex, i) => {
-                  const vid = exerciseVideoUrl(ex.name);
+                  const openable = hasExerciseVideo(ex.name);
                   return (
-                    <li key={i} className="small" style={{ padding: '4px 0' }}>
+                    <li
+                      key={i}
+                      className="small"
+                      style={{ padding: '5px 0', cursor: openable ? 'pointer' : 'default' }}
+                      onClick={openable ? () => setExDetail(ex) : undefined}
+                    >
                       <b>{ex.name}:</b> {ex.detail}
-                      {vid && (
-                        <>
+                      {openable && (
+                        <span className="nowrap" style={{ color: 'var(--terracotta-dark)' }}>
                           {' '}
-                          <a href={vid} target="_blank" rel="noopener noreferrer" className="nowrap">
-                            ▶︎ video
-                          </a>
-                        </>
+                          ▶︎ apri ›
+                        </span>
                       )}
                     </li>
                   );
@@ -284,6 +272,12 @@ export function Today({
       {detail && (
         <Modal title={detail.name} onClose={() => setDetail(null)}>
           <RecipeDetail recipe={detail} factor={factor} />
+        </Modal>
+      )}
+
+      {exDetail && (
+        <Modal title={exDetail.name} onClose={() => setExDetail(null)}>
+          <ExerciseDetail exercise={exDetail} />
         </Modal>
       )}
     </div>

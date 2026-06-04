@@ -52,7 +52,9 @@ body,
 body {
   background: var(--cream);
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
+  /* Niente overscroll/gesti di navigazione orizzontale che bugcano lo swipe. */
+  overscroll-behavior: none;
+  overflow-x: hidden;
 }
 
 #root {
@@ -62,6 +64,7 @@ body {
   margin: 0 auto;
   min-height: 100dvh;
   background: var(--cream);
+  overflow-x: hidden;
 }
 
 h1,
@@ -489,9 +492,29 @@ textarea:focus {
   max-width: 640px;
   max-height: 92dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border-radius: 20px 20px 0 0;
   padding: 18px 16px calc(20px + var(--safe-bottom));
   animation: slideUp 0.18s ease-out;
+}
+
+/* Video YouTube incorporato (16:9 responsive) */
+.video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 12px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #000;
+}
+.video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 @keyframes slideUp {
   from {

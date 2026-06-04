@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { WorkoutDay } from '../data/types';
+import type { WorkoutDay, WorkoutExercise } from '../data/types';
 import { workoutWeeks } from '../data/workoutPlan';
 import { db } from '../db/db';
 import { toISODate } from '../lib/planning';
-import { exerciseVideoUrl } from '../lib/exerciseVideo';
+import { hasExerciseVideo } from '../lib/exerciseVideo';
 import { Card } from '../components/Card';
+import { Modal } from '../components/Modal';
+import { ExerciseDetail } from '../components/ExerciseDetail';
 
 const TYPE_ICON: Record<WorkoutDay['type'], string> = {
   cardio: '🏃',
@@ -23,6 +25,7 @@ const TYPE_LABEL: Record<WorkoutDay['type'], string> = {
 
 export function Workouts() {
   const [weekIdx, setWeekIdx] = useState(0);
+  const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);
   const week = workoutWeeks[weekIdx];
   const todayISO = toISODate(new Date());
 
@@ -111,15 +114,24 @@ export function Workouts() {
             {day.exercises.length > 0 && (
               <ul className="clean" style={{ marginTop: 6 }}>
                 {day.exercises.map((ex, j) => {
-                  const vid = exerciseVideoUrl(ex.name);
+                  const openable = hasExerciseVideo(ex.name);
                   return (
-                    <li key={j} className="small" style={{ padding: '5px 0', borderBottom: '1px solid var(--line)' }}>
+                    <li
+                      key={j}
+                      className="small"
+                      style={{
+                        padding: '7px 0',
+                        borderBottom: '1px solid var(--line)',
+                        cursor: openable ? 'pointer' : 'default',
+                      }}
+                      onClick={openable ? () => setExDetail(ex) : undefined}
+                    >
                       <div className="flex-between">
                         <b>{ex.name}</b>
-                        {vid && (
-                          <a className="nowrap" href={vid} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem' }}>
-                            ▶︎ Video
-                          </a>
+                        {openable && (
+                          <span className="nowrap" style={{ color: 'var(--terracotta-dark)', fontSize: '0.8rem' }}>
+                            ▶︎ apri ›
+                          </span>
                         )}
                       </div>
                       <div className="muted">{ex.detail}</div>
@@ -132,6 +144,12 @@ export function Workouts() {
           </Card>
         );
       })}
+
+      {exDetail && (
+        <Modal title={exDetail.name} onClose={() => setExDetail(null)}>
+          <ExerciseDetail exercise={exDetail} />
+        </Modal>
+      )}
     </div>
   );
 }

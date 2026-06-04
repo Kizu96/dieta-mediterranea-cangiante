@@ -107,6 +107,11 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - `src/lib/intensity.ts` (fattore porzioni: moderata ×1.3 ≈ target ~1900-2200, intensiva ×1.0 ≈ ~1450-1770) + hook `src/components/useIntensity.ts` (setting `intensity`, default `moderata`).
 - Applicato a display di kcal/macro e quantità spesa: `Today`, `Plan`, `Recipes`, `RecipeDetail`, `Shopping`. Toggle in `Settings` e quick-toggle su `Oggi`.
 - I macro base salvati in `recipes.ts` restano l'intensiva (×1); la moderata è scalata a runtime. Il PDF mostra le porzioni base.
+- Toggle ora **solo in Impostazioni** (rimosso da Oggi su richiesta).
+
+### Dettaglio esercizi + video + fix mobile
+- `src/components/ExerciseDetail.tsx`: modale apribile (come le ricette) con istruzioni + **video YouTube incorporato** (youtube-nocookie). ID in `src/lib/exerciseVideo.ts` (mappa keyword→ID da ricerca verificata: squat/piegamenti/plank/affondi/ponte/rematore); per gli altri, bottone ricerca YouTube. Esercizi tappabili in `Workouts` e `Oggi`.
+- Fix mobile: `Modal` chiude col tasto/gesto Indietro (history pushState/popstate) + blocca scroll dietro; CSS `overflow-x: hidden` + `overscroll-behavior: none` (stop swipe-back bug); `.modal` `overscroll-behavior: contain`; `.video-embed` 16:9 responsive.
 
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
