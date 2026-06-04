@@ -84,4 +84,12 @@ export const dailyEssentials: DailyEssential[] = [
     detail:
       'Almeno 1,5-2 litri al giorno. Una buona idratazione sostiene il metabolismo e aiuta a distinguere fame e sete; bevi soprattutto lontano e durante l’allenamento sul tapis roulant.',
   },
+  {
+    id: 'creatina',
+    name: 'Creatina monoidrato (opzionale)',
+    detail:
+      '3-5 g al giorno, anche nei giorni di riposo, con acqua. Sostiene forza e mantenimento della massa muscolare durante il deficit. Nota: può trattenere ~1 kg di acqua nei primi giorni (è peso, non grasso): non spaventarti sulla bilancia.',
+    ingredientId: 'creatina',
+    source: 'ISSN Position Stand sulla creatina, Kreider et al., JISSN 2017 (PMC5469049)',
+  },
 ];

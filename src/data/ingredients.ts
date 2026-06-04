@@ -138,4 +138,5 @@ export const ingredients: Ingredient[] = [
   { id: 'cacao-amaro', name: 'Cacao amaro in polvere', category: 'dispensa', unit: 'g', storage: 'Barattolo chiuso in dispensa', shelfLife: '2 anni', staple: true },
   { id: 'cioccolato-85', name: 'Cioccolato fondente 85%', category: 'dispensa', unit: 'g', storage: 'Luogo fresco e asciutto', shelfLife: '12-18 mesi', staple: true },
   { id: 'spirulina', name: 'Spirulina in polvere (opzionale)', category: 'dispensa', unit: 'g', storage: 'Barattolo chiuso al buio', shelfLife: '12-24 mesi', staple: true },
+  { id: 'creatina', name: 'Creatina monoidrato (integratore, opzionale)', category: 'dispensa', unit: 'g', storage: 'Barattolo chiuso, luogo asciutto', shelfLife: '2-3 anni', staple: true },
 ];

@@ -14,6 +14,7 @@ import { RecipeDetail } from '../components/RecipeDetail';
 import { useHaveSet } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { INTENSITY_LABEL, scaleRound } from '../lib/intensity';
+import { exerciseVideoUrl } from '../lib/exerciseVideo';
 import { SLOT_LABEL, formatLongDate, mondayIndex } from '../components/labels';
 import type { Recipe } from '../data/types';
 
@@ -230,11 +231,22 @@ export function Today({
             </div>
             {todayWorkout.exercises.length > 0 && (
               <ul className="clean" style={{ marginTop: 8 }}>
-                {todayWorkout.exercises.map((ex, i) => (
-                  <li key={i} className="small" style={{ padding: '4px 0' }}>
-                    <b>{ex.name}:</b> {ex.detail}
-                  </li>
-                ))}
+                {todayWorkout.exercises.map((ex, i) => {
+                  const vid = exerciseVideoUrl(ex.name);
+                  return (
+                    <li key={i} className="small" style={{ padding: '4px 0' }}>
+                      <b>{ex.name}:</b> {ex.detail}
+                      {vid && (
+                        <>
+                          {' '}
+                          <a href={vid} target="_blank" rel="noopener noreferrer" className="nowrap">
+                            ▶︎ video
+                          </a>
+                        </>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </>

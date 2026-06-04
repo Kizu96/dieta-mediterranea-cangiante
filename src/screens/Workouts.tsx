@@ -4,6 +4,7 @@ import type { WorkoutDay } from '../data/types';
 import { workoutWeeks } from '../data/workoutPlan';
 import { db } from '../db/db';
 import { toISODate } from '../lib/planning';
+import { exerciseVideoUrl } from '../lib/exerciseVideo';
 import { Card } from '../components/Card';
 
 const TYPE_ICON: Record<WorkoutDay['type'], string> = {
@@ -109,12 +110,22 @@ export function Workouts() {
             </div>
             {day.exercises.length > 0 && (
               <ul className="clean" style={{ marginTop: 6 }}>
-                {day.exercises.map((ex, j) => (
-                  <li key={j} className="small" style={{ padding: '5px 0', borderBottom: '1px solid var(--line)' }}>
-                    <b>{ex.name}</b>
-                    <div className="muted">{ex.detail}</div>
-                  </li>
-                ))}
+                {day.exercises.map((ex, j) => {
+                  const vid = exerciseVideoUrl(ex.name);
+                  return (
+                    <li key={j} className="small" style={{ padding: '5px 0', borderBottom: '1px solid var(--line)' }}>
+                      <div className="flex-between">
+                        <b>{ex.name}</b>
+                        {vid && (
+                          <a className="nowrap" href={vid} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem' }}>
+                            ▶︎ Video
+                          </a>
+                        )}
+                      </div>
+                      <div className="muted">{ex.detail}</div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
             {day.notes && <p className="small muted" style={{ marginTop: 8 }}>💡 {day.notes}</p>}

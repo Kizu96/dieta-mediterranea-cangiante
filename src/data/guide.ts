@@ -210,6 +210,27 @@ Il **sulforafano** dei germogli di broccoli, consumati **crudi**, è associato a
 
   // ===========================================================================
   {
+    id: 'integratori',
+    title: 'Integratori utili (opzionali)',
+    icon: '💊',
+    body: `La dieta copre già i nutrienti chiave. Tra gli integratori, uno solo ha prove forti e costo basso.
+
+## Creatina monoidrato
+**3-5 g al giorno**, tutti i giorni (anche di riposo), sciolta in acqua o aggiunta a frullato/yogurt. Non serve la fase di "carico".
+
+- **Perché**: è l'integratore più studiato; migliora forza e prestazione nella forza e **aiuta a preservare la massa muscolare** mentre perdi grasso. Più muscolo mantenuto = metabolismo più alto.
+- **Sicurezza**: ben tollerata in persone sane ai dosaggi tipici; bevi a sufficienza.
+- **Nota sul peso**: trattiene un po' d'acqua nel muscolo → la bilancia può salire di ~0,5-1 kg nelle prime 1-2 settimane. È **acqua, non grasso**: non interrompere per questo.
+- Fonte: ISSN Position Stand sulla creatina (Kreider et al., 2017).
+
+## Altri (facoltativi, valuta col medico)
+- **Vitamina D** se sei carente (esame del sangue).
+- **Omega-3** se mangi poco pesce azzurro.
+- Nessun "brucia-grassi": non funzionano e sprecano soldi.
+
+> Con un BMI in classe di obesità, parla col medico prima di iniziare qualsiasi integratore.`,
+  },
+  {
     id: 'disclaimer',
     title: 'Avvertenze e disclaimer medico',
     icon: '⚕️',
