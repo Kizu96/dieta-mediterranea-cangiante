@@ -12,6 +12,7 @@ import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { ExerciseDetail } from '../components/ExerciseDetail';
+import { WeeklySummary } from '../components/WeeklySummary';
 import { useHaveSet } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { scaleRound } from '../lib/intensity';
@@ -145,6 +146,8 @@ export function Today({
           </div>
         </div>
       )}
+
+      <WeeklySummary />
 
       <div className="dash-grid">
       <Card title="Pasti di oggi" icon="🍽️" action={<span className="pill olive">{scaleRound(totalKcal, factor)} kcal</span>}>

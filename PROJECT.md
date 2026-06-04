@@ -117,7 +117,10 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 ### Misure & composizione corporea
 - `WeightEntry` esteso (campi opzionali: `visceralFat`, `bodyFatPct`, `muscleKg`, `waistCm`, `hipsCm`) — nessuna migrazione (campi non indicizzati).
 - Schermata Peso: form con misure extra (collassabile), indicatori composizione, grafico con **selettore metrica** (Peso/Viscerale/Grasso %/Vita) via `WeightChart` generico. L'utente ha una bilancia smart che misura grasso viscerale.
-- TODO conversazione: riprovare WebFetch dei 7 ASIN Amazon (vedi memoria [[shopping-amazon]]) dopo reset limite ~20:30.
+- Grafico con metrica **Vita/Fianchi (WHR)** + **alert motivazionale** quando vita/grasso viscerale calano.
+- **Riepilogo settimanale** (`src/components/WeeklySummary.tsx`) su Oggi: Δ peso, Δ vita, allenamenti fatti (7 gg).
+- **Backup** (`src/lib/backup.ts`): esporta/importa JSON di tutte le tabelle, da Impostazioni → Dati.
+- Amazon: identificati quasi tutti (vedi [[shopping-amazon]]); 2 ASIN illeggibili (HTTP 500) lasciati perdere.
 
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.

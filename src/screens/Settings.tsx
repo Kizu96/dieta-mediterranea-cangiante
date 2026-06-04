@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import type { Season } from '../data/types';
-import { addDays } from '../lib/planning';
+import { addDays, toISODate } from '../lib/planning';
 import { missingForDate } from '../lib/shopping';
+import { exportData, importData } from '../lib/backup';
 import { db } from '../db/db';
 import { currentSeasonByDate } from '../lib/season';
 import { Modal } from '../components/Modal';
@@ -37,6 +38,8 @@ export function Settings({
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
   const [perm, setPerm] = useState<NotificationPermission>(permissionStatus());
   const [testMsg, setTestMsg] = useState('');
+  const [dataMsg, setDataMsg] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
   const autoSeason = currentSeasonByDate();
 
   useEffect(() => {
@@ -73,6 +76,34 @@ export function Settings({
 
   const set = <K extends keyof NotifPrefs>(key: K, value: NotifPrefs[K]) =>
     applyPrefs({ ...prefs, [key]: value });
+
+  const doExport = async () => {
+    const data = await exportData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dieta-backup-${toISODate(new Date())}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setDataMsg('Backup esportato ✓');
+    setTimeout(() => setDataMsg(''), 4000);
+  };
+
+  const doImport = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (!confirm('Importare il backup? I dati attuali verranno sostituiti.')) return;
+      await importData(parsed);
+      setDataMsg('Backup importato ✓');
+    } catch {
+      setDataMsg('File non valido.');
+    }
+    setTimeout(() => setDataMsg(''), 4000);
+  };
 
   const resetData = async () => {
     if (!confirm('Eliminare TUTTI i dati locali (dispensa, spesa, peso, log)? Operazione irreversibile.'))
@@ -201,9 +232,26 @@ export function Settings({
       {/* Dati */}
       <h3 className="section-label">Dati</h3>
       <p className="small muted" style={{ marginTop: -4 }}>
-        Tutti i dati restano solo su questo dispositivo (nessun account, nessun cloud).
+        Tutti i dati restano solo su questo dispositivo (nessun account, nessun cloud). Fai un
+        backup ogni tanto, soprattutto prima di cambiare telefono o svuotare la cache.
       </p>
-      <button className="btn ghost block" onClick={resetData} style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}>
+      <button className="btn secondary block" onClick={doExport} style={{ marginBottom: 8 }}>
+        ⬇️ Esporta dati (backup)
+      </button>
+      <button
+        className="btn secondary block"
+        onClick={() => fileRef.current?.click()}
+        style={{ marginBottom: 8 }}
+      >
+        ⬆️ Importa backup
+      </button>
+      <input ref={fileRef} type="file" accept="application/json" onChange={doImport} style={{ display: 'none' }} />
+      {dataMsg && (
+        <p className="small center" style={{ color: 'var(--olive-dark)' }}>
+          {dataMsg}
+        </p>
+      )}
+      <button className="btn ghost block" onClick={resetData} style={{ color: 'var(--danger)', borderColor: 'var(--danger)', marginTop: 8 }}>
         🗑 Cancella tutti i dati locali
       </button>
     </Modal>
