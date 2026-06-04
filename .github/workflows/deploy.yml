@@ -1,0 +1,37 @@
+name: Deploy su Netlify
+
+# Builda e pubblica il sito a ogni push su main (e manualmente da Actions).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: netlify-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Build
+        run: npm run build # PDF e icone sono già versionati in public/ → niente Edge in CI
+
+      - name: Deploy su Netlify (produzione)
+        run: npx --yes netlify-cli@latest deploy --prod --dir=dist --message "CI ${{ github.sha }}"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

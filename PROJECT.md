@@ -91,7 +91,12 @@ PDF: script Node che renderizza i contenuti guida → `public/Guida-Dieta.pdf`.
 - Nota: NON modificato `mealPlan.ts` (le nuove ricette sono nel pool/Ricette; integrazione nella rotazione del piano = TODO futuro).
 
 ### Deploy automatico
-- `gh` autenticato (Kizu96). Repo GitHub creato e pushato → collegare il sito Netlify esistente (mydieting.netlify.app) al repo in dashboard per deploy continuo. PDF/icone versionati, build cloud = `npm run build` (no Edge richiesto).
+- Repo GitHub **privato** `Kizu96/dieta-mediterranea-cangiante` (gh autenticato).
+- **GitHub Action** `.github/workflows/deploy.yml`: a ogni push su main fa `npm ci` + `npm run build` + deploy Netlify via `netlify-cli`. Richiede 2 secrets nel repo: `NETLIFY_AUTH_TOKEN` (PAT Netlify) e `NETLIFY_SITE_ID` (API ID del sito mydieting). PDF/icone versionati → niente Edge in CI.
+- 7 ricette nuove ora **integrate nella rotazione** di `mealPlan.ts` (estate+inverno); cous-cous-feta solo estate, zuppa-lenticchie-farro solo inverno.
+
+### Origine ricette (nota onestà)
+Le ricette sono combinazioni mediterranee standard scritte da modello (io/agente) su conoscenza culinaria, NON copiate da un ricettario né verificate una-per-una su banca dati. I **macro/kcal sono stime ragionevoli**, non valori da tabella ufficiale. La SCIENZA della dieta (green-MED, OEA, sulforafano, ecc.) ha invece fonti reali citate. TODO se serve precisione: validare i macro su CREA/USDA FoodData Central.
 
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
