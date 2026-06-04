@@ -30,6 +30,7 @@ export function Today({
   const autoSeason = currentSeasonByDate(today);
 
   const meals = getRecipesForDate(today, season);
+  const mealsTomorrow = getRecipesForDate(tomorrow, season);
   const haveSet = useHaveSet();
   const missing = missingForDate(haveSet, tomorrow, season);
 
@@ -97,6 +98,7 @@ export function Today({
   };
 
   const totalKcal = meals.reduce((s, m) => s + m.recipe.kcal, 0);
+  const totalKcalTomorrow = mealsTomorrow.reduce((s, m) => s + m.recipe.kcal, 0);
 
   return (
     <div>
@@ -155,9 +157,26 @@ export function Today({
         )}
       </Card>
 
+      <Card title="Pasti di domani" icon="🌙" action={<span className="pill">{totalKcalTomorrow} kcal</span>}>
+        {mealsTomorrow.length === 0 ? (
+          <p className="muted small">Nessun pasto pianificato per domani.</p>
+        ) : (
+          <ul className="clean">
+            {mealsTomorrow.map((m, i) => (
+              <li key={i} className="meal-row" onClick={() => setDetail(m.recipe)} style={{ cursor: 'pointer' }}>
+                <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
+                <span className="grow">{m.recipe.name}</span>
+                <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
       <Card title="Pilastri quotidiani" icon="✅">
         <p className="small muted" style={{ marginTop: -4 }}>
-          Spunta cosa hai fatto oggi.
+          Cibi-chiave anti-grasso viscerale da assumere <b>ogni giorno</b>. Molti sono già
+          inclusi nei pasti qui sopra: spunta qui per essere sicuro di non saltarli.
         </p>
         <ul className="clean">
           {dailyEssentials.map((e) => (

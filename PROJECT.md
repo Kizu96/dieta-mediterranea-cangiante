@@ -82,6 +82,14 @@ PDF: script Node che renderizza i contenuti guida → `public/Guida-Dieta.pdf`.
 - **Icone PNG** generate con `sharp` (`scripts/build-icons.mjs`, `npm run build:icons`): pwa-192/512, maskable 192/512, apple-touch-icon 180 in `public/`; manifest in `vite.config.ts` aggiornato (PNG + SVG fallback).
 - Rasterizzazione via Edge headless inaffidabile su questa macchina (singleton/hand-off) → usato sharp. Per screenshot Edge: killare prima i processi headless (`MainWindowHandle -eq 0`).
 
+### Rifiniture (giro 3)
+- **Palette pastello** turchese/menta/cioccolato: ridefinite le variabili colore in `src/index.css` (nomi invariati, valori nuovi), banner, `.pill.olive`, colori del grafico (`WeightChart.tsx`), `theme_color` manifest + `index.html`, e icone ricolorate (`public/icon.svg`, `favicon.svg`, `scripts/build-icons.mjs` → PNG rigenerate).
+- **Fix "Compra per domani"** (`src/lib/shopping.ts` → `missingForDate`): ora include anche gli staple non in dispensa (prima li saltava) ed esclude gli ingredienti con nota "opzionale". Lista completa reale.
+- **Today**: aggiunta card "Pasti di domani"; spiegazione dei "Pilastri quotidiani".
+- **Yogurt**: greco mantenuto nelle ricette + alternativa "o yogurt bianco intero" (note) e nuovo ingrediente `yogurt-intero`.
+- **+7 ricette** di varietà in `recipes.ts` (porridge cacao, pane+ricotta, cous cous+feta, zuppa lenticchie+farro, salmone+broccoli+quinoa, frittata funghi+spinaci, kefir+frutti). PDF rigenerato.
+- Nota: NON modificato `mealPlan.ts` (le nuove ricette sono nel pool/Ricette; integrazione nella rotazione del piano = TODO futuro).
+
 ### Deploy automatico
 - `gh` autenticato (Kizu96). Repo GitHub creato e pushato → collegare il sito Netlify esistente (mydieting.netlify.app) al repo in dashboard per deploy continuo. PDF/icone versionati, build cloud = `npm run build` (no Edge richiesto).
 

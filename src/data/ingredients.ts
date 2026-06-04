@@ -86,6 +86,7 @@ export const ingredients: Ingredient[] = [
 
   // ----- LATTICINI -----------------------------------------------------------
   { id: 'yogurt-greco', name: 'Yogurt greco bianco 0-2%', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
+  { id: 'yogurt-intero', name: 'Yogurt bianco intero', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
   { id: 'skyr', name: 'Skyr (yogurt islandese)', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
   { id: 'ricotta', name: 'Ricotta', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni (vedi data)' },
   { id: 'feta', name: 'Feta', category: 'latticini', unit: 'g', storage: 'Frigo nella sua salamoia', shelfLife: '1-2 settimane aperta' },

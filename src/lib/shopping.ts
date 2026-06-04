@@ -99,7 +99,10 @@ export function missingForDate(haveSet: Set<string>, date: Date, season: Season)
     for (const ri of recipe.ingredients) {
       const ing = ingredientMap.get(ri.ingredientId);
       if (!ing) continue;
-      if (ing.staple) continue;
+      // Gli ingredienti opzionali non sono obbligatori da comprare.
+      if (ri.note && /opzional/i.test(ri.note)) continue;
+      // Manca tutto ciò che non è segnato come presente in dispensa,
+      // staple inclusi: l'app non può sapere se li hai davvero in casa.
       if (!haveSet.has(ri.ingredientId)) missing.set(ing.id, ing);
     }
   }

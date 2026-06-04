@@ -3,20 +3,21 @@
    Palette mediterranea: verde oliva, terracotta, crema.
    ========================================================================= */
 :root {
-  /* Palette */
-  --olive: #6b7a3a;
-  --olive-dark: #4f5b2a;
-  --olive-light: #8a9b4a;
-  --terracotta: #c0612f;
-  --terracotta-dark: #a44e22;
-  --cream: #f4ece0;
-  --cream-2: #ece1cf;
-  --ink: #2e2a22;
-  --ink-soft: #5c5648;
-  --card: #fffdf8;
-  --line: #e2d6c2;
-  --danger: #b3402f;
-  --ok: #5b8a3a;
+  /* Palette pastello: turchese (primario), menta (accenti), cioccolato (secondario).
+     I nomi delle variabili restano invariati per compatibilità. */
+  --olive: #2f9389; /* turchese */
+  --olive-dark: #1f7269; /* teal scuro (sidebar, titoli) */
+  --olive-light: #93dcd2; /* menta */
+  --terracotta: #a9745b; /* cioccolato */
+  --terracotta-dark: #855840; /* cioccolato scuro */
+  --cream: #eef6f4; /* sfondo: bianco-menta */
+  --cream-2: #d9ece7; /* menta tenue */
+  --ink: #3b322c; /* testo: cioccolato scuro */
+  --ink-soft: #6f655c;
+  --card: #ffffff;
+  --line: #cfe6e0; /* bordo menta */
+  --danger: #c25b46;
+  --ok: #2f9389;
 
   --radius: 16px;
   --radius-sm: 10px;
@@ -268,7 +269,7 @@ textarea {
 }
 .pill.olive {
   background: var(--olive-light);
-  color: #fff;
+  color: var(--olive-dark);
 }
 .pill.terracotta {
   background: var(--terracotta);
@@ -427,13 +428,13 @@ textarea:focus {
   border: 1px solid;
 }
 .banner.warn {
-  background: #fbe9d8;
-  border-color: #e8b27f;
-  color: #7a3d12;
+  background: #f3e7df;
+  border-color: #d6b29c;
+  color: #7a4a33;
 }
 .banner.info {
-  background: #e9efda;
-  border-color: #b8c98c;
+  background: #ddf0ec;
+  border-color: #a6d8cf;
   color: var(--olive-dark);
 }
 

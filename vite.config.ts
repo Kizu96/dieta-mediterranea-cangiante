@@ -26,8 +26,8 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
-        theme_color: '#6b7a3a',
-        background_color: '#f4ece0',
+        theme_color: '#2f9389',
+        background_color: '#eef6f4',
         categories: ['health', 'lifestyle', 'food'],
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
