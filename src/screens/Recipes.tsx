@@ -104,34 +104,36 @@ export function Recipes({ season }: { season: Season }) {
           Nessuna ricetta con questi filtri.
         </div>
       ) : (
-        filtered.map((r) => (
-          <Card key={r.id}>
-            <div
-              style={{ cursor: 'pointer' }}
-              onClick={() => setDetail(r)}
-              role="button"
-              tabIndex={0}
-            >
-              <div className="flex-between">
-                <h3 style={{ margin: 0 }}>{r.name}</h3>
-                <span className="pill olive nowrap">{r.kcal} kcal</span>
+        <div className="recipe-grid">
+          {filtered.map((r) => (
+            <Card key={r.id}>
+              <div
+                style={{ cursor: 'pointer' }}
+                onClick={() => setDetail(r)}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="flex-between">
+                  <h3 style={{ margin: 0 }}>{r.name}</h3>
+                  <span className="pill olive nowrap">{r.kcal} kcal</span>
+                </div>
+                <div className="pill-row" style={{ marginTop: 8 }}>
+                  {r.slot.map((s) => (
+                    <span className="pill terracotta" key={s}>
+                      {SLOT_LABEL[s]}
+                    </span>
+                  ))}
+                  <span className="pill">⏱ {r.timeMin} min</span>
+                  {r.equipment.map((eq) => (
+                    <span className="pill" key={eq}>
+                      {EQUIPMENT_LABEL[eq]}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="pill-row" style={{ marginTop: 8 }}>
-                {r.slot.map((s) => (
-                  <span className="pill terracotta" key={s}>
-                    {SLOT_LABEL[s]}
-                  </span>
-                ))}
-                <span className="pill">⏱ {r.timeMin} min</span>
-                {r.equipment.map((eq) => (
-                  <span className="pill" key={eq}>
-                    {EQUIPMENT_LABEL[eq]}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </Card>
-        ))
+            </Card>
+          ))}
+        </div>
       )}
 
       {detail && (

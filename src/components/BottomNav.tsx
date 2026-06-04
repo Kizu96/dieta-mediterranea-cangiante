@@ -35,6 +35,9 @@ export function BottomNav({
 }) {
   return (
     <nav className="bottom-nav" aria-label="Navigazione principale">
+      <div className="nav-brand" aria-hidden="true">
+        🫒 Dieta Cangiante
+      </div>
       {ITEMS.map((it) => (
         <button
           key={it.key}

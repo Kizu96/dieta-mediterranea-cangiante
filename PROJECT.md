@@ -69,6 +69,13 @@ PDF: script Node che renderizza i contenuti guida → `public/Guida-Dieta.pdf`.
 - [x] QA: `npm run build` exit 0, `npm run lint` 0 errori, invarianti OK, flusso adattivo verificato; smoke test preview (index/pdf/manifest/sw → 200)
 - [~] F7 Deploy: build `dist/` pronta (PDF incluso), `netlify.toml` + `DEPLOY.md` creati. **Manca solo il passo finale di pubblicazione** (Netlify Drop di `dist/`) che richiede il browser/credenziali dell'utente.
 
+### UI responsive (desktop + mobile)
+- `< 900px` = layout mobile (tab bar in basso, colonna singola). `≥ 900px` = layout webapp:
+  la `.bottom-nav` diventa **sidebar** verticale a sinistra (`--sidebar-w`), header e `.screen`
+  spostati a destra e centrati su `--content-max`; modali centrate; `.recipe-grid` multi-colonna.
+- Tutto in CSS (`src/index.css`, media query) + brand in `BottomNav.tsx` + wrapper `.recipe-grid` in `Recipes.tsx`.
+- Verificato con screenshot Edge headless a 1440px e 412px.
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.
