@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- full-bleed background for maskable safe-zone -->
+  <rect width="512" height="512" fill="#6b7a3a"/>
+  <g fill="none" stroke="#f4ece0" stroke-width="12" stroke-linecap="round">
+    <path d="M180 350 C 230 290, 280 245, 340 195"/>
+  </g>
+  <g fill="#8a9b4a" stroke="#f4ece0" stroke-width="5">
+    <ellipse cx="235" cy="290" rx="28" ry="16" transform="rotate(-38 235 290)"/>
+    <ellipse cx="285" cy="248" rx="28" ry="16" transform="rotate(-38 285 248)"/>
+    <ellipse cx="215" cy="328" rx="28" ry="16" transform="rotate(-38 215 328)"/>
+  </g>
+  <circle cx="300" cy="288" r="22" fill="#c0612f" stroke="#f4ece0" stroke-width="5"/>
+  <circle cx="332" cy="252" r="22" fill="#3f4f23" stroke="#f4ece0" stroke-width="5"/>
+</svg>

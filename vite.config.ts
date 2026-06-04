@@ -1,0 +1,49 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['icon.svg', 'icon-maskable.svg', 'favicon.svg'],
+      // Permette il funzionamento offline e l'installazione su Android/Windows.
+      workbox: {
+        // La PDF della guida potrebbe non esistere ancora: non bloccare il build.
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        navigateFallbackDenylist: [/\.pdf$/],
+      },
+      manifest: {
+        name: 'Dieta Mediterranea Cangiante',
+        short_name: 'Dieta',
+        description:
+          'Piano pasti stagionale, dispensa, lista spesa, peso e allenamenti. Dati solo locali, offline.',
+        lang: 'it',
+        dir: 'ltr',
+        display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
+        theme_color: '#6b7a3a',
+        background_color: '#f4ece0',
+        categories: ['health', 'lifestyle', 'food'],
+        icons: [
+          {
+            src: 'icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any',
+          },
+          {
+            src: 'icon-maskable.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'maskable',
+          },
+        ],
+      },
+    }),
+  ],
+})

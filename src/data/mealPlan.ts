@@ -1,0 +1,174 @@
+import type { SeasonPlan, DayTemplate } from './types';
+
+// Piani stagionali a ciclo di 7 giorni con ciclizzazione calorica ("cangiante").
+// Giorni `active: true` = tapis roulant → ~2200 kcal (più carboidrati).
+// Giorni di riposo → ~1900 kcal.
+// Schema attività coerente con workoutPlan.ts: Lun/Mer/Sab/Dom = cardio (attivi).
+// Ogni recipeId esiste in recipes.ts; le ricette sono diversificate fra i giorni.
+
+// ----- ESTATE ----------------------------------------------------------------
+const estateDays: DayTemplate[] = [
+  {
+    dayLabel: 'Lun',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-yogurt-avena' },
+      { slot: 'pranzo', recipeId: 'pranzo-quinoa-gamberetti' },
+      { slot: 'spuntino', recipeId: 'spuntino-frutta-noci' },
+      { slot: 'cena', recipeId: 'cena-salmone-friggitrice' },
+    ],
+  },
+  {
+    dayLabel: 'Mar',
+    active: false,
+    kcalTarget: 1900,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-smoothie-verde' },
+      { slot: 'pranzo', recipeId: 'pranzo-ceci-tonno' },
+      { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
+      { slot: 'cena', recipeId: 'cena-frittata-zucchine' },
+    ],
+  },
+  {
+    dayLabel: 'Mer',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-toast-ricotta-noci' },
+      { slot: 'pranzo', recipeId: 'pranzo-pasta-integrale-sgombro' },
+      { slot: 'spuntino', recipeId: 'spuntino-matcha-latte' },
+      { slot: 'cena', recipeId: 'cena-pollo-friggitrice-verdure' },
+    ],
+  },
+  {
+    dayLabel: 'Gio',
+    active: false,
+    kcalTarget: 1900,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-overnight-oats-chia' },
+      { slot: 'pranzo', recipeId: 'pranzo-cous-cous-cannellini' },
+      { slot: 'spuntino', recipeId: 'spuntino-hummus-verdure' },
+      { slot: 'cena', recipeId: 'cena-merluzzo-pomodoro' },
+    ],
+  },
+  {
+    dayLabel: 'Ven',
+    active: false,
+    kcalTarget: 1900,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-frittata-microonde' },
+      { slot: 'pranzo', recipeId: 'pranzo-wrap-hummus-tacchino' },
+      { slot: 'spuntino', recipeId: 'spuntino-polifenoli' },
+      { slot: 'cena', recipeId: 'cena-platessa-friggitrice' },
+    ],
+  },
+  {
+    dayLabel: 'Sab',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-yogurt-avena' },
+      { slot: 'pranzo', recipeId: 'pranzo-farro-pollo-verdure' },
+      { slot: 'spuntino', recipeId: 'spuntino-gallette-burro-arachidi' },
+      { slot: 'cena', recipeId: 'cena-tacchino-padella-funghi' },
+    ],
+  },
+  {
+    dayLabel: 'Dom',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-overnight-oats-chia' },
+      { slot: 'pranzo', recipeId: 'pranzo-riso-integrale-edamame' },
+      { slot: 'spuntino', recipeId: 'spuntino-frutta-noci' },
+      { slot: 'cena', recipeId: 'cena-spinaci-uova' },
+    ],
+  },
+];
+
+// ----- INVERNO ---------------------------------------------------------------
+const invernoDays: DayTemplate[] = [
+  {
+    dayLabel: 'Lun',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-porridge-caldo' },
+      { slot: 'pranzo', recipeId: 'pranzo-farro-pollo-verdure' },
+      { slot: 'spuntino', recipeId: 'spuntino-frutta-noci' },
+      { slot: 'cena', recipeId: 'cena-salmone-friggitrice' },
+    ],
+  },
+  {
+    dayLabel: 'Mar',
+    active: false,
+    kcalTarget: 1900,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-yogurt-avena' },
+      { slot: 'pranzo', recipeId: 'pranzo-zuppa-lenticchie' },
+      { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
+      { slot: 'cena', recipeId: 'cena-tacchino-padella-funghi' },
+    ],
+  },
+  {
+    dayLabel: 'Mer',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-toast-ricotta-noci' },
+      { slot: 'pranzo', recipeId: 'pranzo-orzo-feta-verdure' },
+      { slot: 'spuntino', recipeId: 'spuntino-ricotta-cacao' },
+      { slot: 'cena', recipeId: 'cena-merluzzo-pomodoro' },
+    ],
+  },
+  {
+    dayLabel: 'Gio',
+    active: false,
+    kcalTarget: 1900,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-overnight-oats-chia' },
+      { slot: 'pranzo', recipeId: 'pranzo-wrap-hummus-tacchino' },
+      { slot: 'spuntino', recipeId: 'spuntino-hummus-verdure' },
+      { slot: 'cena', recipeId: 'cena-ceci-curry-spinaci' },
+    ],
+  },
+  {
+    dayLabel: 'Ven',
+    active: false,
+    kcalTarget: 1900,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-frittata-microonde' },
+      { slot: 'pranzo', recipeId: 'pranzo-pasta-integrale-sgombro' },
+      { slot: 'spuntino', recipeId: 'spuntino-polifenoli' },
+      { slot: 'cena', recipeId: 'cena-cavolfiore-uova-friggitrice' },
+    ],
+  },
+  {
+    dayLabel: 'Sab',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-porridge-caldo' },
+      { slot: 'pranzo', recipeId: 'pranzo-riso-integrale-edamame' },
+      { slot: 'spuntino', recipeId: 'spuntino-gallette-burro-arachidi' },
+      { slot: 'cena', recipeId: 'cena-zuppa-cavolo-fagioli' },
+    ],
+  },
+  {
+    dayLabel: 'Dom',
+    active: true,
+    kcalTarget: 2200,
+    meals: [
+      { slot: 'colazione', recipeId: 'colazione-yogurt-avena' },
+      { slot: 'pranzo', recipeId: 'pranzo-zuppa-lenticchie' },
+      { slot: 'spuntino', recipeId: 'spuntino-frutta-noci' },
+      { slot: 'cena', recipeId: 'cena-platessa-friggitrice' },
+    ],
+  },
+];
+
+export const seasonPlans: SeasonPlan[] = [
+  { season: 'estate', days: estateDays },
+  { season: 'inverno', days: invernoDays },
+];
