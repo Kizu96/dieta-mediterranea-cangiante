@@ -22,12 +22,19 @@ const DEFAULT_PROFILE_OBJ: Profile = {
   age: DEFAULT_PROFILE.age,
 };
 
-type Metric = 'peso' | 'viscerale' | 'grasso' | 'vita';
-const METRICS: Record<Metric, { label: string; key: keyof WeightEntry; unit: string; color: string }> = {
-  peso: { label: 'Peso', key: 'kg', unit: 'kg', color: '#2f9389' },
-  viscerale: { label: 'Viscerale', key: 'visceralFat', unit: '', color: '#a9745b' },
-  grasso: { label: 'Grasso %', key: 'bodyFatPct', unit: '%', color: '#c25b46' },
-  vita: { label: 'Vita', key: 'waistCm', unit: 'cm', color: '#1f7269' },
+type Metric = 'peso' | 'viscerale' | 'grasso' | 'vita' | 'whr';
+const METRICS: Record<Metric, { label: string; unit: string; color: string; value: (w: WeightEntry) => number | undefined }> = {
+  peso: { label: 'Peso', unit: 'kg', color: '#2f9389', value: (w) => w.kg },
+  viscerale: { label: 'Viscerale', unit: '', color: '#a9745b', value: (w) => w.visceralFat },
+  grasso: { label: 'Grasso %', unit: '%', color: '#c25b46', value: (w) => w.bodyFatPct },
+  vita: { label: 'Vita', unit: 'cm', color: '#1f7269', value: (w) => w.waistCm },
+  whr: {
+    label: 'Vita/Fianchi',
+    unit: '',
+    color: '#6f655c',
+    value: (w) =>
+      w.waistCm != null && w.hipsCm != null ? Math.round((w.waistCm / w.hipsCm) * 100) / 100 : undefined,
+  },
 };
 
 const num = (s: string): number | undefined => {
@@ -40,6 +47,7 @@ export function Weight() {
   const [editProfile, setEditProfile] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [metric, setMetric] = useState<Metric>('peso');
+  const [msg, setMsg] = useState(''); // messaggio motivazionale dopo il salvataggio
 
   // Campi del form
   const [kg, setKg] = useState('');
@@ -75,16 +83,17 @@ export function Weight() {
   const weeks = weeksToTarget(current, profile?.targetKg ?? DEFAULT_PROFILE.targetKg, perWeek);
 
   const m = METRICS[metric];
-  const chartData = useMemo(
-    () =>
-      list
-        .filter((w) => typeof w[m.key] === 'number')
-        .map((w) => ({ label: formatShortDate(new Date(w.date)), value: w[m.key] as number })),
-    [list, m.key],
-  );
+  const chartData = useMemo(() => {
+    const val = METRICS[metric].value;
+    return list
+      .map((w) => ({ label: formatShortDate(new Date(w.date)), value: val(w) }))
+      .filter((d): d is { label: string; value: number } => typeof d.value === 'number');
+  }, [list, metric]);
   const chartTarget = metric === 'peso' ? (profile?.targetKg ?? DEFAULT_PROFILE.targetKg) : undefined;
 
   const save = async () => {
+    const prevWaist = latestOf('waistCm');
+    const prevVisceral = latestOf('visceralFat');
     const patch: Partial<WeightEntry> = {};
     const k = num(kg);
     if (k != null) patch.kg = k;
@@ -104,6 +113,16 @@ export function Weight() {
     if (existing?.id != null) await db.weights.update(existing.id, patch);
     else await db.weights.add({ date: today, kg: patch.kg ?? current, ...patch });
 
+    // Alert motivazionale: vita o grasso viscerale in calo rispetto all'ultima misura.
+    let praise = '';
+    if (patch.waistCm != null && prevWaist != null && patch.waistCm < prevWaist) {
+      praise = `🎉 Vita −${(prevWaist - patch.waistCm).toFixed(1)} cm! È proprio lì che cala il grasso viscerale. Continua così.`;
+    } else if (patch.visceralFat != null && prevVisceral != null && patch.visceralFat < prevVisceral) {
+      praise = `🎉 Grasso viscerale in calo (−${(prevVisceral - patch.visceralFat).toFixed(1)})! Ottimo lavoro.`;
+    }
+    setMsg(praise);
+    if (praise) setTimeout(() => setMsg(''), 7000);
+
     setKg('');
     setVisceral('');
     setBodyFat('');
@@ -118,6 +137,11 @@ export function Weight() {
 
   return (
     <div>
+      {msg && (
+        <div className="banner info" style={{ marginBottom: 14 }}>
+          {msg}
+        </div>
+      )}
       <div className="dash-grid">
         <Card title="Registra misure di oggi" icon="⚖️">
           <div className="field">
