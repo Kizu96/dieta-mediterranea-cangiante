@@ -112,6 +112,12 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 ### Dettaglio esercizi + video + fix mobile
 - `src/components/ExerciseDetail.tsx`: modale apribile (come le ricette) con istruzioni + **video YouTube incorporato** (youtube-nocookie). ID in `src/lib/exerciseVideo.ts` (mappa keyword→ID da ricerca verificata: squat/piegamenti/plank/affondi/ponte/rematore); per gli altri, bottone ricerca YouTube. Esercizi tappabili in `Workouts` e `Oggi`.
 - Fix mobile: `Modal` chiude col tasto/gesto Indietro (history pushState/popstate) + blocca scroll dietro; CSS `overflow-x: hidden` + `overscroll-behavior: none` (stop swipe-back bug); `.modal` `overscroll-behavior: contain`; `.video-embed` 16:9 responsive.
+- Video incorporati per TUTTI gli esercizi (mappa keyword→ID in `exerciseVideo.ts`); lista spesa "Solo domani" (banner Compra-per-domani) oltre a 3/7 giorni.
+
+### Misure & composizione corporea
+- `WeightEntry` esteso (campi opzionali: `visceralFat`, `bodyFatPct`, `muscleKg`, `waistCm`, `hipsCm`) — nessuna migrazione (campi non indicizzati).
+- Schermata Peso: form con misure extra (collassabile), indicatori composizione, grafico con **selettore metrica** (Peso/Viscerale/Grasso %/Vita) via `WeightChart` generico. L'utente ha una bilancia smart che misura grasso viscerale.
+- TODO conversazione: riprovare WebFetch dei 7 ASIN Amazon (vedi memoria [[shopping-amazon]]) dopo reset limite ~20:30.
 
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.

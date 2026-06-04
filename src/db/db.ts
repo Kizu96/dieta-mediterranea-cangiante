@@ -19,6 +19,12 @@ export interface WeightEntry {
   id?: number;
   date: string; // ISO yyyy-mm-dd
   kg: number;
+  // Composizione corporea / misure (dalla bilancia smart o dal metro). Opzionali.
+  visceralFat?: number; // indice grasso viscerale (es. 1-59)
+  bodyFatPct?: number; // % massa grassa
+  muscleKg?: number; // massa muscolare (kg)
+  waistCm?: number; // circonferenza vita
+  hipsCm?: number; // circonferenza fianchi
   note?: string;
 }
 
