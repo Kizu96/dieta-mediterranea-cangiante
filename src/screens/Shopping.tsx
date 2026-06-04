@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
-import { toISODate } from '../lib/planning';
+import { addDays, toISODate } from '../lib/planning';
 import { buildShoppingList } from '../lib/shopping';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
@@ -11,15 +11,23 @@ import { useIntensity } from '../components/useIntensity';
 import { scaleQty } from '../lib/intensity';
 import { CATEGORY_LABEL, formatQty } from '../components/labels';
 
-export function Shopping({ season }: { season: Season }) {
-  const [days, setDays] = useState<3 | 7>(7);
+export function Shopping({
+  season,
+  focusTomorrow = false,
+}: {
+  season: Season;
+  focusTomorrow?: boolean;
+}) {
+  const [mode, setMode] = useState<'domani' | 3 | 7>(focusTomorrow ? 'domani' : 7);
   const today = useMemo(() => new Date(), []);
+  const start = useMemo(() => (mode === 'domani' ? addDays(today, 1) : today), [mode, today]);
+  const days = mode === 'domani' ? 1 : mode;
   const haveSet = useHaveSet();
   const { factor } = useIntensity();
 
   const groups = useMemo(
-    () => buildShoppingList(haveSet, today, days, season),
-    [haveSet, today, days, season],
+    () => buildShoppingList(haveSet, start, days, season),
+    [haveSet, start, days, season],
   );
 
   const boughtRows = useLiveQuery(() => db.shopping.toArray(), [], []);
@@ -50,16 +58,21 @@ export function Shopping({ season }: { season: Season }) {
   return (
     <div>
       <div className="segmented">
-        <button className={days === 3 ? 'active' : ''} onClick={() => setDays(3)}>
-          Prossimi 3 giorni
+        <button className={mode === 'domani' ? 'active' : ''} onClick={() => setMode('domani')}>
+          Solo domani
         </button>
-        <button className={days === 7 ? 'active' : ''} onClick={() => setDays(7)}>
-          Prossimi 7 giorni
+        <button className={mode === 3 ? 'active' : ''} onClick={() => setMode(3)}>
+          3 giorni
+        </button>
+        <button className={mode === 7 ? 'active' : ''} onClick={() => setMode(7)}>
+          7 giorni
         </button>
       </div>
 
       <p className="small muted">
-        Da oggi ({toISODate(today)}). Esclude ciò che è già in dispensa.
+        {mode === 'domani'
+          ? `Solo per i pasti di domani (${toISODate(start)}). Esclude ciò che è già in dispensa.`
+          : `Da oggi (${toISODate(today)}). Esclude ciò che è già in dispensa.`}
         {totalItems > 0 && ` · ${boughtCount}/${totalItems} comprati`}
       </p>
 

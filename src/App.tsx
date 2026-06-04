@@ -34,6 +34,8 @@ const TITLES: Record<ViewKey, string> = {
 function App() {
   const [view, setView] = useState<ViewKey>('oggi');
   const [showSettings, setShowSettings] = useState(false);
+  // true = la schermata Spesa si apre sui soli ingredienti di domani (dal banner "Compra per domani").
+  const [spesaDomani, setSpesaDomani] = useState(false);
 
   // Override stagione persistito ('estate' | 'inverno' | null = auto).
   const seasonOverride = useLiveQuery(
@@ -82,19 +84,28 @@ function App() {
           <Today
             season={season}
             onSeasonOverride={setSeasonOverride}
-            onGoShopping={() => setView('spesa')}
+            onGoShopping={() => {
+              setSpesaDomani(true);
+              setView('spesa');
+            }}
           />
         )}
         {view === 'piano' && <Plan season={season} />}
         {view === 'ricette' && <Recipes season={season} />}
         {view === 'dispensa' && <Pantry />}
-        {view === 'spesa' && <Shopping season={season} />}
+        {view === 'spesa' && <Shopping season={season} focusTomorrow={spesaDomani} />}
         {view === 'peso' && <Weight />}
         {view === 'allenamenti' && <Workouts />}
         {view === 'guida' && <Guide />}
       </main>
 
-      <BottomNav current={view} onChange={setView} />
+      <BottomNav
+        current={view}
+        onChange={(v) => {
+          setSpesaDomani(false); // dalla navigazione la Spesa mostra la lista completa
+          setView(v);
+        }}
+      />
 
       {showSettings && (
         <Settings
