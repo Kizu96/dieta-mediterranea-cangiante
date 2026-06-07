@@ -143,6 +143,11 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - Confermate corrette: Bahadoran Z (Int J Food Sci Nutr 2012, PMID 22537070), Axelsson AS (Sci Transl Med 2017), Curtis PJ (AJCN 2019, PMC6537945), Grassi D (AJCN 2005, PMID 15755830), Kreider ISSN creatina 2017 (PMC5469049).
 - PDF/guida rigenerati con le citazioni corrette (`npm run build:pdf`).
 
+### Bilanciamento proteico del piano (giugno 2026)
+- Verificate proteine/fibre per giorno (bundle esbuild di recipes+mealPlan, fattore moderata ×1.3). Trovati giorni sotto il target proteico del piano (~130-150 g): estate Gio/Dom, inverno Mer/Gio/Ven/Sab/Dom.
+- Correzione in `mealPlan.ts` (scambi mirati, calorie invariate): spuntini poveri di proteine → `spuntino-edamame-salati`/`spuntino-yogurt-mandorle`; estate Dom cena→`platessa`, colazione→`yogurt-avena`; estate Gio colazione→`frittata-microonde`; inverno Mer colazione→`frittata-microonde`; inverno Sab cena→`tacchino-padella-funghi`.
+- Risultato: tutti i 14 giorni ≥122 g proteine (moderata); medie estate **141 g**, inverno **131 g**; calorie 1867-2296 (moderata). Fibre alte ma ok (un paio di giorni invernali ~57-66 g → introdurre gradualmente). Guida/PDF rigenerati.
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.

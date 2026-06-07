@@ -46,9 +46,9 @@ const estateDays: DayTemplate[] = [
     active: false,
     kcalTarget: 1900,
     meals: [
-      { slot: 'colazione', recipeId: 'colazione-porridge-cacao' },
+      { slot: 'colazione', recipeId: 'colazione-frittata-microonde' },
       { slot: 'pranzo', recipeId: 'pranzo-cous-cous-feta' },
-      { slot: 'spuntino', recipeId: 'spuntino-hummus-verdure' },
+      { slot: 'spuntino', recipeId: 'spuntino-edamame-salati' },
       { slot: 'cena', recipeId: 'cena-merluzzo-pomodoro' },
     ],
   },
@@ -79,10 +79,10 @@ const estateDays: DayTemplate[] = [
     active: true,
     kcalTarget: 2200,
     meals: [
-      { slot: 'colazione', recipeId: 'colazione-pane-ricotta-miele' },
+      { slot: 'colazione', recipeId: 'colazione-yogurt-avena' },
       { slot: 'pranzo', recipeId: 'pranzo-riso-integrale-edamame' },
-      { slot: 'spuntino', recipeId: 'spuntino-frutta-noci' },
-      { slot: 'cena', recipeId: 'cena-spinaci-uova' },
+      { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
+      { slot: 'cena', recipeId: 'cena-platessa-friggitrice' },
     ],
   },
 ];
@@ -116,9 +116,9 @@ const invernoDays: DayTemplate[] = [
     active: true,
     kcalTarget: 2200,
     meals: [
-      { slot: 'colazione', recipeId: 'colazione-toast-ricotta-noci' },
+      { slot: 'colazione', recipeId: 'colazione-frittata-microonde' },
       { slot: 'pranzo', recipeId: 'pranzo-orzo-feta-verdure' },
-      { slot: 'spuntino', recipeId: 'spuntino-ricotta-cacao' },
+      { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
       { slot: 'cena', recipeId: 'cena-merluzzo-pomodoro' },
     ],
   },
@@ -129,7 +129,7 @@ const invernoDays: DayTemplate[] = [
     meals: [
       { slot: 'colazione', recipeId: 'colazione-porridge-cacao' },
       { slot: 'pranzo', recipeId: 'pranzo-wrap-hummus-tacchino' },
-      { slot: 'spuntino', recipeId: 'spuntino-hummus-verdure' },
+      { slot: 'spuntino', recipeId: 'spuntino-edamame-salati' },
       { slot: 'cena', recipeId: 'cena-ceci-curry-spinaci' },
     ],
   },
@@ -140,7 +140,7 @@ const invernoDays: DayTemplate[] = [
     meals: [
       { slot: 'colazione', recipeId: 'colazione-frittata-microonde' },
       { slot: 'pranzo', recipeId: 'pranzo-pasta-integrale-sgombro' },
-      { slot: 'spuntino', recipeId: 'spuntino-polifenoli' },
+      { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
       { slot: 'cena', recipeId: 'cena-cavolfiore-uova-friggitrice' },
     ],
   },
@@ -151,8 +151,8 @@ const invernoDays: DayTemplate[] = [
     meals: [
       { slot: 'colazione', recipeId: 'colazione-porridge-caldo' },
       { slot: 'pranzo', recipeId: 'pranzo-zuppa-lenticchie-farro' },
-      { slot: 'spuntino', recipeId: 'spuntino-gallette-burro-arachidi' },
-      { slot: 'cena', recipeId: 'cena-zuppa-cavolo-fagioli' },
+      { slot: 'spuntino', recipeId: 'spuntino-edamame-salati' },
+      { slot: 'cena', recipeId: 'cena-tacchino-padella-funghi' },
     ],
   },
   {
@@ -162,7 +162,7 @@ const invernoDays: DayTemplate[] = [
     meals: [
       { slot: 'colazione', recipeId: 'colazione-pane-ricotta-miele' },
       { slot: 'pranzo', recipeId: 'pranzo-zuppa-lenticchie' },
-      { slot: 'spuntino', recipeId: 'spuntino-frutta-noci' },
+      { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
       { slot: 'cena', recipeId: 'cena-salmone-broccoli-quinoa' },
     ],
   },
