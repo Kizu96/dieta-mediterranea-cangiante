@@ -29,7 +29,11 @@ Routine: lavoro 9–18, impegni 19–20, relax dalle 22, sonno ~24.
 
 ## Stack & hosting
 Vite + React 19 + TypeScript + Dexie (IndexedDB) + recharts + date-fns + vite-plugin-pwa.
-Hosting gratuito consigliato: **Netlify** (drag-&-drop di `dist/`). Alternative: GitHub Pages, Cloudflare Pages, Vercel.
+**Hosting: GitHub Pages** → https://kizu96.github.io/dieta-mediterranea-cangiante/ (repo PUBBLICO,
+deploy via `.github/workflows/deploy.yml` con actions/deploy-pages; Vite `base: '/dieta-mediterranea-cangiante/'`).
+Ex Netlify abbandonato (giugno 2026): piano a crediti esaurito, deploy bloccati. GitHub Pages sul
+piano free richiede repo pubblico → repo reso pubblico (nessun dato sensibile: i dati utente sono
+solo locali in IndexedDB, i secret non sono nel codice).
 PDF: script Node che renderizza i contenuti guida → `public/Guida-Dieta.pdf`.
 
 ## CONTRATTO DATI (non rompere queste firme)
