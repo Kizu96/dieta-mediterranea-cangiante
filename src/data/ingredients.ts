@@ -124,7 +124,7 @@ export const ingredients: Ingredient[] = [
   { id: 'semi-lino', name: 'Semi di lino', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico; macinati in frigo', shelfLife: '12 mesi interi', staple: true },
   { id: 'semi-zucca', name: 'Semi di zucca', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '6-9 mesi', staple: true },
   { id: 'semi-girasole', name: 'Semi di girasole', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '6-9 mesi', staple: true },
-  { id: 'burro-arachidi', name: 'Burro di arachidi (100% arachidi)', category: 'fruttaSecca', unit: 'g', storage: 'Dispensa; mescolare, aperto in frigo', shelfLife: '12 mesi', staple: true },
+  { id: 'burro-arachidi', name: 'Burro o crema di arachidi (100% arachidi)', category: 'fruttaSecca', unit: 'g', storage: 'Dispensa; mescolare, aperto in frigo', shelfLife: '12 mesi', staple: true },
 
   // ----- FERMENTATI ----------------------------------------------------------
   { id: 'crauti', name: 'Crauti (fatti in casa o in busta)', category: 'fermentati', unit: 'g', storage: 'Frigo in barattolo, coperti dalla salamoia', shelfLife: '4-6 mesi' },
