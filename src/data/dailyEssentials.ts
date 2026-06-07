@@ -19,7 +19,7 @@ export const dailyEssentials: DailyEssential[] = [
       '3-4 tazze al giorno (non zuccherato). Nel protocollo green-MED il tè verde, insieme alla Mankai e alle noci, è associato a una perdita di grasso viscerale doppia rispetto alla dieta mediterranea classica.',
     ingredientId: 'te-verde',
     source:
-      'Yaskolka Meir et al., DIRECT-PLUS, BMC Medicine 2022 (PubMed 36175997; DOI 10.1186/s12916-022-02525-8)',
+      'Zelicha et al., DIRECT-PLUS, BMC Medicine 2022;20:327 (PubMed 36175997; DOI 10.1186/s12916-022-02525-8)',
   },
   {
     id: 'olio-evo',
@@ -28,7 +28,7 @@ export const dailyEssentials: DailyEssential[] = [
       '3-4 cucchiai al giorno, preferibilmente a crudo. L’acido oleico stimola nell’intestino la sintesi di OEA (oleoiletanolamide), un agonista di PPAR-α che aumenta sazietà e ossidazione dei grassi.',
     ingredientId: 'olio-evo',
     source:
-      'Diep et al., Dietary oleic acid e sintesi intestinale di OEA, 2023 (PMC9886573)',
+      'Igarashi et al., Dietary oleic acid e sintesi intestinale di OEA, Frontiers in Endocrinology 2023 (PMC9886573)',
   },
   {
     id: 'verde-foglia',

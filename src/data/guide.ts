@@ -160,13 +160,13 @@ Il freezer è l'alleato n.1 di chi vive solo:
 
 ## Green-MED / DIRECT-PLUS — il cuore del piano
 Lo studio DIRECT-PLUS (18 mesi, 294 partecipanti) ha confrontato linee guida sane, dieta mediterranea classica e mediterranea "verde". La green-MED — con **tè verde (3-4 tazze/die), un frullato verde (Mankai) e 28 g di noci** e meno carne rossa — ha **dimezzato il grasso viscerale** rispetto alla MED classica (−14,1% vs −6,0%).
-- Yaskolka Meir A, et al. *The effect of high-polyphenol Mediterranean diet on visceral adiposity: the DIRECT PLUS randomized controlled trial.* **BMC Medicine 2022**.
+- Zelicha H, et al. *The effect of high-polyphenol Mediterranean diet on visceral adiposity: the DIRECT PLUS randomized controlled trial.* **BMC Medicine 2022;20:327**.
   - PubMed: https://pubmed.ncbi.nlm.nih.gov/36175997/
   - DOI: https://doi.org/10.1186/s12916-022-02525-8
 
 ## Olio EVO → acido oleico → OEA (sazietà)
 L'acido oleico dell'olio EVO viene usato dall'intestino per produrre **OEA (oleoiletanolamide)**, un agonista del recettore **PPAR-α** che aumenta la sazietà e favorisce l'ossidazione dei grassi. Per questo l'olio EVO è un pilastro, preferibilmente **a crudo**.
-- Diep TA, et al. *Dietary oleic acid e sintesi intestinale di oleoiletanolamide.* PMC9886573: https://pmc.ncbi.nlm.nih.gov/articles/PMC9886573/
+- Igarashi M, et al. *Dietary oleic acid contributes to the regulation of food intake through the synthesis of intestinal oleoylethanolamide.* **Frontiers in Endocrinology 2023**. PMC9886573: https://pmc.ncbi.nlm.nih.gov/articles/PMC9886573/
 
 ## Germogli di broccoli → sulforafano (insulina/HOMA-IR)
 Il **sulforafano** dei germogli di broccoli, consumati **crudi**, è associato a una riduzione di insulina a digiuno e indice HOMA-IR. Un'ulteriore evidenza mostra una riduzione della produzione epatica di glucosio.

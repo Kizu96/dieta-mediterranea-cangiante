@@ -135,6 +135,14 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - `Recipe.office?: boolean`. Marcate `office: true` le 8 ricette-pranzo usate nei giorni feriali del piano: ceci-tonno, quinoa-gamberetti, pasta-sgombro, cous-cous-feta, wrap-hummus-tacchino, farro-pollo-verdure, zuppa-lenticchie, orzo-feta-verdure. (Wrap: `storage` aggiornato per la prep la sera prima.)
 - UI: badge **🥡 ufficio** sul pranzo **solo nei giorni Lun–Ven** (`mondayIndex(date) < 5 && slot==='pranzo' && recipe.office`) in `Today` (oggi+domani) e `Plan` (Day/Week); `RecipeDetail` mostra un banner "🥡 Da ufficio"; `Recipes` mostra il pill. Scelta utente: tenere i 5 pranzi diversi + etichetta (non meal-prep batch).
 
+### Verifica fonti scientifiche (giugno 2026)
+- L'utente pretende rigore: solo fonti primarie reali, niente articoli AI, niente citazioni inventate. Vedi [[research-standards]].
+- Verificate alla fonte (PubMed/PMC) **tutte** le citazioni in `dailyEssentials.ts` e `guide.ts`. Trovati e corretti **2 nomi di primo autore sbagliati**:
+  - Grasso viscerale, BMC Medicine 2022;20:327 (PMID 36175997): primo autore è **Zelicha H** (non "Yaskolka Meir A", che è 4°, né "Tsaban", 6°). VAT: green-MED −14,1% vs MED −6,0% vs HDG −4,2%, n=294, 18 mesi.
+  - OEA, PMC9886573: è **Igarashi M et al., *Frontiers in Endocrinology* 2023** (non "Diep TA").
+- Confermate corrette: Bahadoran Z (Int J Food Sci Nutr 2012, PMID 22537070), Axelsson AS (Sci Transl Med 2017), Curtis PJ (AJCN 2019, PMC6537945), Grassi D (AJCN 2005, PMID 15755830), Kreider ISSN creatina 2017 (PMC5469049).
+- PDF/guida rigenerati con le citazioni corrette (`npm run build:pdf`).
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.
