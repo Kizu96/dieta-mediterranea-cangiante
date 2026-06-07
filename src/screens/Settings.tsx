@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import type { Season } from '../data/types';
 import { addDays, toISODate } from '../lib/planning';
 import { missingForDate } from '../lib/shopping';
 import { exportData, importData } from '../lib/backup';
-import { db } from '../db/db';
+import { db, getSetting, setSetting } from '../db/db';
+import { isStoragePersisted } from '../lib/storage';
 import { currentSeasonByDate } from '../lib/season';
 import { Modal } from '../components/Modal';
 import { useHaveSet } from '../components/usePantry';
@@ -23,6 +24,8 @@ import {
   type NotifPrefs,
 } from '../lib/notifications';
 
+const LAST_BACKUP_KEY = 'lastBackupAt';
+
 export function Settings({
   season,
   seasonOverride,
@@ -41,11 +44,15 @@ export function Settings({
   const [perm, setPerm] = useState<NotificationPermission>(permissionStatus());
   const [testMsg, setTestMsg] = useState('');
   const [dataMsg, setDataMsg] = useState('');
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
+  const [persisted, setPersisted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const autoSeason = currentSeasonByDate();
 
   useEffect(() => {
     getNotifPrefs().then(setPrefs);
+    getSetting<string | null>(LAST_BACKUP_KEY, null).then(setLastBackup);
+    isStoragePersisted().then(setPersisted);
   }, []);
 
   // Helper passato allo scheduler: domani mancano ingredienti?
@@ -88,6 +95,9 @@ export function Settings({
     a.download = `dieta-backup-${toISODate(new Date())}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    const today = toISODate(new Date());
+    await setSetting(LAST_BACKUP_KEY, today);
+    setLastBackup(today);
     setDataMsg('Backup esportato ✓');
     setTimeout(() => setDataMsg(''), 4000);
   };
@@ -121,6 +131,13 @@ export function Settings({
     onSeasonOverride(null);
     onClose();
   };
+
+  const now = useMemo(() => new Date(), []);
+  const daysSinceBackup =
+    lastBackup != null
+      ? Math.floor((now.getTime() - new Date(lastBackup).getTime()) / 86_400_000)
+      : null;
+  const backupStale = daysSinceBackup == null || daysSinceBackup >= 14;
 
   return (
     <Modal title="Impostazioni" onClose={onClose}>
@@ -258,11 +275,23 @@ export function Settings({
       )}
 
       {/* Dati */}
-      <h3 className="section-label">Dati</h3>
+      <h3 className="section-label">Dati e backup</h3>
       <p className="small muted" style={{ marginTop: -4 }}>
-        Tutti i dati restano solo su questo dispositivo (nessun account, nessun cloud). Fai un
-        backup ogni tanto, soprattutto prima di cambiare telefono o svuotare la cache.
+        Tutti i dati restano solo su questo dispositivo (nessun account, nessun cloud). Gli
+        aggiornamenti dell’app non li cancellano, ma fai un backup ogni tanto: ti serve per cambiare
+        dispositivo, se il browser libera spazio o se cambia l’indirizzo del sito.
       </p>
+      <p className="small" style={{ marginTop: 0 }}>
+        🛡️ Protezione anti-cancellazione: <b>{persisted ? 'attiva' : 'non garantita'}</b>
+        {' · '}Ultimo backup:{' '}
+        <b>{lastBackup ? `${lastBackup}${daysSinceBackup ? ` (${daysSinceBackup} gg fa)` : ' (oggi)'}` : 'mai'}</b>
+      </p>
+      {backupStale && (
+        <div className="banner warn" style={{ marginTop: 6 }}>
+          💾 {lastBackup ? 'È passato un po’ dall’ultimo backup.' : 'Non hai ancora fatto un backup.'}{' '}
+          Esporta i dati e conserva il file (così non perdi nulla quando torneremo su Netlify).
+        </div>
+      )}
       <button className="btn secondary block" onClick={doExport} style={{ marginBottom: 8 }}>
         ⬇️ Esporta dati (backup)
       </button>

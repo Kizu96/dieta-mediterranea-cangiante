@@ -7,6 +7,7 @@ import { addDays } from './lib/planning';
 import { missingForDate } from './lib/shopping';
 import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRecipes';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
+import { requestPersistentStorage } from './lib/storage';
 import { db } from './db/db';
 import { BottomNav, type ViewKey } from './components/BottomNav';
 import { Today } from './screens/Today';
@@ -49,6 +50,11 @@ function App() {
   const setSeasonOverride = async (s: Season | null) => {
     await setSetting(SEASON_OVERRIDE_KEY, s);
   };
+
+  // All'avvio: chiede storage persistente così il browser non cancella i dati locali.
+  useEffect(() => {
+    requestPersistentStorage();
+  }, []);
 
   // All'avvio: pianifica i promemoria in base alle preferenze salvate.
   // (Funziona solo mentre l'app è aperta — vedi note in notifications.ts.)
