@@ -26,7 +26,7 @@ export const ingredients: Ingredient[] = [
 
   // ----- VERDURA -------------------------------------------------------------
   { id: 'aglio', name: 'Aglio', category: 'verdura', unit: 'spicchi', storage: 'Luogo fresco e ventilato, non in frigo', shelfLife: '2-3 mesi', staple: true },
-  { id: 'cipolla', name: 'Cipolla', category: 'verdura', unit: 'pz', storage: 'Luogo fresco, buio e ventilato', shelfLife: '1-2 mesi', staple: true },
+  { id: 'cipolla', name: 'Cipolla dorata', category: 'verdura', unit: 'pz', storage: 'Luogo fresco, buio e ventilato', shelfLife: '1-2 mesi', staple: true },
   { id: 'cipollotto', name: 'Cipollotto fresco', category: 'verdura', unit: 'pz', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana' },
   { id: 'carota', name: 'Carote', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '2-3 settimane', staple: true },
   { id: 'sedano', name: 'Sedano', category: 'verdura', unit: 'g', storage: 'Frigo, avvolto in pellicola o panno umido', shelfLife: '1-2 settimane' },
@@ -42,8 +42,8 @@ export const ingredients: Ingredient[] = [
   { id: 'verza', name: 'Verza', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1-2 settimane', seasons: ['inverno'] },
   { id: 'zucchine', name: 'Zucchine', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '5-7 giorni', seasons: ['estate'] },
   { id: 'melanzane', name: 'Melanzane', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '5-7 giorni', seasons: ['estate'] },
-  { id: 'peperoni', name: 'Peperoni', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['estate'] },
-  { id: 'pomodori', name: 'Pomodori', category: 'verdura', unit: 'g', storage: 'Temperatura ambiente (in frigo solo se molto maturi)', shelfLife: '5-7 giorni', seasons: ['estate'] },
+  { id: 'peperoni', name: 'Peperoni (rossi o gialli)', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['estate'] },
+  { id: 'pomodori', name: 'Pomodori ramati (da insalata)', category: 'verdura', unit: 'g', storage: 'Temperatura ambiente (in frigo solo se molto maturi)', shelfLife: '5-7 giorni', seasons: ['estate'] },
   { id: 'pomodorini', name: 'Pomodorini ciliegino', category: 'verdura', unit: 'g', storage: 'Temperatura ambiente o frigo', shelfLife: '1 settimana', seasons: ['estate'] },
   { id: 'pomodori-pelati', name: 'Pomodori pelati (barattolo)', category: 'dispensa', unit: 'g', storage: 'Dispensa; aperti in frigo 3-4 gg', shelfLife: '2-3 anni', staple: true },
   { id: 'cetriolo', name: 'Cetriolo', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['estate'] },
