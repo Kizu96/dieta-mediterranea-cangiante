@@ -17,7 +17,7 @@ export const ingredients: Ingredient[] = [
   { id: 'cumino', name: 'Cumino in polvere', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'origano', name: 'Origano secco', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'cannella', name: 'Cannella in polvere', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
-  { id: 'peperoncino', name: 'Peperoncino in fiocchi', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
+  { id: 'peperoncino', name: 'Peperoncino (in fiocchi o macinato)', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'gochugaru', name: 'Peperoncino coreano in scaglie (gochugaru)', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta o freezer per lunga durata', shelfLife: '1-2 anni', staple: true },
   { id: 'zenzero', name: 'Zenzero fresco', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto; oppure pelato e congelato', shelfLife: '3-4 settimane in frigo' },
   { id: 'salsa-soia', name: 'Salsa di soia (a ridotto contenuto di sale)', category: 'condimenti', unit: 'cucchiai', storage: 'Dispensa; aperta meglio in frigo', shelfLife: '2 anni', staple: true },
