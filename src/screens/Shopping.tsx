@@ -8,6 +8,7 @@ import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { useHaveSet } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
+import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleQty } from '../lib/intensity';
 import { CATEGORY_LABEL, formatQty } from '../components/labels';
 
@@ -24,10 +25,11 @@ export function Shopping({
   const days = mode === 'domani' ? 1 : mode;
   const haveSet = useHaveSet();
   const { factor } = useIntensity();
+  const { includeExtra } = useExtraRecipes();
 
   const groups = useMemo(
-    () => buildShoppingList(haveSet, start, days, season),
-    [haveSet, start, days, season],
+    () => buildShoppingList(haveSet, start, days, season, includeExtra),
+    [haveSet, start, days, season, includeExtra],
   );
 
   const boughtRows = useLiveQuery(() => db.shopping.toArray(), [], []);

@@ -16,10 +16,15 @@ export interface NeededIngredient {
 }
 
 /** Aggrega gli ingredienti necessari per un intervallo di giorni a partire da `start`. */
-export function ingredientsForRange(start: Date, days: number, season: Season): NeededIngredient[] {
+export function ingredientsForRange(
+  start: Date,
+  days: number,
+  season: Season,
+  includeExtra = true,
+): NeededIngredient[] {
   const acc = new Map<string, NeededIngredient>();
   for (let i = 0; i < days; i++) {
-    const meals = getRecipesForDate(addDays(start, i), season);
+    const meals = getRecipesForDate(addDays(start, i), season, includeExtra);
     for (const { recipe } of meals) {
       for (const ri of recipe.ingredients) {
         const ing = ingredientMap.get(ri.ingredientId);
@@ -61,8 +66,9 @@ export function buildShoppingList(
   start: Date,
   days: number,
   season: Season,
+  includeExtra = true,
 ): ShoppingGroup[] {
-  const needed = ingredientsForRange(start, days, season).filter(
+  const needed = ingredientsForRange(start, days, season, includeExtra).filter(
     (n) => !haveSet.has(n.ingredient.id),
   );
   const byCat = new Map<Category, NeededIngredient[]>();
@@ -92,8 +98,13 @@ export function makeableRecipes(haveSet: Set<string>, season?: Season): Recipe[]
 }
 
 /** Ingredienti mancanti per i pasti di una certa data (guida le notifiche "compra per domani"). */
-export function missingForDate(haveSet: Set<string>, date: Date, season: Season): Ingredient[] {
-  const meals = getRecipesForDate(date, season);
+export function missingForDate(
+  haveSet: Set<string>,
+  date: Date,
+  season: Season,
+  includeExtra = true,
+): Ingredient[] {
+  const meals = getRecipesForDate(date, season, includeExtra);
   const missing = new Map<string, Ingredient>();
   for (const { recipe } of meals) {
     for (const ri of recipe.ingredients) {

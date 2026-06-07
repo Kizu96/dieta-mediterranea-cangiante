@@ -15,6 +15,7 @@ import { ExerciseDetail } from '../components/ExerciseDetail';
 import { WeeklySummary } from '../components/WeeklySummary';
 import { useHaveSet } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
+import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
 import { hasExerciseVideo } from '../lib/exerciseVideo';
 import { SLOT_LABEL, formatLongDate, mondayIndex } from '../components/labels';
@@ -34,11 +35,12 @@ export function Today({
   const tomorrow = addDays(today, 1);
   const autoSeason = currentSeasonByDate(today);
 
-  const meals = getRecipesForDate(today, season);
-  const mealsTomorrow = getRecipesForDate(tomorrow, season);
+  const { includeExtra } = useExtraRecipes();
+  const meals = getRecipesForDate(today, season, includeExtra);
+  const mealsTomorrow = getRecipesForDate(tomorrow, season, includeExtra);
   const haveSet = useHaveSet();
   const { factor } = useIntensity();
-  const missing = missingForDate(haveSet, tomorrow, season);
+  const missing = missingForDate(haveSet, tomorrow, season, includeExtra);
 
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);

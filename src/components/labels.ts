@@ -20,6 +20,7 @@ export const EQUIPMENT_LABEL: Record<Equipment, string> = {
   pentola: 'Pentola',
   microonde: 'Microonde',
   friggitrice: 'Friggitrice ad aria',
+  frullatore: 'Frullatore',
   nessuna: 'Senza cottura',
 };
 

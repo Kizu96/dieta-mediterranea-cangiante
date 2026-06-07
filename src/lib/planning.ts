@@ -1,6 +1,7 @@
 import type { DayTemplate, MealSlot, Recipe, Season } from '../data/types';
 import { recipes } from '../data/recipes';
 import { seasonPlans } from '../data/mealPlan';
+import { EXTRA_GARNISH_IDS } from './extraRecipes';
 
 export function toISODate(d: Date = new Date()): string {
   const y = d.getFullYear();
@@ -23,6 +24,28 @@ export function recipeById(id: string): Recipe | undefined {
   return recipeMap.get(id);
 }
 
+/**
+ * Risolve un recipeId tenendo conto della modalità "ricette extra".
+ * Con includeExtra = false:
+ *  - le ricette `extra` sono sostituite dal loro `fallbackId` (ricetta base);
+ *  - dalle altre ricette vengono rimossi gli ingredienti "extra" usati come
+ *    guarnizione (germogli, tahin), così non finiscono nella spesa.
+ */
+export function resolveRecipe(id: string, includeExtra = true): Recipe | undefined {
+  const original = recipeMap.get(id);
+  if (!original || includeExtra) return original;
+
+  let recipe = original;
+  if (recipe.extra && recipe.fallbackId) {
+    recipe = recipeMap.get(recipe.fallbackId) ?? recipe;
+  }
+  if (!recipe.ingredients.some((ri) => EXTRA_GARNISH_IDS.has(ri.ingredientId))) return recipe;
+  return {
+    ...recipe,
+    ingredients: recipe.ingredients.filter((ri) => !EXTRA_GARNISH_IDS.has(ri.ingredientId)),
+  };
+}
+
 /** Template del giorno: il ciclo settimanale ruota in base al giorno epoch. */
 export function getDayTemplate(date: Date, season: Season): DayTemplate | undefined {
   const plan = seasonPlans.find((p) => p.season === season);
@@ -36,12 +59,16 @@ export interface ResolvedMeal {
   recipe: Recipe;
 }
 
-export function getRecipesForDate(date: Date, season: Season): ResolvedMeal[] {
+export function getRecipesForDate(
+  date: Date,
+  season: Season,
+  includeExtra = true,
+): ResolvedMeal[] {
   const tpl = getDayTemplate(date, season);
   if (!tpl) return [];
   return tpl.meals
     .map((m) => {
-      const recipe = recipeMap.get(m.recipeId);
+      const recipe = resolveRecipe(m.recipeId, includeExtra);
       return recipe ? { slot: m.slot, recipe } : null;
     })
     .filter((x): x is ResolvedMeal => x !== null);

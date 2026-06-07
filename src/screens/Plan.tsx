@@ -5,6 +5,7 @@ import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { useIntensity } from '../components/useIntensity';
+import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
 import { SLOT_LABEL, formatLongDate, formatShortDate } from '../components/labels';
 
@@ -16,6 +17,7 @@ export function Plan({ season }: { season: Season }) {
   const [offset, setOffset] = useState(0); // giorni rispetto a oggi (per modalità Giorno)
   const today = useMemo(() => new Date(), []);
   const { factor } = useIntensity();
+  const { includeExtra } = useExtraRecipes();
 
   return (
     <div>
@@ -41,11 +43,18 @@ export function Plan({ season }: { season: Season }) {
           onToday={() => setOffset(0)}
           onOpen={setDetail}
           factor={factor}
+          includeExtra={includeExtra}
         />
       )}
 
       {mode === 'settimana' && (
-        <WeekView start={today} season={season} onOpen={setDetail} factor={factor} />
+        <WeekView
+          start={today}
+          season={season}
+          onOpen={setDetail}
+          factor={factor}
+          includeExtra={includeExtra}
+        />
       )}
 
       {mode === 'mese' && <MonthView start={today} season={season} />}
@@ -68,6 +77,7 @@ function DayView({
   onToday,
   onOpen,
   factor,
+  includeExtra,
 }: {
   date: Date;
   season: Season;
@@ -77,9 +87,10 @@ function DayView({
   onToday: () => void;
   onOpen: (r: Recipe) => void;
   factor: number;
+  includeExtra: boolean;
 }) {
   const tpl = getDayTemplate(date, season);
-  const meals = getRecipesForDate(date, season);
+  const meals = getRecipesForDate(date, season, includeExtra);
   const total = meals.reduce((s, m) => s + m.recipe.kcal, 0);
 
   return (
@@ -140,11 +151,13 @@ function WeekView({
   season,
   onOpen,
   factor,
+  includeExtra,
 }: {
   start: Date;
   season: Season;
   onOpen: (r: Recipe) => void;
   factor: number;
+  includeExtra: boolean;
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const todayISO = toISODate(start);
@@ -154,7 +167,7 @@ function WeekView({
       <div className="week-grid">
       {days.map((d, i) => {
         const tpl = getDayTemplate(d, season);
-        const meals = getRecipesForDate(d, season);
+        const meals = getRecipesForDate(d, season, includeExtra);
         const isToday = toISODate(d) === todayISO;
         return (
           <Card key={i}>

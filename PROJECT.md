@@ -122,6 +122,14 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - **Backup** (`src/lib/backup.ts`): esporta/importa JSON di tutte le tabelle, da Impostazioni → Dati.
 - Amazon: identificati quasi tutti (vedi [[shopping-amazon]]); 2 ASIN illeggibili (HTTP 500) lasciati perdere.
 
+### Toggle ricette extra (prodotti speciali + frullatore)
+- Obiettivo: decidere prima della spesa se includere le ricette che richiedono prodotti specialistici (acquisto online) e il frullatore.
+- `src/lib/extraRecipes.ts`: `EXTRA_RECIPES_SETTING_KEY='includeExtraRecipes'` (default **true**), `EXTRA_GARNISH_IDS` (germogli broccoli/misti, tahin) + hook `src/components/useExtraRecipes.ts`.
+- `Recipe` esteso: `extra?`, `extraReason?`, `fallbackId?`. Marcate extra: `colazione-smoothie-verde` (frullatore → fallback `colazione-pane-ricotta-miele`) e `spuntino-matcha-latte` (matcha → fallback `spuntino-yogurt-mandorle`). Nuovo `Equipment` `'frullatore'` (sul frullato verde).
+- `planning.ts` → `resolveRecipe(id, includeExtra=true)`: con OFF sostituisce le ricette `extra` col `fallbackId` e rimuove dagli altri piatti gli ingredienti in `EXTRA_GARNISH_IDS`. `getRecipesForDate(date, season, includeExtra=true)`.
+- `shopping.ts`: `ingredientsForRange/buildShoppingList/missingForDate` accettano `includeExtra=true` (default = comportamento invariato).
+- Consumatori aggiornati: `Today`, `Plan` (Day/Week), `Shopping`, `Settings` (toggle UI), `App` (scheduler legge il setting). `Recipes` mostra badge "⭐ extra".
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.

@@ -126,6 +126,11 @@ export function Recipes({ season }: { season: Season }) {
                       {SLOT_LABEL[s]}
                     </span>
                   ))}
+                  {r.extra && (
+                    <span className="pill" title={r.extraReason}>
+                      ⭐ extra
+                    </span>
+                  )}
                   <span className="pill">⏱ {r.timeMin} min</span>
                   {r.equipment.map((eq) => (
                     <span className="pill" key={eq}>

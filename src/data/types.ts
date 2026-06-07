@@ -5,7 +5,7 @@
 
 export type Season = 'estate' | 'inverno';
 
-export type Equipment = 'padella' | 'pentola' | 'microonde' | 'friggitrice' | 'nessuna';
+export type Equipment = 'padella' | 'pentola' | 'microonde' | 'friggitrice' | 'frullatore' | 'nessuna';
 
 export type MealSlot = 'colazione' | 'pranzo' | 'spuntino' | 'cena';
 
@@ -60,6 +60,11 @@ export interface Recipe {
   storage: string; // conservazione / batch cooking
   tips?: string;
   tags?: string[]; // es. 'polifenoli', 'anti-insulina', 'fermentati', 'omega3'
+  // Ricetta "extra": richiede prodotti specialistici (acquisto online) e/o il
+  // frullatore. Quando la modalità ricette-extra è OFF viene sostituita da `fallbackId`.
+  extra?: boolean;
+  extraReason?: string; // cosa serve (es. 'frullatore + spirulina')
+  fallbackId?: string; // ricetta base equivalente (stesso slot/stagione) senza prodotti extra
 }
 
 export interface DailyEssential {

@@ -5,6 +5,7 @@ import { getSetting, setSetting } from './db/db';
 import { currentSeasonByDate } from './lib/season';
 import { addDays } from './lib/planning';
 import { missingForDate } from './lib/shopping';
+import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRecipes';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
 import { db } from './db/db';
 import { BottomNav, type ViewKey } from './components/BottomNav';
@@ -60,7 +61,11 @@ function App() {
         hasMissingForTomorrow: async () => {
           const items = await db.pantry.toArray();
           const haveSet = new Set(items.filter((p) => p.have).map((p) => p.ingredientId));
-          return missingForDate(haveSet, addDays(new Date(), 1), season).length > 0;
+          const includeExtra = await getSetting<boolean>(
+            EXTRA_RECIPES_SETTING_KEY,
+            EXTRA_RECIPES_DEFAULT,
+          );
+          return missingForDate(haveSet, addDays(new Date(), 1), season, includeExtra).length > 0;
         },
       });
     })();
