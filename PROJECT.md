@@ -130,6 +130,11 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - `shopping.ts`: `ingredientsForRange/buildShoppingList/missingForDate` accettano `includeExtra=true` (default = comportamento invariato).
 - Consumatori aggiornati: `Today`, `Plan` (Day/Week), `Shopping`, `Settings` (toggle UI), `App` (scheduler legge il setting). `Recipes` mostra badge "⭐ extra".
 
+### Pranzi feriali "da ufficio" (make-ahead)
+- Vincolo utente: i pranzi **lun–ven si mangiano in ufficio** e **NON** ha tempo di prepararli la mattina → devono essere preparati in anticipo (sera prima/batch weekend) e trasportabili. Vedi [[user-profile]].
+- `Recipe.office?: boolean`. Marcate `office: true` le 8 ricette-pranzo usate nei giorni feriali del piano: ceci-tonno, quinoa-gamberetti, pasta-sgombro, cous-cous-feta, wrap-hummus-tacchino, farro-pollo-verdure, zuppa-lenticchie, orzo-feta-verdure. (Wrap: `storage` aggiornato per la prep la sera prima.)
+- UI: badge **🥡 ufficio** sul pranzo **solo nei giorni Lun–Ven** (`mondayIndex(date) < 5 && slot==='pranzo' && recipe.office`) in `Today` (oggi+domani) e `Plan` (Day/Week); `RecipeDetail` mostra un banner "🥡 Da ufficio"; `Recipes` mostra il pill. Scelta utente: tenere i 5 pranzi diversi + etichetta (non meal-prep batch).
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.

@@ -76,6 +76,13 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
         ))}
       </ol>
 
+      {recipe.office && (
+        <div className="banner info" style={{ marginTop: 4 }}>
+          🥡 <b>Da ufficio:</b> preparalo in anticipo (la sera prima o in batch nel weekend),
+          conservalo in frigo in un contenitore e portalo con te. Scaldalo al microonde se serve.
+        </div>
+      )}
+
       {recipe.storage && (
         <>
           <h3 className="section-label">Conservazione</h3>

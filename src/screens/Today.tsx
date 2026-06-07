@@ -34,6 +34,8 @@ export function Today({
   const todayISO = toISODate(today);
   const tomorrow = addDays(today, 1);
   const autoSeason = currentSeasonByDate(today);
+  const isWeekdayToday = mondayIndex(today) < 5; // Lun–Ven = pranzo da ufficio
+  const isWeekdayTomorrow = mondayIndex(tomorrow) < 5;
 
   const { includeExtra } = useExtraRecipes();
   const meals = getRecipesForDate(today, season, includeExtra);
@@ -160,7 +162,12 @@ export function Today({
             {meals.map((m, i) => (
               <li key={i} className="meal-row" onClick={() => setDetail(m.recipe)} style={{ cursor: 'pointer' }}>
                 <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
-                <span className="grow">{m.recipe.name}</span>
+                <span className="grow">
+                  {m.recipe.name}
+                  {isWeekdayToday && m.slot === 'pranzo' && m.recipe.office && (
+                    <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
+                  )}
+                </span>
                 <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
               </li>
             ))}
@@ -176,7 +183,12 @@ export function Today({
             {mealsTomorrow.map((m, i) => (
               <li key={i} className="meal-row" onClick={() => setDetail(m.recipe)} style={{ cursor: 'pointer' }}>
                 <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
-                <span className="grow">{m.recipe.name}</span>
+                <span className="grow">
+                  {m.recipe.name}
+                  {isWeekdayTomorrow && m.slot === 'pranzo' && m.recipe.office && (
+                    <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
+                  )}
+                </span>
                 <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
               </li>
             ))}

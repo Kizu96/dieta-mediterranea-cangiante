@@ -131,6 +131,11 @@ export function Recipes({ season }: { season: Season }) {
                       ⭐ extra
                     </span>
                   )}
+                  {r.office && (
+                    <span className="pill olive" title="Da preparare in anticipo e portare in ufficio">
+                      🥡 ufficio
+                    </span>
+                  )}
                   <span className="pill">⏱ {r.timeMin} min</span>
                   {r.equipment.map((eq) => (
                     <span className="pill" key={eq}>

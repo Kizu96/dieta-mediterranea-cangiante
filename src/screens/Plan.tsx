@@ -7,7 +7,7 @@ import { RecipeDetail } from '../components/RecipeDetail';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
-import { SLOT_LABEL, formatLongDate, formatShortDate } from '../components/labels';
+import { SLOT_LABEL, formatLongDate, formatShortDate, mondayIndex } from '../components/labels';
 
 type Mode = 'giorno' | 'settimana' | 'mese';
 
@@ -92,6 +92,7 @@ function DayView({
   const tpl = getDayTemplate(date, season);
   const meals = getRecipesForDate(date, season, includeExtra);
   const total = meals.reduce((s, m) => s + m.recipe.kcal, 0);
+  const isWeekday = mondayIndex(date) < 5; // Lun–Ven = pranzo da ufficio
 
   return (
     <Card>
@@ -136,7 +137,12 @@ function DayView({
               onClick={() => onOpen(m.recipe)}
             >
               <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
-              <span className="grow">{m.recipe.name}</span>
+              <span className="grow">
+                {m.recipe.name}
+                {isWeekday && m.slot === 'pranzo' && m.recipe.office && (
+                  <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
+                )}
+              </span>
               <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
             </li>
           ))}
@@ -169,6 +175,7 @@ function WeekView({
         const tpl = getDayTemplate(d, season);
         const meals = getRecipesForDate(d, season, includeExtra);
         const isToday = toISODate(d) === todayISO;
+        const isWeekday = mondayIndex(d) < 5;
         return (
           <Card key={i}>
             <div className="flex-between" style={{ marginBottom: 8 }}>
@@ -194,7 +201,12 @@ function WeekView({
                     onClick={() => onOpen(m.recipe)}
                   >
                     <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
-                    <span className="grow small">{m.recipe.name}</span>
+                    <span className="grow small">
+                      {m.recipe.name}
+                      {isWeekday && m.slot === 'pranzo' && m.recipe.office && (
+                        <span className="pill olive" style={{ marginLeft: 4 }}>🥡</span>
+                      )}
+                    </span>
                     <span className="nowrap muted small">{scaleRound(m.recipe.kcal, factor)}</span>
                   </li>
                 ))}

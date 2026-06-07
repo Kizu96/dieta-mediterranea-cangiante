@@ -65,6 +65,9 @@ export interface Recipe {
   extra?: boolean;
   extraReason?: string; // cosa serve (es. 'frullatore + spirulina')
   fallbackId?: string; // ricetta base equivalente (stesso slot/stagione) senza prodotti extra
+  // Pranzo "da ufficio": si prepara in anticipo (sera prima/batch nel weekend),
+  // si conserva in frigo e si trasporta. Usato per l'etichetta 🥡 sui pranzi feriali.
+  office?: boolean;
 }
 
 export interface DailyEssential {
