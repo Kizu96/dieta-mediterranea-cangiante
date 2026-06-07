@@ -37,7 +37,7 @@ export const ingredients: Ingredient[] = [
   { id: 'rucola', name: 'Rucola', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '3-4 giorni' },
   { id: 'cavolo-nero', name: 'Cavolo nero', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '5-7 giorni', seasons: ['inverno'] },
   { id: 'cavolo-cappuccio', name: 'Cavolo cappuccio', category: 'verdura', unit: 'g', storage: 'Frigo; intero si conserva a lungo', shelfLife: '2-4 settimane', seasons: ['inverno'] },
-  { id: 'cavolfiore', name: 'Cavolfiore', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['inverno'] },
+  { id: 'cavolfiore', name: 'Cavolfiore bianco', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['inverno'] },
   { id: 'broccolo', name: 'Broccolo', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '5-7 giorni', seasons: ['inverno'] },
   { id: 'verza', name: 'Verza', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1-2 settimane', seasons: ['inverno'] },
   { id: 'zucchine', name: 'Zucchine', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '5-7 giorni', seasons: ['estate'] },
