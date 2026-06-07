@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState, type KeyboardEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getSetting, setSetting, type WeightEntry } from '../db/db';
 import { toISODate } from '../lib/planning';
@@ -78,6 +78,8 @@ export function Weight() {
   const bfNow = latestOf('bodyFatPct');
   const muNow = latestOf('muscleKg');
   const waistNow = latestOf('waistCm');
+  const hipsNow = latestOf('hipsCm');
+  const ph = (v: number | undefined) => (v != null ? String(v) : '—'); // segnaposto = ultimo valore
 
   const perWeek = weeklyLoss(500);
   const weeks = weeksToTarget(current, profile?.targetKg ?? DEFAULT_PROFILE.targetKg, perWeek);
@@ -131,6 +133,10 @@ export function Weight() {
     setHips('');
   };
 
+  const onEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') save();
+  };
+
   const removeEntry = async (id?: number) => {
     if (id != null) await db.weights.delete(id);
   };
@@ -144,6 +150,10 @@ export function Weight() {
       )}
       <div className="dash-grid">
         <Card title="Registra misure di oggi" icon="⚖️">
+          <p className="small muted" style={{ marginTop: -4 }}>
+            Copia i valori che leggi su <b>StarFit</b>. Il segnaposto mostra l’ultimo dato: lascia
+            vuoto ciò che non vuoi aggiornare.
+          </p>
           <div className="field">
             <label htmlFor="kg-peso">Peso (kg)</label>
             <input
@@ -154,40 +164,39 @@ export function Weight() {
               value={kg}
               placeholder={String(current)}
               onChange={(e) => setKg(e.target.value)}
+              onKeyDown={onEnter}
             />
+          </div>
+          <div className="row">
+            <div className="field">
+              <label htmlFor="bf">Massa grassa (%)</label>
+              <input id="bf" type="number" inputMode="decimal" value={bodyFat} placeholder={ph(bfNow)} onChange={(e) => setBodyFat(e.target.value)} onKeyDown={onEnter} />
+            </div>
+            <div className="field">
+              <label htmlFor="vf">Grasso viscerale</label>
+              <input id="vf" type="number" inputMode="decimal" value={visceral} placeholder={ph(vfNow)} onChange={(e) => setVisceral(e.target.value)} onKeyDown={onEnter} />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="mu">Massa muscolare (kg)</label>
+            <input id="mu" type="number" inputMode="decimal" value={muscle} placeholder={ph(muNow)} onChange={(e) => setMuscle(e.target.value)} onKeyDown={onEnter} />
           </div>
 
           {showMore && (
-            <>
-              <div className="row">
-                <div className="field">
-                  <label htmlFor="vf">Grasso viscerale</label>
-                  <input id="vf" type="number" inputMode="decimal" value={visceral} onChange={(e) => setVisceral(e.target.value)} />
-                </div>
-                <div className="field">
-                  <label htmlFor="bf">Massa grassa (%)</label>
-                  <input id="bf" type="number" inputMode="decimal" value={bodyFat} onChange={(e) => setBodyFat(e.target.value)} />
-                </div>
-              </div>
-              <div className="row">
-                <div className="field">
-                  <label htmlFor="wa">Vita (cm)</label>
-                  <input id="wa" type="number" inputMode="decimal" value={waist} onChange={(e) => setWaist(e.target.value)} />
-                </div>
-                <div className="field">
-                  <label htmlFor="hi">Fianchi (cm)</label>
-                  <input id="hi" type="number" inputMode="decimal" value={hips} onChange={(e) => setHips(e.target.value)} />
-                </div>
+            <div className="row">
+              <div className="field">
+                <label htmlFor="wa">Vita (cm)</label>
+                <input id="wa" type="number" inputMode="decimal" value={waist} placeholder={ph(waistNow)} onChange={(e) => setWaist(e.target.value)} onKeyDown={onEnter} />
               </div>
               <div className="field">
-                <label htmlFor="mu">Massa muscolare (kg)</label>
-                <input id="mu" type="number" inputMode="decimal" value={muscle} onChange={(e) => setMuscle(e.target.value)} />
+                <label htmlFor="hi">Fianchi (cm)</label>
+                <input id="hi" type="number" inputMode="decimal" value={hips} placeholder={ph(hipsNow)} onChange={(e) => setHips(e.target.value)} onKeyDown={onEnter} />
               </div>
-            </>
+            </div>
           )}
 
           <button className="btn ghost block" onClick={() => setShowMore((v) => !v)} style={{ marginBottom: 8 }}>
-            {showMore ? '− Nascondi misure extra' : '➕ Aggiungi misure (vita, grasso viscerale, massa grassa…)'}
+            {showMore ? '− Nascondi vita/fianchi' : '➕ Vita e fianchi (metro)'}
           </button>
           <button className="btn block" onClick={save}>
             Salva
