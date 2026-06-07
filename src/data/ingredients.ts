@@ -12,7 +12,7 @@ export const ingredients: Ingredient[] = [
   { id: 'pepe', name: 'Pepe nero (in grani, da macinare)', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, macinino chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'aceto-mele', name: 'Aceto di mele', category: 'condimenti', unit: 'cucchiai', storage: 'Dispensa, tappo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'senape', name: 'Senape (tipo Dijon)', category: 'condimenti', unit: 'cucchiaini', storage: 'Dispensa; aperta in frigo', shelfLife: '12 mesi (aperta 6 mesi)', staple: true },
-  { id: 'paprika', name: 'Paprika affumicata', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
+  { id: 'paprika', name: 'Paprika dolce (o affumicata, per un tocco grigliato)', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'curcuma', name: 'Curcuma in polvere', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'cumino', name: 'Cumino in polvere', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'origano', name: 'Origano secco', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
