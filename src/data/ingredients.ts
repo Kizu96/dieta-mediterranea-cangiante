@@ -9,9 +9,9 @@ export const ingredients: Ingredient[] = [
   { id: 'olio-evo', name: 'Olio extravergine di oliva', category: 'condimenti', unit: 'cucchiai', storage: 'Luogo fresco e buio, tappo ben chiuso', shelfLife: '18-24 mesi', staple: true },
   { id: 'sale', name: 'Sale fino', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta', shelfLife: 'illimitato', staple: true },
   { id: 'sale-grosso', name: 'Sale grosso (senza iodio per fermentazioni)', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta', shelfLife: 'illimitato', staple: true },
-  { id: 'pepe', name: 'Pepe nero', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, macinino chiuso', shelfLife: '2-3 anni', staple: true },
+  { id: 'pepe', name: 'Pepe nero (in grani, da macinare)', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, macinino chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'aceto-mele', name: 'Aceto di mele', category: 'condimenti', unit: 'cucchiai', storage: 'Dispensa, tappo chiuso', shelfLife: '2-3 anni', staple: true },
-  { id: 'senape', name: 'Senape', category: 'condimenti', unit: 'cucchiaini', storage: 'Dispensa; aperta in frigo', shelfLife: '12 mesi (aperta 6 mesi)', staple: true },
+  { id: 'senape', name: 'Senape (tipo Dijon)', category: 'condimenti', unit: 'cucchiaini', storage: 'Dispensa; aperta in frigo', shelfLife: '12 mesi (aperta 6 mesi)', staple: true },
   { id: 'paprika', name: 'Paprika affumicata', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'curcuma', name: 'Curcuma in polvere', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'cumino', name: 'Cumino in polvere', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
@@ -20,7 +20,7 @@ export const ingredients: Ingredient[] = [
   { id: 'peperoncino', name: 'Peperoncino in fiocchi', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta, barattolo chiuso', shelfLife: '2-3 anni', staple: true },
   { id: 'gochugaru', name: 'Peperoncino coreano in scaglie (gochugaru)', category: 'condimenti', unit: 'g', storage: 'Dispensa asciutta o freezer per lunga durata', shelfLife: '1-2 anni', staple: true },
   { id: 'zenzero', name: 'Zenzero fresco', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto; oppure pelato e congelato', shelfLife: '3-4 settimane in frigo' },
-  { id: 'salsa-soia', name: 'Salsa di soia', category: 'condimenti', unit: 'cucchiai', storage: 'Dispensa; aperta meglio in frigo', shelfLife: '2 anni', staple: true },
+  { id: 'salsa-soia', name: 'Salsa di soia (a ridotto contenuto di sale)', category: 'condimenti', unit: 'cucchiai', storage: 'Dispensa; aperta meglio in frigo', shelfLife: '2 anni', staple: true },
   { id: 'tahin', name: 'Tahin (crema di sesamo)', category: 'condimenti', unit: 'cucchiai', storage: 'Dispensa; aperto in frigo, mescolare', shelfLife: '12 mesi', staple: true },
   { id: 'miele', name: 'Miele', category: 'dispensa', unit: 'cucchiaini', storage: 'Dispensa a temperatura ambiente', shelfLife: 'praticamente illimitato', staple: true },
 
@@ -29,7 +29,7 @@ export const ingredients: Ingredient[] = [
   { id: 'cipolla', name: 'Cipolla dorata', category: 'verdura', unit: 'pz', storage: 'Luogo fresco, buio e ventilato', shelfLife: '1-2 mesi', staple: true },
   { id: 'cipollotto', name: 'Cipollotto fresco', category: 'verdura', unit: 'pz', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana' },
   { id: 'carota', name: 'Carote', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '2-3 settimane', staple: true },
-  { id: 'sedano', name: 'Sedano', category: 'verdura', unit: 'g', storage: 'Frigo, avvolto in pellicola o panno umido', shelfLife: '1-2 settimane' },
+  { id: 'sedano', name: 'Sedano (a coste)', category: 'verdura', unit: 'g', storage: 'Frigo, avvolto in pellicola o panno umido', shelfLife: '1-2 settimane' },
   { id: 'broccoli-germogli', name: 'Germogli di broccoli (coltivati in casa)', category: 'verdura', unit: 'g', storage: 'Frigo in contenitore con carta assorbente', shelfLife: '4-6 giorni' },
   { id: 'germogli-misti', name: 'Germogli misti (alfalfa/lenticchie, in casa)', category: 'verdura', unit: 'g', storage: 'Frigo in contenitore con carta assorbente', shelfLife: '4-6 giorni' },
   { id: 'spinaci', name: 'Spinaci freschi', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '4-5 giorni' },
@@ -56,7 +56,7 @@ export const ingredients: Ingredient[] = [
 
   // ----- FRUTTA --------------------------------------------------------------
   { id: 'limone', name: 'Limone', category: 'frutta', unit: 'pz', storage: 'Frigo nel cassetto', shelfLife: '2-3 settimane', staple: true },
-  { id: 'mela', name: 'Mela', category: 'frutta', unit: 'pz', storage: 'Frigo nel cassetto; o luogo fresco', shelfLife: '2-3 settimane', staple: true },
+  { id: 'mela', name: 'Mela (a piacere, es. Fuji o Gala)', category: 'frutta', unit: 'pz', storage: 'Frigo nel cassetto; o luogo fresco', shelfLife: '2-3 settimane', staple: true },
   { id: 'pera', name: 'Pera', category: 'frutta', unit: 'pz', storage: 'Temperatura ambiente fino a maturazione, poi frigo', shelfLife: '1 settimana', seasons: ['inverno'] },
   { id: 'arancia', name: 'Arancia', category: 'frutta', unit: 'pz', storage: 'Frigo o luogo fresco', shelfLife: '2-3 settimane', seasons: ['inverno'] },
   { id: 'mandarino', name: 'Mandarino / clementine', category: 'frutta', unit: 'pz', storage: 'Frigo o luogo fresco', shelfLife: '1-2 settimane', seasons: ['inverno'] },
@@ -70,9 +70,9 @@ export const ingredients: Ingredient[] = [
   { id: 'uvetta', name: 'Uvetta (uva passa)', category: 'dispensa', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '12 mesi', staple: true },
 
   // ----- PROTEINE (carne/uova) ----------------------------------------------
-  { id: 'uova', name: 'Uova', category: 'proteine', unit: 'pz', storage: 'Frigo', shelfLife: '3-4 settimane', staple: true },
-  { id: 'petto-pollo', name: 'Petto di pollo', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; porzionare e congelare', shelfLife: '3-4 mesi in freezer' },
-  { id: 'fesa-tacchino', name: 'Fesa di tacchino', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; porzionare e congelare', shelfLife: '3-4 mesi in freezer' },
+  { id: 'uova', name: 'Uova (medie, fresche)', category: 'proteine', unit: 'pz', storage: 'Frigo', shelfLife: '3-4 settimane', staple: true },
+  { id: 'petto-pollo', name: 'Petto di pollo (fresco)', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; porzionare e congelare', shelfLife: '3-4 mesi in freezer' },
+  { id: 'fesa-tacchino', name: 'Fesa di tacchino fresca (fettine, da cuocere)', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; porzionare e congelare', shelfLife: '3-4 mesi in freezer' },
 
   // ----- PESCE ---------------------------------------------------------------
   { id: 'tonno-naturale', name: 'Tonno al naturale (scatoletta)', category: 'pesce', unit: 'g', storage: 'Dispensa; aperto in frigo 1-2 gg', shelfLife: '2-3 anni', staple: true },
@@ -88,10 +88,10 @@ export const ingredients: Ingredient[] = [
   { id: 'yogurt-greco', name: 'Yogurt greco bianco 0-2%', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
   { id: 'yogurt-intero', name: 'Yogurt bianco intero', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
   { id: 'skyr', name: 'Skyr (yogurt islandese)', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
-  { id: 'ricotta', name: 'Ricotta', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni (vedi data)' },
+  { id: 'ricotta', name: 'Ricotta (vaccina)', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni (vedi data)' },
   { id: 'feta', name: 'Feta', category: 'latticini', unit: 'g', storage: 'Frigo nella sua salamoia', shelfLife: '1-2 settimane aperta' },
   { id: 'parmigiano', name: 'Parmigiano Reggiano', category: 'latticini', unit: 'g', storage: 'Frigo avvolto in panno o pellicola', shelfLife: '1-2 mesi', staple: true },
-  { id: 'mozzarella', name: 'Mozzarella', category: 'latticini', unit: 'g', storage: 'Frigo nel suo liquido', shelfLife: 'fino alla data, aperta 1-2 gg' },
+  { id: 'mozzarella', name: 'Mozzarella (fior di latte)', category: 'latticini', unit: 'g', storage: 'Frigo nel suo liquido', shelfLife: 'fino alla data, aperta 1-2 gg' },
   { id: 'latte', name: 'Latte parzialmente scremato', category: 'latticini', unit: 'ml', storage: 'Frigo (UHT in dispensa fino apertura)', shelfLife: 'UHT mesi; fresco 4-6 gg' },
 
   // ----- CEREALI -------------------------------------------------------------
@@ -102,7 +102,7 @@ export const ingredients: Ingredient[] = [
   { id: 'farro', name: 'Farro perlato', category: 'cereali', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '12-18 mesi', staple: true },
   { id: 'riso-integrale', name: 'Riso integrale', category: 'cereali', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '12-18 mesi', staple: true },
   { id: 'quinoa', name: 'Quinoa', category: 'cereali', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '18-24 mesi', staple: true },
-  { id: 'pasta-integrale', name: 'Pasta integrale', category: 'cereali', unit: 'g', storage: 'Dispensa, confezione richiusa', shelfLife: '2-3 anni', staple: true },
+  { id: 'pasta-integrale', name: 'Pasta integrale (formato a piacere)', category: 'cereali', unit: 'g', storage: 'Dispensa, confezione richiusa', shelfLife: '2-3 anni', staple: true },
   { id: 'cous-cous-integrale', name: 'Cous cous integrale', category: 'cereali', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '12-18 mesi', staple: true },
   { id: 'gallette-riso', name: 'Gallette di riso/mais integrali', category: 'cereali', unit: 'pz', storage: 'Dispensa, confezione richiusa', shelfLife: '6-8 mesi', staple: true },
 
@@ -113,12 +113,12 @@ export const ingredients: Ingredient[] = [
   { id: 'lenticchie-secche', name: 'Lenticchie rosse decorticate', category: 'legumi', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '2-3 anni', staple: true },
   { id: 'lenticchie-lessate', name: 'Lenticchie lessate (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperte in frigo 2-3 gg', shelfLife: '2-3 anni', staple: true },
   { id: 'edamame-surgelati', name: 'Edamame (fave di soia) surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '12 mesi' },
-  { id: 'hummus', name: 'Hummus', category: 'legumi', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni aperto (vedi data)' },
+  { id: 'hummus', name: 'Hummus (pronto, vaschetta)', category: 'legumi', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni aperto (vedi data)' },
 
   // ----- FRUTTA SECCA --------------------------------------------------------
   { id: 'noci', name: 'Noci (gherigli)', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico, fresco; o frigo per lunga durata', shelfLife: '6 mesi (frigo 12)', staple: true },
-  { id: 'mandorle', name: 'Mandorle', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico, fresco', shelfLife: '9-12 mesi', staple: true },
-  { id: 'nocciole', name: 'Nocciole', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico, fresco', shelfLife: '9-12 mesi', staple: true },
+  { id: 'mandorle', name: 'Mandorle (al naturale, non salate)', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico, fresco', shelfLife: '9-12 mesi', staple: true },
+  { id: 'nocciole', name: 'Nocciole (al naturale, non salate)', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico, fresco', shelfLife: '9-12 mesi', staple: true },
   { id: 'pistacchi', name: 'Pistacchi (sgusciati, non salati)', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico, fresco', shelfLife: '6-9 mesi', staple: true },
   { id: 'semi-chia', name: 'Semi di chia', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '12-24 mesi', staple: true },
   { id: 'semi-lino', name: 'Semi di lino', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico; macinati in frigo', shelfLife: '12 mesi interi', staple: true },
