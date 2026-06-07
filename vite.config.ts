@@ -3,7 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
+// base = sottocartella di GitHub Pages (https://kizu96.github.io/dieta-mediterranea-cangiante/)
 export default defineConfig({
+  base: '/dieta-mediterranea-cangiante/',
   plugins: [
     react(),
     VitePWA({
@@ -24,8 +26,8 @@ export default defineConfig({
         dir: 'ltr',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
-        scope: '/',
+        start_url: '/dieta-mediterranea-cangiante/',
+        scope: '/dieta-mediterranea-cangiante/',
         theme_color: '#2f9389',
         background_color: '#eef6f4',
         categories: ['health', 'lifestyle', 'food'],

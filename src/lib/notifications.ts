@@ -71,11 +71,15 @@ export async function showNotification(title: string, body: string): Promise<boo
     if ('serviceWorker' in navigator) {
       const reg = await navigator.serviceWorker.getRegistration();
       if (reg) {
-        await reg.showNotification(title, { body, icon: '/icon.svg', badge: '/icon.svg' });
+        await reg.showNotification(title, {
+          body,
+          icon: `${import.meta.env.BASE_URL}icon.svg`,
+          badge: `${import.meta.env.BASE_URL}icon.svg`,
+        });
         return true;
       }
     }
-    new Notification(title, { body, icon: '/icon.svg' });
+    new Notification(title, { body, icon: `${import.meta.env.BASE_URL}icon.svg` });
     return true;
   } catch {
     return false;

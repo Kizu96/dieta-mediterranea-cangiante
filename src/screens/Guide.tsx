@@ -13,7 +13,7 @@ export function Guide() {
         <p className="small muted" style={{ marginTop: -4 }}>
           Tutto ciò che serve: germogli, fermentati, conservazione, scienza e fonti.
         </p>
-        <a className="btn terracotta block" href="/Guida-Dieta.pdf" download>
+        <a className="btn terracotta block" href={`${import.meta.env.BASE_URL}Guida-Dieta.pdf`} download>
           ⬇️ Scarica la guida in PDF
         </a>
         <p className="small muted center" style={{ marginTop: 8, marginBottom: 0 }}>
