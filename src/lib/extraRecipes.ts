@@ -10,8 +10,10 @@
 
 export const EXTRA_RECIPES_SETTING_KEY = 'includeExtraRecipes';
 
-// Default: attivo (l'app è pensata sul protocollo green-MED completo).
-export const EXTRA_RECIPES_DEFAULT = true;
+// Default: DISATTIVATO → modalità "solo supermercato", nessun prodotto da ordinare
+// online e nessun frullatore richiesto. Si può attivare in Impostazioni quando si
+// hanno germogli/spirulina/matcha/tahin + frullatore.
+export const EXTRA_RECIPES_DEFAULT = false;
 
 // Ingredienti "extra" rimossi come guarnizione quando la modalità è disattivata.
 // (germogli = richiedono semi + barattolo di germogliazione; tahin = crema di sesamo)
