@@ -93,7 +93,17 @@ export function Shopping({
                     key={it.ingredient.id}
                     checked={boughtSet.has(it.ingredient.id)}
                     title={it.ingredient.name}
-                    detail={`Serve circa ${formatQty(scaleQty(it.qty, factor))} ${it.unit}`}
+                    detail={
+                      <>
+                        Serve circa {formatQty(scaleQty(it.qty, factor))} {it.unit}
+                        {it.ingredient.storage && (
+                          <span className="check-storage">
+                            🧺 {it.ingredient.storage}
+                            {it.ingredient.shelfLife && ` · dura ${it.ingredient.shelfLife}`}
+                          </span>
+                        )}
+                      </>
+                    }
                     onToggle={() => toggleBought(it.ingredient.id, !boughtSet.has(it.ingredient.id))}
                   />
                 ))}

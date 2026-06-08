@@ -398,8 +398,17 @@ textarea:focus {
   color: var(--ink-soft);
 }
 .check-row .check-detail {
+  display: block;
   font-size: 0.8rem;
   color: var(--ink-soft);
+}
+.check-row .check-storage {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  color: var(--ink-soft);
+  opacity: 0.85;
 }
 
 /* ---- Meal / list rows ---- */
