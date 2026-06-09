@@ -16,7 +16,12 @@ export function addDays(d: Date, n: number): Date {
   return c;
 }
 
-const epochDay = (d: Date): number => Math.floor(d.getTime() / 86_400_000);
+// Numero di giorno calcolato sui campi calendario (UTC) -> stabile a prescindere dal fuso orario.
+const dayNumber = (d: Date): number =>
+  Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86_400_000);
+
+// Indice del giorno della settimana: 0 = Lun … 6 = Dom (getDay() è 0 = Dom).
+const weekdayIndex = (d: Date): number => (d.getDay() + 6) % 7;
 
 const recipeMap = new Map<string, Recipe>(recipes.map((r) => [r.id, r]));
 
@@ -46,12 +51,22 @@ export function resolveRecipe(id: string, includeExtra = true): Recipe | undefin
   };
 }
 
-/** Template del giorno: il ciclo settimanale ruota in base al giorno epoch. */
+/**
+ * Template del giorno, agganciato ai giorni REALI della settimana.
+ *  - `plan.days` è una concatenazione di settimane da 7 giorni (Lun→Dom).
+ *    Con 7 giorni = 1 settimana fissa; con 14 = 2 settimane che si alternano, ecc.
+ *  - Il giorno della settimana sceglie la posizione (Lun = 0 … Dom = 6);
+ *    il numero di settimana (allineato al lunedì) sceglie QUALE settimana del ciclo.
+ */
 export function getDayTemplate(date: Date, season: Season): DayTemplate | undefined {
   const plan = seasonPlans.find((p) => p.season === season);
   if (!plan || plan.days.length === 0) return undefined;
-  const idx = ((epochDay(date) % plan.days.length) + plan.days.length) % plan.days.length;
-  return plan.days[idx];
+  const weeks = Math.max(1, Math.floor(plan.days.length / 7));
+  const dow = weekdayIndex(date); // 0 = Lun … 6 = Dom
+  // Settimane allineate al lunedì: dayNumber 4 = lunedì 1970-01-05.
+  const weekNo = Math.floor((dayNumber(date) - 4) / 7);
+  const weekIndex = ((weekNo % weeks) + weeks) % weeks;
+  return plan.days[weekIndex * 7 + dow];
 }
 
 export interface ResolvedMeal {

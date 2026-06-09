@@ -92,7 +92,9 @@ export interface DayTemplate {
 
 export interface SeasonPlan {
   season: Season;
-  days: DayTemplate[]; // ciclo (tipicamente 7 giorni)
+  // Concatenazione di settimane da 7 giorni in ordine Lun→Dom.
+  // 7 = una settimana fissa; 14 = due settimane che si alternano (Lun reale = indice 0), ecc.
+  days: DayTemplate[];
 }
 
 export interface WorkoutExercise {

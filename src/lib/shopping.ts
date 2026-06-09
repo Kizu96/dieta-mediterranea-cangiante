@@ -27,6 +27,8 @@ export function ingredientsForRange(
     const meals = getRecipesForDate(addDays(start, i), season, includeExtra);
     for (const { recipe } of meals) {
       for (const ri of recipe.ingredients) {
+        // Gli ingredienti facoltativi (es. zenzero "opzionale") non vanno in lista spesa.
+        if (ri.note && /opzional/i.test(ri.note)) continue;
         const ing = ingredientMap.get(ri.ingredientId);
         if (!ing) continue;
         const key = `${ri.ingredientId}|${ri.unit}`;

@@ -402,11 +402,11 @@ export const recipes: Recipe[] = [
       { ingredientId: 'carota', qty: 60, unit: 'g' },
       { ingredientId: 'salsa-soia', qty: 1, unit: 'cucchiai' },
       { ingredientId: 'olio-evo', qty: 1, unit: 'cucchiai' },
-      { ingredientId: 'zenzero', qty: 5, unit: 'g' },
+      { ingredientId: 'zenzero', qty: 5, unit: 'g', note: 'opzionale, solo per aromatizzare' },
     ],
     steps: [
       'Lessa il riso integrale (circa 25 min) o usa avanzo del giorno prima.',
-      'In padella salta carota a julienne ed edamame con olio e zenzero 4 minuti.',
+      "In padella salta carota a julienne ed edamame con olio (e zenzero se ce l'hai) 4 minuti.",
       'Sposta sul bordo, rompi l’uovo e strapazzalo, poi unisci il riso.',
       'Sfuma con la salsa di soia e salta 2 minuti a fuoco vivo.',
     ],
