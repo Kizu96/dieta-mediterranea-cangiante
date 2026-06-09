@@ -152,6 +152,12 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - Correzione in `mealPlan.ts` (scambi mirati, calorie invariate): spuntini poveri di proteine → `spuntino-edamame-salati`/`spuntino-yogurt-mandorle`; estate Dom cena→`platessa`, colazione→`yogurt-avena`; estate Gio colazione→`frittata-microonde`; inverno Mer colazione→`frittata-microonde`; inverno Sab cena→`tacchino-padella-funghi`.
 - Risultato: tutti i 14 giorni ≥122 g proteine (moderata); medie estate **141 g**, inverno **131 g**; calorie 1867-2296 (moderata). Fibre alte ma ok (un paio di giorni invernali ~57-66 g → introdurre gradualmente). Guida/PDF rigenerati.
 
+### Aggancio ai giorni reali + rotazione 2 settimane estate (giugno 2026)
+- `getDayTemplate` (in `planning.ts`) ora sceglie il template dal **giorno reale** della settimana (Lun=0…Dom=6) e dal numero di settimana (allineato al lunedì), non più da `epochDay % 7`. Così le etichette Lun…Dom coincidono coi giorni veri ed è coerente con gli allenamenti (già su `mondayIndex`) e col giorno "attivo" (tapis roulant).
+- `SeasonPlan.days` = concatenazione di settimane da 7 (Lun→Dom): 7 = 1 settimana fissa, 14 = 2 che si alternano. **Estate = 2 settimane (A+B)**; inverno resta 1 settimana (**TODO**: costruire settimana B inverno, panchina più ricca).
+- **+5 nuovi pranzi "da ufficio" estivi**: `pranzo-orzo-pollo-feta`, `pranzo-pasta-tonno-verdure`, `pranzo-riso-ceci-feta`, `pranzo-cous-cous-sgombro`, `pranzo-lenticchie-feta-estiva` (tutti `office`, freddi/make-ahead). Settimana B: ogni pasto diverso dalla A nello stesso giorno; pranzi feriali tutti `office`. Media B ~1647 kcal / 108 g base (×1.3 moderata ≈ 2140 kcal / 140 g); tutti i giorni ≥122 g proteine (moderata).
+- **Zenzero** reso `opzionale` nel riso+edamame (ricetta ok senza); gli ingredienti con nota `opzional*` ora **non** entrano in lista spesa (`ingredientsForRange` in `shopping.ts`).
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.
