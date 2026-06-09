@@ -47,12 +47,12 @@ export const dailyEssentials: DailyEssential[] = [
   },
   {
     id: 'frutti-bosco',
-    name: 'Uva nera o rossa',
+    name: 'Mirtilli e lamponi freschi',
     detail:
-      "Una porzione (~80-100 g) di uva nera o rossa con la buccia: è ricca di antociani, gli stessi polifenoli viola-rossi dei frutti di bosco. La buccia scura è la parte più preziosa, non toglierla. Con moderazione perché è più zuccherina della frutta di bosco.",
-    ingredientId: 'uva',
+      "Una porzione (~80-100 g) di mirtilli e lamponi FRESCHI (non surgelati: quelli congelati rilasciano acqua e diventano sgradevoli). Sono dolci, non aciduli, e ricchi di antociani a basso indice glicemico. In alternativa: uva nera/rossa con la buccia.",
+    ingredientId: 'mirtilli',
     source:
-      'Pan et al., gli antociani migliorano i marcatori della sindrome metabolica (LDL, trigliceridi, glicemia), meta-analisi di 29 RCT (2006 persone), PLoS One 2025 (PMID 39928643)',
+      'Curtis et al., 1 tazza/die di mirtilli per 6 mesi migliora i marcatori cardiometabolici nella sindrome metabolica, Am J Clin Nutr 2019 (PMC6537945)',
   },
   {
     id: 'cioccolato-85',

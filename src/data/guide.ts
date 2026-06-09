@@ -174,13 +174,14 @@ Il **sulforafano** dei germogli di broccoli, consumati **crudi**, è associato a
 - Axelsson AS, et al. *Sulforaphane reduces hepatic glucose production…* Sci Transl Med 2017: https://www.science.org/doi/10.1126/scitranslmed.aah4477
 
 ## Polifenoli, antociani e cioccolato fondente
-- **Antociani (uva nera/rossa, frutta viola-rossa):** i polifenoli viola-rossi migliorano i marcatori della sindrome metabolica — riducono colesterolo LDL, trigliceridi e glicemia a digiuno e alzano l'HDL. Una meta-analisi di 29 studi randomizzati (2006 persone) lo conferma. Pan et al. *PLoS One 2025;20(2):e0315504*: https://pmc.ncbi.nlm.nih.gov/articles/PMC11809928/
+- **Antociani (mirtilli e lamponi freschi, uva con la buccia):** i polifenoli viola-rossi migliorano i marcatori cardiometabolici. In uno studio, 1 tazza/die di mirtilli per 6 mesi ha migliorato i marcatori nella sindrome metabolica. Curtis PJ, et al. *Am J Clin Nutr 2019*: https://pmc.ncbi.nlm.nih.gov/articles/PMC6537945/. Una meta-analisi di 29 RCT conferma l'effetto degli antociani su colesterolo, trigliceridi e glicemia: Pan et al. *PLoS One 2025*: https://pmc.ncbi.nlm.nih.gov/articles/PMC11809928/
+  - **Importante:** usa frutti di bosco **freschi**, non surgelati (questi ultimi diventano acquosi e poco gradevoli).
 - **Cioccolato fondente (flavanoli del cacao):** dosi moderate sono associate a una migliore sensibilità insulinica. Grassi D, et al. *Am J Clin Nutr 2005*: https://pubmed.ncbi.nlm.nih.gov/15755830/
 
 ## In pratica nel tuo piano
 - **Ogni giorno:** germogli crudi, tè verde, olio EVO a crudo, verdura abbondante, una fonte proteica a ogni pasto.
 - **Spesso:** legumi, pesce azzurro (sgombro/sardine), cereali integrali con moderazione, fermentati.
-- **A piacere con misura:** cioccolato 85%, noci/mandorle, uva (con la buccia).
+- **A piacere con misura:** cioccolato 85%, noci/mandorle, mirtilli e lamponi freschi (o uva con la buccia).
 - **Ciclizzazione "cangiante":** più carboidrati nei giorni di tapis roulant, meno nei giorni di riposo, per favorire la perdita di grasso preservando i muscoli.
 
 > Nota: gli studi mostrano effetti **a livello di popolazione**; i risultati individuali variano. Questi alimenti aiutano dentro a uno stile di vita complessivo (deficit calorico moderato + movimento).`,

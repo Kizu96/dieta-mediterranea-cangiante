@@ -62,6 +62,8 @@ export const NUTR = {
   pesca: { kcal: 39, p: 0.9, c: 10, f: 0.3, fib: 1.5 },
   anguria: { kcal: 30, p: 0.6, c: 8, f: 0.2, fib: 0.4 },
   melone: { kcal: 34, p: 0.8, c: 8, f: 0.2, fib: 0.9 },
+  mirtilli: { kcal: 57, p: 0.7, c: 14, f: 0.3, fib: 2.4 },
+  lamponi: { kcal: 52, p: 1.2, c: 12, f: 0.7, fib: 6.5 },
   uva: { kcal: 69, p: 0.7, c: 18, f: 0.2, fib: 0.9 },
   uvetta: { kcal: 299, p: 3, c: 79, f: 0.5, fib: 3.7 },
   // --- proteine / pesce ---

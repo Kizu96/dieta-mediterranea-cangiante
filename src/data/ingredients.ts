@@ -65,7 +65,9 @@ export const ingredients: Ingredient[] = [
   { id: 'pesca', name: 'Pesca', category: 'frutta', unit: 'pz', storage: 'Temperatura ambiente, poi frigo', shelfLife: '4-5 giorni', seasons: ['estate'] },
   { id: 'anguria', name: 'Anguria', category: 'frutta', unit: 'g', storage: 'Frigo una volta tagliata', shelfLife: '3-4 giorni tagliata', seasons: ['estate'] },
   { id: 'melone', name: 'Melone', category: 'frutta', unit: 'g', storage: 'Frigo una volta tagliato', shelfLife: '3-4 giorni tagliato', seasons: ['estate'] },
-  { id: 'uva', name: 'Uva nera o rossa (con buccia)', category: 'frutta', unit: 'g', storage: 'Frigo nel cassetto frutta; lavala solo poco prima di mangiarla', shelfLife: '5-7 giorni' },
+  { id: 'mirtilli', name: 'Mirtilli freschi (NON surgelati)', category: 'frutta', unit: 'g', storage: 'Frigo in contenitore; non lavarli finché non li mangi', shelfLife: '4-5 giorni' },
+  { id: 'lamponi', name: 'Lamponi freschi (NON surgelati)', category: 'frutta', unit: 'g', storage: 'Frigo in contenitore, strato singolo; non lavarli finché non li mangi', shelfLife: '2-3 giorni' },
+  { id: 'uva', name: 'Uva nera o rossa (con buccia) — alternativa ai frutti di bosco', category: 'frutta', unit: 'g', storage: 'Frigo nel cassetto frutta; lavala solo poco prima di mangiarla', shelfLife: '5-7 giorni' },
   { id: 'uvetta', name: 'Uvetta (uva passa)', category: 'dispensa', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '12 mesi', staple: true },
 
   // ----- PROTEINE (carne/uova) ----------------------------------------------
