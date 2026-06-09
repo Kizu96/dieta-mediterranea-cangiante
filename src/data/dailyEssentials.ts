@@ -47,12 +47,12 @@ export const dailyEssentials: DailyEssential[] = [
   },
   {
     id: 'frutti-bosco',
-    name: 'Frutti di bosco',
+    name: 'Uva nera o rossa',
     detail:
-      'Una porzione (~80-100 g), freschi in estate o surgelati in inverno. Ricchi di antociani e a basso indice glicemico; associati a miglioramenti dei marcatori cardiometabolici.',
-    ingredientId: 'mirtilli',
+      "Una porzione (~80-100 g) di uva nera o rossa con la buccia: è ricca di antociani, gli stessi polifenoli viola-rossi dei frutti di bosco. La buccia scura è la parte più preziosa, non toglierla. Con moderazione perché è più zuccherina della frutta di bosco.",
+    ingredientId: 'uva',
     source:
-      'Curtis et al., mirtilli e funzione cardiometabolica nella sindrome metabolica, Am J Clin Nutr 2019 (PMC6537945)',
+      'Pan et al., gli antociani migliorano i marcatori della sindrome metabolica (LDL, trigliceridi, glicemia), meta-analisi di 29 RCT (2006 persone), PLoS One 2025 (PMID 39928643)',
   },
   {
     id: 'cioccolato-85',

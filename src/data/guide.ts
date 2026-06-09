@@ -135,7 +135,7 @@ Tieni sempre questi: **olio EVO, legumi in barattolo** (ceci, cannellini, lentic
 
 ## Freezer (la tua dispensa "viva")
 Il freezer è l'alleato n.1 di chi vive solo:
-- **Verdura surgelata** (spinaci, frutti di bosco): già porzionata, zero sprechi, nutrienti preservati.
+- **Verdura surgelata** (spinaci, edamame): già porzionata, zero sprechi, nutrienti preservati.
 - **Pesce surgelato** (merluzzo, platessa, gamberetti): riserva proteica sempre pronta.
 - **Carne porzionata**: dividi pollo/tacchino in porzioni da ~150 g prima di congelare.
 - **Pane affettato**: congela e tosta/scongela 1-2 fette al bisogno.
@@ -173,14 +173,14 @@ Il **sulforafano** dei germogli di broccoli, consumati **crudi**, è associato a
 - Bahadoran Z, et al. *Effect of broccoli sprouts on insulin resistance in type 2 diabetic patients: a randomized double-blind clinical trial.* 2012. PubMed: https://pubmed.ncbi.nlm.nih.gov/22537070/
 - Axelsson AS, et al. *Sulforaphane reduces hepatic glucose production…* Sci Transl Med 2017: https://www.science.org/doi/10.1126/scitranslmed.aah4477
 
-## Polifenoli, frutti di bosco e cioccolato fondente
-- **Frutti di bosco (antociani):** 1 tazza/die di mirtilli per 6 mesi ha migliorato marcatori cardiometabolici nella sindrome metabolica. Curtis PJ, et al. *Am J Clin Nutr 2019*: https://pmc.ncbi.nlm.nih.gov/articles/PMC6537945/
+## Polifenoli, antociani e cioccolato fondente
+- **Antociani (uva nera/rossa, frutta viola-rossa):** i polifenoli viola-rossi migliorano i marcatori della sindrome metabolica — riducono colesterolo LDL, trigliceridi e glicemia a digiuno e alzano l'HDL. Una meta-analisi di 29 studi randomizzati (2006 persone) lo conferma. Pan et al. *PLoS One 2025;20(2):e0315504*: https://pmc.ncbi.nlm.nih.gov/articles/PMC11809928/
 - **Cioccolato fondente (flavanoli del cacao):** dosi moderate sono associate a una migliore sensibilità insulinica. Grassi D, et al. *Am J Clin Nutr 2005*: https://pubmed.ncbi.nlm.nih.gov/15755830/
 
 ## In pratica nel tuo piano
 - **Ogni giorno:** germogli crudi, tè verde, olio EVO a crudo, verdura abbondante, una fonte proteica a ogni pasto.
 - **Spesso:** legumi, pesce azzurro (sgombro/sardine), cereali integrali con moderazione, fermentati.
-- **A piacere con misura:** cioccolato 85%, noci/mandorle, frutti di bosco.
+- **A piacere con misura:** cioccolato 85%, noci/mandorle, uva (con la buccia).
 - **Ciclizzazione "cangiante":** più carboidrati nei giorni di tapis roulant, meno nei giorni di riposo, per favorire la perdita di grasso preservando i muscoli.
 
 > Nota: gli studi mostrano effetti **a livello di popolazione**; i risultati individuali variano. Questi alimenti aiutano dentro a uno stile di vita complessivo (deficit calorico moderato + movimento).`,

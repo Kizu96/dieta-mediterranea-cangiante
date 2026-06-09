@@ -25,7 +25,7 @@ Routine: lavoro 9–18, impegni 19–20, relax dalle 22, sonno ~24.
 - **DIRECT-PLUS / green-MED** (BMC Medicine 2022): −14,1% grasso viscerale vs −6% MED classica.
 - Olio EVO → acido oleico → **OEA** (sazietà + ossidazione grassi, PPAR-α).
 - **Germogli broccoli / sulforafano** → ↓ insulina, ↓ HOMA-IR.
-- Cioccolato 85%, frutti di bosco, fermentati (kimchi/crauti): polifenoli + microbiota.
+- Cioccolato 85%, uva nera/rossa (antociani — Pan et al. PLoS One 2025, PMID 39928643), fermentati (kimchi/crauti): polifenoli + microbiota.
 
 ## Stack & hosting
 Vite + React 19 + TypeScript + Dexie (IndexedDB) + recharts + date-fns + vite-plugin-pwa.
