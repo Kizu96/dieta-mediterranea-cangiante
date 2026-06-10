@@ -46,6 +46,8 @@ export function Today({
 
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);
+  // I pasti di domani partono chiusi: si aprono solo al tocco, per non confonderli con oggi.
+  const [showTomorrow, setShowTomorrow] = useState(false);
 
   // --- Daily essentials log (keyed date+essentialId) ---
   const todayEssentials = useLiveQuery(
@@ -179,8 +181,42 @@ export function Today({
         )}
       </Card>
 
-      <Card title="Pasti di domani" icon="🌙" action={<span className="pill">{scaleRound(totalKcalTomorrow, factor)} kcal</span>}>
-        {mealsTomorrow.length === 0 ? (
+      <Card
+        title="Pasti di domani"
+        icon="🌙"
+        action={
+          <button
+            onClick={() => setShowTomorrow((v) => !v)}
+            aria-expanded={showTomorrow}
+            aria-label={showTomorrow ? 'Nascondi i pasti di domani' : 'Mostra i pasti di domani'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+              color: 'inherit',
+              cursor: 'pointer',
+            }}
+          >
+            <span className="pill">{scaleRound(totalKcalTomorrow, factor)} kcal</span>
+            <span aria-hidden="true" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
+              {showTomorrow ? '▾' : '▸'}
+            </span>
+          </button>
+        }
+      >
+        {!showTomorrow ? (
+          <p
+            className="muted small"
+            style={{ margin: 0, cursor: 'pointer' }}
+            onClick={() => setShowTomorrow(true)}
+          >
+            Tocca per vedere cosa preparare domani.
+          </p>
+        ) : mealsTomorrow.length === 0 ? (
           <p className="muted small">Nessun pasto pianificato per domani.</p>
         ) : (
           <ul className="clean">
