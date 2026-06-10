@@ -18,6 +18,7 @@ export interface ShoppingCheck {
 export interface WeightEntry {
   id?: number;
   date: string; // ISO yyyy-mm-dd
+  updatedAt?: number; // per la fusione in sincronizzazione (newest wins)
   kg: number;
   // Composizione corporea / misure (dalla bilancia smart o dal metro). Opzionali.
   visceralFat?: number; // indice grasso viscerale (es. 1-59)
@@ -33,6 +34,7 @@ export interface EssentialLog {
   date: string; // ISO yyyy-mm-dd
   essentialId: string;
   done: boolean;
+  updatedAt?: number; // per la fusione in sincronizzazione (newest wins)
 }
 
 export interface WorkoutLog {
@@ -41,6 +43,7 @@ export interface WorkoutLog {
   title: string;
   done: boolean;
   durationMin?: number;
+  updatedAt?: number; // per la fusione in sincronizzazione (newest wins)
 }
 
 // Impostazioni generiche key/value (stagione override, profilo, notifiche...)

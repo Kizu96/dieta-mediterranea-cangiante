@@ -3,6 +3,7 @@ import type { Season } from '../data/types';
 import { addDays, toISODate } from '../lib/planning';
 import { missingForDate } from '../lib/shopping';
 import { exportData, importData } from '../lib/backup';
+import { getSyncStatus, linkAccount, syncNow, unlinkAccount, type SyncStatus } from '../lib/sync';
 import { db, getSetting, setSetting } from '../db/db';
 import { isStoragePersisted } from '../lib/storage';
 import { currentSeasonByDate } from '../lib/season';
@@ -48,6 +49,49 @@ export function Settings({
   const [persisted, setPersisted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const autoSeason = currentSeasonByDate();
+
+  // --- Sincronizzazione cloud (gist privato GitHub) ---
+  const [sync, setSync] = useState<SyncStatus>(() => getSyncStatus());
+  const [token, setToken] = useState('');
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+  const refreshSync = () => setSync(getSyncStatus());
+
+  const doLink = async () => {
+    setSyncBusy(true);
+    setSyncMsg('Collegamento in corso…');
+    try {
+      const r = await linkAccount(token);
+      setToken('');
+      setSyncMsg(`Collegato come ${r.login} ✓ — sincronizzazione attiva.`);
+    } catch (e) {
+      setSyncMsg(e instanceof Error ? e.message : 'Errore di collegamento.');
+    } finally {
+      setSyncBusy(false);
+      refreshSync();
+    }
+  };
+
+  const doSyncNow = async () => {
+    setSyncBusy(true);
+    setSyncMsg('Sincronizzazione in corso…');
+    try {
+      const r = await syncNow();
+      setSyncMsg(r.pulled ? 'Sincronizzato ✓ (dati aggiornati da un altro dispositivo)' : 'Sincronizzato ✓');
+    } catch (e) {
+      setSyncMsg(e instanceof Error ? e.message : 'Errore di sincronizzazione.');
+    } finally {
+      setSyncBusy(false);
+      refreshSync();
+    }
+  };
+
+  const doUnlink = () => {
+    if (!confirm('Scollegare la sincronizzazione su questo dispositivo? I dati locali restano; il gist su GitHub non viene toccato.')) return;
+    unlinkAccount();
+    setSyncMsg('Scollegato da questo dispositivo.');
+    refreshSync();
+  };
 
   useEffect(() => {
     getNotifPrefs().then(setPrefs);
@@ -272,6 +316,83 @@ export function Settings({
             installata e aperta in background per maggiore affidabilità.
           </div>
         </>
+      )}
+
+      {/* Sincronizzazione cloud */}
+      <h3 className="section-label">Sincronizzazione (telefono ↔ PC)</h3>
+      {!sync.enabled ? (
+        <>
+          <p className="small muted" style={{ marginTop: -4 }}>
+            Tieni allineati telefono e PC tramite un <b>gist privato</b> nel tuo account GitHub
+            (gratis, i dati restano nel tuo account). Sincronizza dispensa, spesa, peso, essentials e
+            allenamenti — non le impostazioni, che restano per dispositivo.
+          </p>
+          <ol className="small" style={{ marginTop: 0, paddingLeft: 18 }}>
+            <li>
+              Crea un token con il solo permesso «gist»:{' '}
+              <a
+                href="https://github.com/settings/tokens/new?scopes=gist&description=Dieta%20Mediterranea%20Cangiante"
+                target="_blank"
+                rel="noreferrer"
+              >
+                apri GitHub
+              </a>{' '}
+              → in fondo «Generate token» → copialo.
+            </li>
+            <li>Incollalo qui sotto e premi «Collega».</li>
+            <li>Sull’altro dispositivo: stesso token → ritrova da solo i tuoi dati.</li>
+          </ol>
+          <div className="field">
+            <label>Token GitHub (scope «gist»)</label>
+            <input
+              type="password"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="ghp_…"
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </div>
+          <button className="btn block" onClick={doLink} disabled={syncBusy || !token.trim()}>
+            🔗 Collega e sincronizza
+          </button>
+          <div className="banner info" style={{ marginTop: 10 }}>
+            🔒 Il token resta <b>solo su questo dispositivo</b> e viene usato solo con GitHub. Non
+            inserirlo mai in chat o in altri siti.
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="small" style={{ marginTop: -4 }}>
+            ✅ Attiva{sync.login ? ` — account ${sync.login}` : ''}.{' '}
+            {sync.hasGist ? 'Archivio collegato.' : 'Archivio in creazione…'}
+          </p>
+          <p className="small muted" style={{ marginTop: 0 }}>
+            Ultima sincronizzazione:{' '}
+            <b>{sync.lastSyncAt ? new Date(sync.lastSyncAt).toLocaleString('it-IT') : 'mai'}</b>
+          </p>
+          {sync.lastError && (
+            <div className="banner warn" style={{ marginTop: 6 }}>
+              ⚠️ Ultimo errore: {sync.lastError}
+            </div>
+          )}
+          <button className="btn block" onClick={doSyncNow} disabled={syncBusy} style={{ marginBottom: 8 }}>
+            🔄 Sincronizza ora
+          </button>
+          <button
+            className="btn ghost block"
+            onClick={doUnlink}
+            disabled={syncBusy}
+            style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}
+          >
+            Scollega questo dispositivo
+          </button>
+        </>
+      )}
+      {syncMsg && (
+        <p className="small center" style={{ color: 'var(--olive-dark)' }}>
+          {syncMsg}
+        </p>
       )}
 
       {/* Dati */}

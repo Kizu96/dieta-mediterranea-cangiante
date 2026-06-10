@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { WorkoutDay, WorkoutExercise } from '../data/types';
 import { workoutWeeks } from '../data/workoutPlan';
@@ -35,19 +35,23 @@ export function Workouts() {
   );
   const totalDone = (logs ?? []).filter((l) => l.done).length;
 
-  const markDone = async (day: WorkoutDay) => {
-    const existing = (logs ?? []).find((l) => l.date === todayISO && l.title === day.title);
-    if (existing?.id != null) {
-      await db.workouts.update(existing.id, { done: !existing.done });
-    } else {
-      await db.workouts.add({
-        date: todayISO,
-        title: day.title,
-        done: true,
-        durationMin: day.durationMin,
-      });
-    }
-  };
+  const markDone = useCallback(
+    async (day: WorkoutDay) => {
+      const existing = (logs ?? []).find((l) => l.date === todayISO && l.title === day.title);
+      if (existing?.id != null) {
+        await db.workouts.update(existing.id, { done: !existing.done, updatedAt: Date.now() });
+      } else {
+        await db.workouts.add({
+          date: todayISO,
+          title: day.title,
+          done: true,
+          durationMin: day.durationMin,
+          updatedAt: Date.now(),
+        });
+      }
+    },
+    [logs, todayISO],
+  );
 
   if (!week) {
     return (

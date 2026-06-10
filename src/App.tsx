@@ -8,6 +8,7 @@ import { missingForDate } from './lib/shopping';
 import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRecipes';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
 import { requestPersistentStorage } from './lib/storage';
+import { syncInBackground } from './lib/sync';
 import { db } from './db/db';
 import { BottomNav, type ViewKey } from './components/BottomNav';
 import { Today } from './screens/Today';
@@ -54,6 +55,20 @@ function App() {
   // All'avvio: chiede storage persistente così il browser non cancella i dati locali.
   useEffect(() => {
     requestPersistentStorage();
+  }, []);
+
+  // Sincronizzazione cloud (se attiva): all'avvio e ogni volta che l'app torna
+  // in primo piano. Quando l'app passa in background fa un ultimo push, così
+  // l'altro dispositivo ritrova subito i dati aggiornati.
+  useEffect(() => {
+    syncInBackground();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' || document.visibilityState === 'hidden') {
+        syncInBackground();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
   // All'avvio: pianifica i promemoria in base alle preferenze salvate.

@@ -17,7 +17,7 @@ export interface BackupData {
   weights: WeightEntry[];
   essentials: EssentialLog[];
   workouts: WorkoutLog[];
-  settings: Setting[];
+  settings?: Setting[]; // opzionale: la sincronizzazione cloud NON include le impostazioni
 }
 
 export async function exportData(): Promise<BackupData> {
@@ -30,6 +30,67 @@ export async function exportData(): Promise<BackupData> {
     db.settings.toArray(),
   ]);
   return { version: 1, exportedAt: new Date().toISOString(), pantry, shopping, weights, essentials, workouts, settings };
+}
+
+// ---------------------------------------------------------------------------
+// Fusione di due backup (per la sincronizzazione cloud). Niente "ultimo che
+// scrive vince" a livello di tabella: si fonde RECORD per RECORD su una chiave
+// stabile, scegliendo il più recente via `updatedAt`. Così, se modifichi cose
+// diverse su telefono e PC, non si perde nulla. I record dei log sono privati
+// di ogni dispositivo come `id` autoincrement → l'id viene rimosso (la chiave
+// stabile è data/composta), e Dexie ne assegna uno nuovo all'import.
+// ---------------------------------------------------------------------------
+function mergeTable<T extends { id?: number; updatedAt?: number }>(
+  a: T[] | undefined,
+  b: T[] | undefined,
+  key: (x: T) => string,
+  stripId = false,
+): T[] {
+  const map = new Map<string, T>();
+  const consider = (x: T) => {
+    const k = key(x);
+    const prev = map.get(k);
+    // `>` (non `>=`) ⇒ a parità di updatedAt vince il primo inserito (cioè `a`).
+    if (!prev || (x.updatedAt ?? 0) > (prev.updatedAt ?? 0)) map.set(k, x);
+  };
+  (a ?? []).forEach(consider);
+  (b ?? []).forEach(consider);
+  let out = [...map.values()];
+  if (stripId)
+    out = out.map((x) => {
+      const copy = { ...x };
+      delete copy.id;
+      return copy;
+    });
+  return out.sort((x, y) => key(x).localeCompare(key(y)));
+}
+
+export function mergeBackup(a: Partial<BackupData>, b: Partial<BackupData>): BackupData {
+  const settings =
+    a.settings || b.settings
+      ? mergeTable(
+          a.settings as (Setting & { id?: number; updatedAt?: number })[] | undefined,
+          b.settings as (Setting & { id?: number; updatedAt?: number })[] | undefined,
+          (x) => x.key,
+        )
+      : undefined;
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    pantry: mergeTable(a.pantry, b.pantry, (x) => x.ingredientId),
+    shopping: mergeTable(a.shopping, b.shopping, (x) => x.ingredientId),
+    weights: mergeTable(a.weights, b.weights, (x) => x.date, true),
+    essentials: mergeTable(a.essentials, b.essentials, (x) => `${x.date}|${x.essentialId}`, true),
+    workouts: mergeTable(a.workouts, b.workouts, (x) => `${x.date}|${x.title}`, true),
+    ...(settings ? { settings } : {}),
+  };
+}
+
+// Stringa canonica (ordinata, senza id né timestamp) per confrontare due stati
+// e capire se la sincronizzazione deve davvero scrivere qualcosa.
+export function canonicalString(d: Partial<BackupData>): string {
+  const m = mergeBackup(d, {});
+  return JSON.stringify({ ...m, exportedAt: '' });
 }
 
 export async function importData(data: Partial<BackupData>): Promise<void> {

@@ -112,8 +112,8 @@ export function Weight() {
     if (Object.keys(patch).length === 0) return;
 
     const existing = await db.weights.where('date').equals(today).first();
-    if (existing?.id != null) await db.weights.update(existing.id, patch);
-    else await db.weights.add({ date: today, kg: patch.kg ?? current, ...patch });
+    if (existing?.id != null) await db.weights.update(existing.id, { ...patch, updatedAt: Date.now() });
+    else await db.weights.add({ date: today, kg: patch.kg ?? current, ...patch, updatedAt: Date.now() });
 
     // Alert motivazionale: vita o grasso viscerale in calo rispetto all'ultima misura.
     let praise = '';

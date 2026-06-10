@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
 import type { Season } from '../data/types';
@@ -55,17 +55,20 @@ export function Today({
   );
   const doneSet = new Set((todayEssentials ?? []).filter((e) => e.done).map((e) => e.essentialId));
 
-  const toggleEssential = async (essentialId: string) => {
-    const existing = await db.essentials
-      .where('[date+essentialId]')
-      .equals([todayISO, essentialId])
-      .first();
-    if (existing?.id != null) {
-      await db.essentials.update(existing.id, { done: !existing.done });
-    } else {
-      await db.essentials.add({ date: todayISO, essentialId, done: true });
-    }
-  };
+  const toggleEssential = useCallback(
+    async (essentialId: string) => {
+      const existing = await db.essentials
+        .where('[date+essentialId]')
+        .equals([todayISO, essentialId])
+        .first();
+      if (existing?.id != null) {
+        await db.essentials.update(existing.id, { done: !existing.done, updatedAt: Date.now() });
+      } else {
+        await db.essentials.add({ date: todayISO, essentialId, done: true, updatedAt: Date.now() });
+      }
+    },
+    [todayISO],
+  );
 
   // --- Allenamento di oggi (deriva il giorno dal piano workout) ---
   const todayWorkout = useMemo(() => {
@@ -85,13 +88,14 @@ export function Today({
     if (!todayWorkout) return;
     const existing = (workoutLog ?? [])[0];
     if (existing?.id != null) {
-      await db.workouts.update(existing.id, { done: !existing.done });
+      await db.workouts.update(existing.id, { done: !existing.done, updatedAt: Date.now() });
     } else {
       await db.workouts.add({
         date: todayISO,
         title: todayWorkout.title,
         done: true,
         durationMin: todayWorkout.durationMin,
+        updatedAt: Date.now(),
       });
     }
   };
@@ -103,8 +107,8 @@ export function Today({
     const value = parseFloat(kg.replace(',', '.'));
     if (!isFinite(value) || value <= 0) return;
     const existing = await db.weights.where('date').equals(todayISO).first();
-    if (existing?.id != null) await db.weights.update(existing.id, { kg: value });
-    else await db.weights.add({ date: todayISO, kg: value });
+    if (existing?.id != null) await db.weights.update(existing.id, { kg: value, updatedAt: Date.now() });
+    else await db.weights.add({ date: todayISO, kg: value, updatedAt: Date.now() });
     setKg('');
   };
 
