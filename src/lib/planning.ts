@@ -74,16 +74,35 @@ export interface ResolvedMeal {
   recipe: Recipe;
 }
 
+// Sostituzioni manuali dei pasti ("scambia pasto"): chiave `${dataISO}|${slot}` → recipeId.
+export type OverrideMap = Map<string, string>;
+
+export function buildOverrideMap(
+  rows: { date: string; slot: MealSlot; recipeId: string }[],
+): OverrideMap {
+  return new Map(rows.map((r) => [`${r.date}|${r.slot}`, r.recipeId]));
+}
+
+/** Ricette candidate per uno slot/stagione (usato dal selettore "scambia pasto"). */
+export function recipesForSlot(slot: MealSlot, season: Season, includeExtra = true): Recipe[] {
+  return recipes.filter(
+    (r) => r.slot.includes(slot) && r.seasons.includes(season) && (includeExtra || !r.extra),
+  );
+}
+
 export function getRecipesForDate(
   date: Date,
   season: Season,
   includeExtra = true,
+  overrides?: OverrideMap,
 ): ResolvedMeal[] {
   const tpl = getDayTemplate(date, season);
   if (!tpl) return [];
+  const iso = toISODate(date);
   return tpl.meals
     .map((m) => {
-      const recipe = resolveRecipe(m.recipeId, includeExtra);
+      const overrideId = overrides?.get(`${iso}|${m.slot}`);
+      const recipe = resolveRecipe(overrideId ?? m.recipeId, includeExtra);
       return recipe ? { slot: m.slot, recipe } : null;
     })
     .filter((x): x is ResolvedMeal => x !== null);

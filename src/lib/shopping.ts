@@ -1,7 +1,7 @@
 import type { Category, Ingredient, Recipe, Season } from '../data/types';
 import { ingredients } from '../data/ingredients';
 import { recipes } from '../data/recipes';
-import { addDays, getRecipesForDate } from './planning';
+import { addDays, getRecipesForDate, type OverrideMap } from './planning';
 
 const ingredientMap = new Map<string, Ingredient>(ingredients.map((i) => [i.id, i]));
 
@@ -21,10 +21,11 @@ export function ingredientsForRange(
   days: number,
   season: Season,
   includeExtra = true,
+  overrides?: OverrideMap,
 ): NeededIngredient[] {
   const acc = new Map<string, NeededIngredient>();
   for (let i = 0; i < days; i++) {
-    const meals = getRecipesForDate(addDays(start, i), season, includeExtra);
+    const meals = getRecipesForDate(addDays(start, i), season, includeExtra, overrides);
     for (const { recipe } of meals) {
       for (const ri of recipe.ingredients) {
         // Gli ingredienti facoltativi (es. zenzero "opzionale") non vanno in lista spesa.
@@ -69,8 +70,9 @@ export function buildShoppingList(
   days: number,
   season: Season,
   includeExtra = true,
+  overrides?: OverrideMap,
 ): ShoppingGroup[] {
-  const needed = ingredientsForRange(start, days, season, includeExtra).filter(
+  const needed = ingredientsForRange(start, days, season, includeExtra, overrides).filter(
     (n) => !haveSet.has(n.ingredient.id),
   );
   const byCat = new Map<Category, NeededIngredient[]>();
@@ -105,8 +107,9 @@ export function missingForDate(
   date: Date,
   season: Season,
   includeExtra = true,
+  overrides?: OverrideMap,
 ): Ingredient[] {
-  const meals = getRecipesForDate(date, season, includeExtra);
+  const meals = getRecipesForDate(date, season, includeExtra, overrides);
   const missing = new Map<string, Ingredient>();
   for (const { recipe } of meals) {
     for (const ri of recipe.ingredients) {

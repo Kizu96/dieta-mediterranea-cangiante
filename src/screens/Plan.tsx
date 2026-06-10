@@ -1,6 +1,15 @@
 import { useMemo, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import type { Recipe, Season } from '../data/types';
-import { addDays, getDayTemplate, getRecipesForDate, toISODate } from '../lib/planning';
+import { db } from '../db/db';
+import {
+  addDays,
+  buildOverrideMap,
+  getDayTemplate,
+  getRecipesForDate,
+  toISODate,
+  type OverrideMap,
+} from '../lib/planning';
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
@@ -18,6 +27,8 @@ export function Plan({ season }: { season: Season }) {
   const today = useMemo(() => new Date(), []);
   const { factor } = useIntensity();
   const { includeExtra } = useExtraRecipes();
+  const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
+  const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
 
   return (
     <div>
@@ -44,6 +55,7 @@ export function Plan({ season }: { season: Season }) {
           onOpen={setDetail}
           factor={factor}
           includeExtra={includeExtra}
+          overrides={overrides}
         />
       )}
 
@@ -54,6 +66,7 @@ export function Plan({ season }: { season: Season }) {
           onOpen={setDetail}
           factor={factor}
           includeExtra={includeExtra}
+          overrides={overrides}
         />
       )}
 
@@ -78,6 +91,7 @@ function DayView({
   onOpen,
   factor,
   includeExtra,
+  overrides,
 }: {
   date: Date;
   season: Season;
@@ -88,9 +102,10 @@ function DayView({
   onOpen: (r: Recipe) => void;
   factor: number;
   includeExtra: boolean;
+  overrides: OverrideMap;
 }) {
   const tpl = getDayTemplate(date, season);
-  const meals = getRecipesForDate(date, season, includeExtra);
+  const meals = getRecipesForDate(date, season, includeExtra, overrides);
   const total = meals.reduce((s, m) => s + m.recipe.kcal, 0);
   const isWeekday = mondayIndex(date) < 5; // Lun–Ven = pranzo da ufficio
 
@@ -158,12 +173,14 @@ function WeekView({
   onOpen,
   factor,
   includeExtra,
+  overrides,
 }: {
   start: Date;
   season: Season;
   onOpen: (r: Recipe) => void;
   factor: number;
   includeExtra: boolean;
+  overrides: OverrideMap;
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const todayISO = toISODate(start);
@@ -173,7 +190,7 @@ function WeekView({
       <div className="week-grid">
       {days.map((d, i) => {
         const tpl = getDayTemplate(d, season);
-        const meals = getRecipesForDate(d, season, includeExtra);
+        const meals = getRecipesForDate(d, season, includeExtra, overrides);
         const isToday = toISODate(d) === todayISO;
         const isWeekday = mondayIndex(d) < 5;
         return (

@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { Season } from './data/types';
 import { getSetting, setSetting } from './db/db';
 import { currentSeasonByDate } from './lib/season';
-import { addDays } from './lib/planning';
+import { addDays, buildOverrideMap } from './lib/planning';
 import { missingForDate } from './lib/shopping';
 import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRecipes';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
@@ -86,7 +86,11 @@ function App() {
             EXTRA_RECIPES_SETTING_KEY,
             EXTRA_RECIPES_DEFAULT,
           );
-          return missingForDate(haveSet, addDays(new Date(), 1), season, includeExtra).length > 0;
+          const overrides = buildOverrideMap(await db.mealOverride.toArray());
+          return (
+            missingForDate(haveSet, addDays(new Date(), 1), season, includeExtra, overrides).length >
+            0
+          );
         },
       });
     })();

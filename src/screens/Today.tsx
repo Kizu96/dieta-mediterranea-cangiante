@@ -5,7 +5,7 @@ import type { MealSlot, Season } from '../data/types';
 import { dailyEssentials } from '../data/dailyEssentials';
 import { workoutWeeks } from '../data/workoutPlan';
 import { currentSeasonByDate } from '../lib/season';
-import { addDays, getRecipesForDate, toISODate } from '../lib/planning';
+import { addDays, buildOverrideMap, getRecipesForDate, recipesForSlot, toISODate } from '../lib/planning';
 import { missingForDate } from '../lib/shopping';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
@@ -44,11 +44,16 @@ export function Today({
   const isWeekdayTomorrow = mondayIndex(tomorrow) < 5;
 
   const { includeExtra } = useExtraRecipes();
-  const meals = getRecipesForDate(today, season, includeExtra);
-  const mealsTomorrow = getRecipesForDate(tomorrow, season, includeExtra);
+  const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
+  const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
+  const overriddenToday = new Set(
+    (overrideRows ?? []).filter((o) => o.date === todayISO).map((o) => o.slot),
+  );
+  const meals = getRecipesForDate(today, season, includeExtra, overrides);
+  const mealsTomorrow = getRecipesForDate(tomorrow, season, includeExtra, overrides);
   const haveSet = useHaveSet();
   const { factor } = useIntensity();
-  const missing = missingForDate(haveSet, tomorrow, season, includeExtra);
+  const missing = missingForDate(haveSet, tomorrow, season, includeExtra, overrides);
 
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);
@@ -95,6 +100,21 @@ export function Today({
       } else {
         await db.essentials.add({ date: todayISO, essentialId, done: true, updatedAt: Date.now() });
       }
+    },
+    [todayISO],
+  );
+
+  // --- Scambia pasto: sostituzione del pasto del piano solo per oggi ---
+  const [swap, setSwap] = useState<{ slot: MealSlot; current: string } | null>(null);
+  const setOverride = useCallback(
+    async (slot: MealSlot, recipeId: string) => {
+      await db.mealOverride.put({ date: todayISO, slot, recipeId, updatedAt: Date.now() });
+    },
+    [todayISO],
+  );
+  const clearOverride = useCallback(
+    async (slot: MealSlot) => {
+      await db.mealOverride.delete([todayISO, slot]);
     },
     [todayISO],
   );
@@ -232,10 +252,13 @@ export function Today({
                         {isWeekdayToday && m.slot === 'pranzo' && m.recipe.office && (
                           <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
                         )}
+                        {overriddenToday.has(m.slot) && (
+                          <span className="pill" style={{ marginLeft: 6 }}>🔁 scambiato</span>
+                        )}
                       </span>
                       <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       {STATUS_BTNS.map((b) => (
                         <button
                           key={b.value}
@@ -246,6 +269,13 @@ export function Today({
                           {b.label}
                         </button>
                       ))}
+                      <button
+                        onClick={() => setSwap({ slot: m.slot, current: m.recipe.id })}
+                        className="btn ghost"
+                        style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem', flex: '0 0 auto' }}
+                      >
+                        ⇄ Scambia
+                      </button>
                     </div>
                   </li>
                 );
@@ -409,6 +439,48 @@ export function Today({
       {exDetail && (
         <Modal title={exDetail.name} onClose={() => setExDetail(null)}>
           <ExerciseDetail exercise={exDetail} />
+        </Modal>
+      )}
+
+      {swap && (
+        <Modal title={`Scambia ${SLOT_LABEL[swap.slot]} di oggi`} onClose={() => setSwap(null)}>
+          <p className="small muted" style={{ marginTop: -4 }}>
+            Scegli cosa mangi davvero oggi al posto del pasto del piano. Vale <b>solo per oggi</b> e
+            aggiorna anche la lista della spesa.
+          </p>
+          <ul className="clean">
+            {recipesForSlot(swap.slot, season, includeExtra).map((r) => (
+              <li
+                key={r.id}
+                className="meal-row"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  setOverride(swap.slot, r.id);
+                  setSwap(null);
+                }}
+              >
+                <span className="grow">
+                  {r.name}
+                  {r.id === swap.current && (
+                    <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
+                  )}
+                </span>
+                <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>
+              </li>
+            ))}
+          </ul>
+          {overriddenToday.has(swap.slot) && (
+            <button
+              className="btn ghost block"
+              style={{ marginTop: 8 }}
+              onClick={() => {
+                clearOverride(swap.slot);
+                setSwap(null);
+              }}
+            >
+              ↩︎ Ripristina il pasto del piano
+            </button>
+          )}
         </Modal>
       )}
     </div>

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
-import { addDays, toISODate } from '../lib/planning';
+import { addDays, buildOverrideMap, toISODate } from '../lib/planning';
 import { buildShoppingList } from '../lib/shopping';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
@@ -26,10 +26,12 @@ export function Shopping({
   const haveSet = useHaveSet();
   const { factor } = useIntensity();
   const { includeExtra } = useExtraRecipes();
+  const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
+  const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
 
   const groups = useMemo(
-    () => buildShoppingList(haveSet, start, days, season, includeExtra),
-    [haveSet, start, days, season, includeExtra],
+    () => buildShoppingList(haveSet, start, days, season, includeExtra, overrides),
+    [haveSet, start, days, season, includeExtra, overrides],
   );
 
   const boughtRows = useLiveQuery(() => db.shopping.toArray(), [], []);
