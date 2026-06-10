@@ -123,8 +123,14 @@ function planTable(season: Season): string {
   const plan = seasonPlans.find((p) => p.season === season);
   if (!plan) return '';
   const head = `<tr><th>Giorno</th><th>kcal</th>${slotOrder.map((s) => `<th>${slotLabel[s]}</th>`).join('')}</tr>`;
+  const multiWeek = plan.days.length > 7;
+  const colspan = 2 + slotOrder.length;
   const rows = plan.days
-    .map((d) => {
+    .map((d, i) => {
+      const sep =
+        multiWeek && i % 7 === 0
+          ? `<tr class="wsep"><td colspan="${colspan}">Settimana ${String.fromCharCode(65 + i / 7)}</td></tr>`
+          : '';
       const cells = slotOrder
         .map((s) => {
           const meal = d.meals.find((m) => m.slot === s);
@@ -132,7 +138,7 @@ function planTable(season: Season): string {
           return `<td>${esc(name)}</td>`;
         })
         .join('');
-      return `<tr><td><strong>${d.dayLabel}</strong>${d.active ? ' 🏃' : ''}</td><td>${d.kcalTarget}</td>${cells}</tr>`;
+      return `${sep}<tr><td><strong>${d.dayLabel}</strong>${d.active ? ' 🏃' : ''}</td><td>${d.kcalTarget}</td>${cells}</tr>`;
     })
     .join('');
   return `<table class="plan"><thead>${head}</thead><tbody>${rows}</tbody></table>`;
@@ -215,6 +221,7 @@ export function buildGuideHTML(): string {
   .essentials li{ margin:6px 0; }
   .src{ color:var(--muted); font-size:9.5px; }
   .wweek{ page-break-inside:avoid; margin-bottom:10px; }
+  .plan .wsep td{ background:#efe9df; font-weight:bold; text-align:left; }
   .wday{ margin:6px 0; }
   section.guide-sec{ page-break-inside:avoid; }
   .pb{ page-break-before:always; }
@@ -237,10 +244,11 @@ export function buildGuideHTML(): string {
 
   <div class="pb"></div>
   <h2>Piano settimanale — Estate ☀️</h2>
-  <p>Ciclo di 7 giorni. 🏃 = giornata con tapis roulant (più carboidrati, kcal più alte).</p>
+  <p>Due settimane (A e B) che si alternano. 🏃 = giornata con tapis roulant (più carboidrati, kcal più alte).</p>
   ${planTable('estate')}
 
   <h2>Piano settimanale — Inverno ❄️</h2>
+  <p>Due settimane (A e B) che si alternano. 🏃 = giornata con tapis roulant.</p>
   ${planTable('inverno')}
 
   <div class="pb"></div>
