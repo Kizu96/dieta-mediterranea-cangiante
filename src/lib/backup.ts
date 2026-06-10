@@ -2,6 +2,8 @@
 import {
   db,
   type EssentialLog,
+  type MealOverride,
+  type MealStatus,
   type PantryItem,
   type Setting,
   type ShoppingCheck,
@@ -17,19 +19,35 @@ export interface BackupData {
   weights: WeightEntry[];
   essentials: EssentialLog[];
   workouts: WorkoutLog[];
+  mealStatus?: MealStatus[];
+  mealOverride?: MealOverride[];
   settings?: Setting[]; // opzionale: la sincronizzazione cloud NON include le impostazioni
 }
 
 export async function exportData(): Promise<BackupData> {
-  const [pantry, shopping, weights, essentials, workouts, settings] = await Promise.all([
-    db.pantry.toArray(),
-    db.shopping.toArray(),
-    db.weights.toArray(),
-    db.essentials.toArray(),
-    db.workouts.toArray(),
-    db.settings.toArray(),
-  ]);
-  return { version: 1, exportedAt: new Date().toISOString(), pantry, shopping, weights, essentials, workouts, settings };
+  const [pantry, shopping, weights, essentials, workouts, mealStatus, mealOverride, settings] =
+    await Promise.all([
+      db.pantry.toArray(),
+      db.shopping.toArray(),
+      db.weights.toArray(),
+      db.essentials.toArray(),
+      db.workouts.toArray(),
+      db.mealStatus.toArray(),
+      db.mealOverride.toArray(),
+      db.settings.toArray(),
+    ]);
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    pantry,
+    shopping,
+    weights,
+    essentials,
+    workouts,
+    mealStatus,
+    mealOverride,
+    settings,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -82,6 +100,8 @@ export function mergeBackup(a: Partial<BackupData>, b: Partial<BackupData>): Bac
     weights: mergeTable(a.weights, b.weights, (x) => x.date, true),
     essentials: mergeTable(a.essentials, b.essentials, (x) => `${x.date}|${x.essentialId}`, true),
     workouts: mergeTable(a.workouts, b.workouts, (x) => `${x.date}|${x.title}`, true),
+    mealStatus: mergeTable(a.mealStatus, b.mealStatus, (x) => `${x.date}|${x.slot}`),
+    mealOverride: mergeTable(a.mealOverride, b.mealOverride, (x) => `${x.date}|${x.slot}`),
     ...(settings ? { settings } : {}),
   };
 }
@@ -96,7 +116,7 @@ export function canonicalString(d: Partial<BackupData>): string {
 export async function importData(data: Partial<BackupData>): Promise<void> {
   await db.transaction(
     'rw',
-    [db.pantry, db.shopping, db.weights, db.essentials, db.workouts, db.settings],
+    [db.pantry, db.shopping, db.weights, db.essentials, db.workouts, db.mealStatus, db.mealOverride, db.settings],
     async () => {
       if (Array.isArray(data.pantry)) {
         await db.pantry.clear();
@@ -117,6 +137,14 @@ export async function importData(data: Partial<BackupData>): Promise<void> {
       if (Array.isArray(data.workouts)) {
         await db.workouts.clear();
         await db.workouts.bulkPut(data.workouts);
+      }
+      if (Array.isArray(data.mealStatus)) {
+        await db.mealStatus.clear();
+        await db.mealStatus.bulkPut(data.mealStatus);
+      }
+      if (Array.isArray(data.mealOverride)) {
+        await db.mealOverride.clear();
+        await db.mealOverride.bulkPut(data.mealOverride);
       }
       if (Array.isArray(data.settings)) {
         await db.settings.clear();

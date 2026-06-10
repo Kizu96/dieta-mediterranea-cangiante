@@ -2,6 +2,7 @@
 // Stato utente persistito localmente (IndexedDB via Dexie). Nessun backend.
 // ===========================================================================
 import Dexie, { type Table } from 'dexie';
+import type { MealSlot } from '../data/types';
 
 export interface PantryItem {
   ingredientId: string;
@@ -53,6 +54,24 @@ export interface Setting {
   value: any;
 }
 
+// Stato del pasto di un giorno (mangiato / metà / saltato): alimenta la barra calorie.
+export type MealStatusValue = 'eaten' | 'half' | 'skipped';
+export interface MealStatus {
+  date: string; // ISO yyyy-mm-dd
+  slot: MealSlot;
+  status: MealStatusValue;
+  recipeId?: string; // ricetta a cui si riferiva quando è stato segnato
+  updatedAt?: number; // per la fusione in sincronizzazione
+}
+
+// Sostituzione manuale di un pasto del piano per un giorno specifico ("scambia pasto").
+export interface MealOverride {
+  date: string; // ISO yyyy-mm-dd
+  slot: MealSlot;
+  recipeId: string;
+  updatedAt?: number; // per la fusione in sincronizzazione
+}
+
 export class DietDB extends Dexie {
   pantry!: Table<PantryItem, string>;
   shopping!: Table<ShoppingCheck, string>;
@@ -60,6 +79,8 @@ export class DietDB extends Dexie {
   essentials!: Table<EssentialLog, number>;
   workouts!: Table<WorkoutLog, number>;
   settings!: Table<Setting, string>;
+  mealStatus!: Table<MealStatus, [string, string]>;
+  mealOverride!: Table<MealOverride, [string, string]>;
 
   constructor() {
     super('dietaMediterraneaCangiante');
@@ -70,6 +91,12 @@ export class DietDB extends Dexie {
       essentials: '++id, date, essentialId, [date+essentialId]',
       workouts: '++id, date',
       settings: 'key',
+    });
+    // v2: stato pasti (mangiato/metà/saltato) e scambio pasto per giorno.
+    // Chiave composta [date+slot]; gli store esistenti restano invariati.
+    this.version(2).stores({
+      mealStatus: '[date+slot], date',
+      mealOverride: '[date+slot], date',
     });
   }
 }
