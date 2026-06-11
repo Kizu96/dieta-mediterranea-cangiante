@@ -6,6 +6,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 // base = sottocartella di GitHub Pages (https://kizu96.github.io/dieta-mediterranea-cangiante/)
 export default defineConfig({
   base: '/dieta-mediterranea-cangiante/',
+  // Data di build mostrata in Impostazioni: serve a verificare quale versione gira
+  // (il service worker della PWA può servire una build vecchia).
+  define: {
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     VitePWA({

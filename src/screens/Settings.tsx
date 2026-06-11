@@ -434,6 +434,12 @@ export function Settings({
       <button className="btn ghost block" onClick={resetData} style={{ color: 'var(--danger)', borderColor: 'var(--danger)', marginTop: 8 }}>
         🗑 Cancella tutti i dati locali
       </button>
+
+      <p className="small muted center" style={{ marginTop: 14, marginBottom: 0 }}>
+        Versione app (build): {new Date(__BUILD_DATE__).toLocaleString('it-IT')}
+        <br />
+        Se è vecchia: chiudi del tutto l’app e riaprila due volte.
+      </p>
     </Modal>
   );
 }
