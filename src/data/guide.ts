@@ -1,4 +1,5 @@
 import type { GuideSection } from './types';
+import { cuttingTechniques, KNIFE_BASICS } from './cuttingGuide';
 
 // Guide complete in italiano (corpo in markdown).
 // Fonti scientifiche reali e verificate; nessuna citazione inventata.
@@ -149,6 +150,37 @@ Il freezer è l'alleato n.1 di chi vive solo:
 - Etichetta tutto con **nome + data**: la memoria inganna.
 
 > **Anti-spreco:** programma i pasti della settimana (lo fa il Piano), e la **Lista spesa** ti dirà solo cosa manca rispetto alla dispensa.`,
+  },
+
+  // ===========================================================================
+  {
+    id: 'lavaggio-tagli',
+    title: 'Lavare e tagliare frutta e verdura',
+    icon: '🔪',
+    body: `## Lavare: acqua corrente, niente disinfettanti
+Per un adulto sano **basta l'acqua corrente fredda**, strofinando con le mani (o una spazzolina
+per le verdure con la buccia ruvida). Non servono sapone, detersivi o candeggina — possono
+lasciare residui peggiori di quelli che togli.
+
+- **Quando:** lava SOLO al momento di mangiare o cucinare, mai prima di riporre in frigo:
+  l'umidità accelera la muffa (vale soprattutto per uva e insalate).
+- **Amuchina per alimenti:** facoltativa. Ha senso solo per chi è immunodepresso o in
+  gravidanza, o per verdure crude di provenienza incerta da mangiare senza buccia. Se la usi,
+  rispetta la diluizione in etichetta e **risciacqua abbondantemente**.
+- **Trucco in più (facoltativo):** un ammollo di 10-15 minuti in acqua con un cucchiaino di
+  **bicarbonato** aiuta a rimuovere parte dei residui superficiali di pesticidi; poi risciacqua.
+- **Va lavata anche la frutta che sbucci** (melone, arancia…): il coltello trascina dentro
+  quello che sta sulla buccia.
+- **Germogli:** caso speciale — vanno sciacquati a ogni risciacquo di coltivazione e mangiati
+  freschi (vedi la sezione Germogli).
+
+## Tagliare: le tre regole base
+${KNIFE_BASICS}
+
+${cuttingTechniques.map((t) => `## ${t.title}\n${t.how}`).join('\n\n')}
+
+> Le stesse schede compaiono dentro ogni ricetta (bottone **🔪 Come tagliare**), filtrate sulle
+> verdure che servono in quel momento.`,
   },
 
   // ===========================================================================

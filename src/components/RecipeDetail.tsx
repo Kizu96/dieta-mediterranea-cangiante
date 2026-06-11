@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { Recipe } from '../data/types';
+import { techniquesForIngredients } from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
 import { scaleQty, scaleRound } from '../lib/intensity';
 import { EQUIPMENT_LABEL, SLOT_LABEL, SEASON_LABEL, formatQty } from './labels';
@@ -6,6 +8,9 @@ import { EQUIPMENT_LABEL, SLOT_LABEL, SEASON_LABEL, formatQty } from './labels';
 // Dettaglio ricetta: ingredienti (qty+unità), passi numerati, macro, conservazione, tips, attrezzatura.
 // `factor` scala porzioni e macro secondo l'intensità scelta (1 = porzione base).
 export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: number }) {
+  // Schede "come si taglia" per le sole verdure di questa ricetta (chiuse di default).
+  const cutting = techniquesForIngredients(recipe.ingredients.map((ri) => ri.ingredientId));
+  const [showCutting, setShowCutting] = useState(false);
   return (
     <div>
       <div className="pill-row" style={{ marginBottom: 10 }}>
@@ -68,6 +73,27 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
           );
         })}
       </ul>
+
+      {cutting.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <button
+            className="btn ghost block"
+            onClick={() => setShowCutting((v) => !v)}
+            aria-expanded={showCutting}
+          >
+            🔪 Come tagliare: {cutting.map((t) => t.title).join(', ')} {showCutting ? '▾' : '▸'}
+          </button>
+          {showCutting && (
+            <ul className="clean" style={{ marginTop: 6 }}>
+              {cutting.map((t) => (
+                <li key={t.title} className="small" style={{ padding: '6px 0' }}>
+                  <b>{t.title}:</b> {t.how}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       <h3 className="section-label">Preparazione</h3>
       <ol className="steps" style={{ marginBottom: 14 }}>
