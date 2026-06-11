@@ -1,6 +1,6 @@
 import type { MealStatusValue } from '../db/db';
 
-export const STATUS_BTNS: { value: MealStatusValue; label: string }[] = [
+const STATUS_BTNS: { value: MealStatusValue; label: string }[] = [
   { value: 'eaten', label: '✓ Mangiato' },
   { value: 'half', label: '½ Metà' },
   { value: 'skipped', label: '✕ Saltato' },
