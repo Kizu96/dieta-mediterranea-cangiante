@@ -27,10 +27,12 @@ export function Today({
   season,
   onSeasonOverride,
   onGoShopping,
+  onGoPrep,
 }: {
   season: Season;
   onSeasonOverride: (s: Season | null) => void;
   onGoShopping: () => void;
+  onGoPrep: () => void;
 }) {
   const today = useMemo(() => new Date(), []);
   const todayISO = toISODate(today);
@@ -201,6 +203,18 @@ export function Today({
           </button>
         </div>
       </Card>
+
+      {mondayIndex(today) === 6 && (
+        <div className="banner info">
+          🍱 <b>Oggi è il prep day:</b> prepara in una sola sessione i 5 pranzi da ufficio della
+          settimana che inizia domani, così la sera cucini solo la cena.
+          <div style={{ marginTop: 10 }}>
+            <button className="btn" onClick={onGoPrep}>
+              Apri il Prep Day
+            </button>
+          </div>
+        </div>
+      )}
 
       {missing.length > 0 && (
         <div className="banner warn">

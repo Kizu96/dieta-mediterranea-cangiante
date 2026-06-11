@@ -40,6 +40,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   // true = la schermata Spesa si apre sui soli ingredienti di domani (dal banner "Compra per domani").
   const [spesaDomani, setSpesaDomani] = useState(false);
+  // true = la schermata Piano si apre sulla vista Prep (dal banner domenicale in Home).
+  const [pianoPrep, setPianoPrep] = useState(false);
 
   // Override stagione persistito ('estate' | 'inverno' | null = auto).
   const seasonOverride = useLiveQuery(
@@ -130,9 +132,13 @@ function App() {
               setSpesaDomani(true);
               setView('spesa');
             }}
+            onGoPrep={() => {
+              setPianoPrep(true);
+              setView('piano');
+            }}
           />
         )}
-        {view === 'piano' && <Plan season={season} />}
+        {view === 'piano' && <Plan season={season} focusPrep={pianoPrep} />}
         {view === 'ricette' && <Recipes season={season} />}
         {view === 'dispensa' && <Pantry season={season} />}
         {view === 'spesa' && <Shopping season={season} focusTomorrow={spesaDomani} />}
@@ -145,6 +151,7 @@ function App() {
         current={view}
         onChange={(v) => {
           setSpesaDomani(false); // dalla navigazione la Spesa mostra la lista completa
+          setPianoPrep(false); // e il Piano si apre sulla vista Giorno
           setView(v);
         }}
       />

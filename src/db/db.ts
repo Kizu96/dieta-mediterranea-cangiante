@@ -80,6 +80,16 @@ export interface MealOverride {
   updatedAt?: number; // per la fusione in sincronizzazione
 }
 
+// Prep day (domenica): segna quali pranzi della settimana lavorativa sono già
+// stati preparati in batch. `date` = il giorno PER CUI è il pranzo, non quello
+// in cui lo prepari.
+export interface PrepLog {
+  date: string; // ISO yyyy-mm-dd
+  slot: MealSlot; // per ora solo 'pranzo'
+  done: boolean;
+  updatedAt?: number; // per la fusione in sincronizzazione
+}
+
 export class DietDB extends Dexie {
   pantry!: Table<PantryItem, string>;
   shopping!: Table<ShoppingCheck, string>;
@@ -89,6 +99,7 @@ export class DietDB extends Dexie {
   settings!: Table<Setting, string>;
   mealStatus!: Table<MealStatus, [string, string]>;
   mealOverride!: Table<MealOverride, [string, string]>;
+  prepLog!: Table<PrepLog, [string, string]>;
 
   constructor() {
     super('dietaMediterraneaCangiante');
@@ -105,6 +116,10 @@ export class DietDB extends Dexie {
     this.version(2).stores({
       mealStatus: '[date+slot], date',
       mealOverride: '[date+slot], date',
+    });
+    // v3: prep day — pranzi della settimana preparati in batch la domenica.
+    this.version(3).stores({
+      prepLog: '[date+slot], date',
     });
   }
 }
