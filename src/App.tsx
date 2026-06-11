@@ -14,6 +14,7 @@ import { db } from './db/db';
 import { BottomNav, type ViewKey } from './components/BottomNav';
 import { Today } from './screens/Today';
 import { Plan } from './screens/Plan';
+import { Prep } from './screens/Prep';
 import { Recipes } from './screens/Recipes';
 import { Pantry } from './screens/Pantry';
 import { Shopping } from './screens/Shopping';
@@ -27,6 +28,7 @@ const SEASON_OVERRIDE_KEY = 'seasonOverride';
 const TITLES: Record<ViewKey, string> = {
   oggi: 'Oggi',
   piano: 'Piano',
+  prep: 'Prep day',
   ricette: 'Ricette',
   dispensa: 'Dispensa',
   spesa: 'Lista spesa',
@@ -40,8 +42,6 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   // true = la schermata Spesa si apre sui soli ingredienti di domani (dal banner "Compra per domani").
   const [spesaDomani, setSpesaDomani] = useState(false);
-  // true = la schermata Piano si apre sulla vista Prep (dal banner domenicale in Home).
-  const [pianoPrep, setPianoPrep] = useState(false);
 
   // Override stagione persistito ('estate' | 'inverno' | null = auto).
   const seasonOverride = useLiveQuery(
@@ -132,13 +132,11 @@ function App() {
               setSpesaDomani(true);
               setView('spesa');
             }}
-            onGoPrep={() => {
-              setPianoPrep(true);
-              setView('piano');
-            }}
+            onGoPrep={() => setView('prep')}
           />
         )}
-        {view === 'piano' && <Plan season={season} focusPrep={pianoPrep} />}
+        {view === 'piano' && <Plan season={season} />}
+        {view === 'prep' && <Prep season={season} />}
         {view === 'ricette' && <Recipes season={season} />}
         {view === 'dispensa' && <Pantry season={season} />}
         {view === 'spesa' && <Shopping season={season} focusTomorrow={spesaDomani} />}
@@ -151,7 +149,6 @@ function App() {
         current={view}
         onChange={(v) => {
           setSpesaDomani(false); // dalla navigazione la Spesa mostra la lista completa
-          setPianoPrep(false); // e il Piano si apre sulla vista Giorno
           setView(v);
         }}
       />

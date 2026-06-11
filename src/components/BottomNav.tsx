@@ -2,6 +2,7 @@
 export type ViewKey =
   | 'oggi'
   | 'piano'
+  | 'prep'
   | 'ricette'
   | 'dispensa'
   | 'spesa'
@@ -18,6 +19,7 @@ interface NavItem {
 const ITEMS: NavItem[] = [
   { key: 'oggi', label: 'Oggi', icon: '🌅' },
   { key: 'piano', label: 'Piano', icon: '🗓️' },
+  { key: 'prep', label: 'Prep day', icon: '🍱' },
   { key: 'ricette', label: 'Ricette', icon: '🍲' },
   { key: 'dispensa', label: 'Dispensa', icon: '🧺' },
   { key: 'spesa', label: 'Spesa', icon: '🛒' },

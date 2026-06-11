@@ -201,10 +201,10 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
-- **Prep day (DB v3):** store `prepLog` `[date+slot]` (sincronizzato in backup/gist). Vista
-  «🍱 Prep» nel Piano: i 5 pranzi da ufficio della settimana target (weekend → settimana
+- **Prep day (DB v3):** store `prepLog` `[date+slot]` (sincronizzato in backup/gist). Sezione dedicata «🍱 Prep day» nel menu (9ª voce, schermata `src/screens/Prep.tsx`): i 5 pranzi da ufficio della settimana target (weekend → settimana
   prossima; feriale → corrente) con spunta «preparato» e scaletta della sessione. Banner
-  domenicale in Home → apre Piano in vista Prep (prop `focusPrep`, pattern `spesaDomani`).
+  domenicale in Home → apre la sezione Prep day. NB: l'utente la vuole come voce di menu
+  PROPRIA, consultabile ogni giorno (non solo la domenica) — me l'ha ribadito due volte.
 - **Toggle «prep day fatto»** (`src/lib/prep.ts`) — IMPORTANTE: il piano base NON si tocca
   (l'utente l'ha chiesto esplicitamente dopo un primo tentativo sbagliato di riordino fisso).
   Sentinella in `prepLog` (`slot: 'settimana'`, date = lunedì). ON → `prepWeekArrangement`
