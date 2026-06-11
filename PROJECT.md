@@ -205,12 +205,15 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   «🍱 Prep» nel Piano: i 5 pranzi da ufficio della settimana target (weekend → settimana
   prossima; feriale → corrente) con spunta «preparato» e scaletta della sessione. Banner
   domenicale in Home → apre Piano in vista Prep (prop `focusPrep`, pattern `spesaDomani`).
-- **Pranzi inverno riordinati per il prep day** (richiesta utente): i congelabili a fine
-  settimana. Entrambe le settimane: Lun/Mar = frigo (wrap domenica sera; pasta/riso 2 gg),
-  Mer = ricetta «3 giorni in frigo», **Gio-Ven = zuppe/piatti cotti da congelare**. In estate
-  le insalate fredde NON si congelano → modello «componenti» (cereali cotti e congelati la
-  domenica + scatolette, assemblaggio 5-10 min la sera prima). `prepAdvice()` in Plan.tsx
-  deriva il verdetto 🧺/🧊/🍳 dalla nota `storage` della ricetta (regex frigo N giorni/congel).
+- **Toggle «prep day fatto»** (`src/lib/prep.ts`) — IMPORTANTE: il piano base NON si tocca
+  (l'utente l'ha chiesto esplicitamente dopo un primo tentativo sbagliato di riordino fisso).
+  Sentinella in `prepLog` (`slot: 'settimana'`, date = lunedì). ON → `prepWeekArrangement`
+  riassegna i 5 pranzi feriali del piano base ai giorni (sort stabile per robustezza:
+  shelf-life corta → Lun, surgelabili → Gio-Ven) e li materializza come normali `mealOverride`
+  (così spesa/notifiche/sync funzionano gratis). OFF → rimuove sentinella e SOLO gli override
+  che corrispondono ancora al riordino (gli scambi manuali restano). In estate le insalate
+  fredde NON si congelano → il riordino mette comunque le più deperibili prima, e
+  `prepAdvice()` deriva il verdetto 🧺/🧊/🍳 dalla nota `storage` (regex frigo N giorni/congel).
 - **Ufficio: SOLO microonde max 850 W** → `office: true` aggiunto a riso-integrale-edamame e
   zuppa-lenticchie-farro (si scaldano lì); istruzioni di riscaldamento (850 W, tempi) nel
   banner «Da ufficio» del dettaglio ricetta e nella vista Prep.

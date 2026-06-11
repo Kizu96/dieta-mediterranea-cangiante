@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { MealSlot, Recipe, Season } from '../data/types';
 import { db, type MealStatusValue } from '../db/db';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
+import { PREP_WEEK_SLOT, prepAdvice, setPrepWeek } from '../lib/prep';
 import { MealStatusButtons } from '../components/MealStatusButtons';
 import {
   addDays,
@@ -272,17 +273,6 @@ function WeekView({
   );
 }
 
-// Verdetto prep-day per un pranzo: deriva dalla nota di conservazione della ricetta.
-// `dayIdx` = giorni dalla domenica di prep (Lun=1 … Ven=5).
-function prepAdvice(storage: string, dayIdx: number): string {
-  const freezable = /congel|freezer/i.test(storage);
-  const m = storage.match(/frigo[^0-9]*?(\d)(?:\s*-\s*(\d))?\s*g/i);
-  const fridgeDays = m ? parseInt(m[2] ?? m[1], 10) : 1;
-  if (dayIdx <= fridgeDays) return '🧺 preparalo domenica → frigo';
-  if (freezable) return '🧊 congelalo domenica → frigo dalla sera prima';
-  return '🍳 componenti pronti domenica → assembla la sera prima (5-10 min)';
-}
-
 function PrepView({
   season,
   onOpen,
@@ -305,6 +295,12 @@ function PrepView({
 
   const rows = useLiveQuery(() => db.prepLog.toArray(), [], []);
   const doneSet = new Set((rows ?? []).filter((r) => r.done).map((r) => `${r.date}|${r.slot}`));
+
+  // Toggle «prep day fatto» per la settimana target: attiva il riordino dei pranzi.
+  const mondayISO = toISODate(monday);
+  const prepOn = (rows ?? []).some(
+    (r) => r.date === mondayISO && r.slot === PREP_WEEK_SLOT && r.done,
+  );
 
   const togglePrep = useCallback(async (iso: string) => {
     const key: [string, string] = [iso, 'pranzo'];
@@ -336,6 +332,14 @@ function PrepView({
           quelli già pronti in frigo/freezer. Gli ingredienti sono già conteggiati nella Lista
           spesa (modalità 7 giorni).
         </p>
+        <ul className="clean" style={{ marginBottom: 10 }}>
+          <CheckRow
+            checked={prepOn}
+            title={<b>🍱 Ho fatto il prep day per questa settimana</b>}
+            detail="Attivo: i 5 pranzi vengono ridistribuiti tra i giorni — i più deperibili a inizio settimana, i surgelabili Gio-Ven. Spento: settimana normale del piano. Il piano base non viene mai modificato."
+            onToggle={() => setPrepWeek(monday, !prepOn, season, includeExtra)}
+          />
+        </ul>
         <ul className="clean">
           {lunches.map((l, i) => (
             <li key={i} style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>

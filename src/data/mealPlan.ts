@@ -175,8 +175,7 @@ const invernoDays: DayTemplate[] = [
     kcalTarget: 2200,
     meals: [
       { slot: 'colazione', recipeId: 'colazione-porridge-caldo' },
-      // Prep day: Lun = wrap (si assembla domenica sera, regge 1 giorno in frigo).
-      { slot: 'pranzo', recipeId: 'pranzo-wrap-hummus-tacchino' },
+      { slot: 'pranzo', recipeId: 'pranzo-farro-pollo-verdure' },
       { slot: 'spuntino', recipeId: 'spuntino-kefir-frutti-semi' },
       { slot: 'cena', recipeId: 'cena-salmone-friggitrice' },
     ],
@@ -187,8 +186,7 @@ const invernoDays: DayTemplate[] = [
     kcalTarget: 1900,
     meals: [
       { slot: 'colazione', recipeId: 'colazione-yogurt-avena' },
-      // Prep day: Mar = pasta fredda (frigo 2 giorni, preparata domenica).
-      { slot: 'pranzo', recipeId: 'pranzo-pasta-integrale-sgombro' },
+      { slot: 'pranzo', recipeId: 'pranzo-zuppa-lenticchie' },
       { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
       { slot: 'cena', recipeId: 'cena-frittata-funghi-spinaci' },
     ],
@@ -210,8 +208,7 @@ const invernoDays: DayTemplate[] = [
     kcalTarget: 1900,
     meals: [
       { slot: 'colazione', recipeId: 'colazione-porridge-cacao' },
-      // Prep day: Gio = zuppa congelata domenica, in frigo dalla sera prima.
-      { slot: 'pranzo', recipeId: 'pranzo-zuppa-lenticchie' },
+      { slot: 'pranzo', recipeId: 'pranzo-wrap-hummus-tacchino' },
       { slot: 'spuntino', recipeId: 'spuntino-edamame-salati' },
       { slot: 'cena', recipeId: 'cena-ceci-curry-spinaci' },
     ],
@@ -222,8 +219,7 @@ const invernoDays: DayTemplate[] = [
     kcalTarget: 1900,
     meals: [
       { slot: 'colazione', recipeId: 'colazione-frittata-microonde' },
-      // Prep day: Ven = piatto cotto congelato domenica (farro+pollo regge il freezer).
-      { slot: 'pranzo', recipeId: 'pranzo-farro-pollo-verdure' },
+      { slot: 'pranzo', recipeId: 'pranzo-pasta-integrale-sgombro' },
       { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
       { slot: 'cena', recipeId: 'cena-cavolfiore-uova-friggitrice' },
     ],
@@ -268,8 +264,7 @@ const invernoDays: DayTemplate[] = [
     kcalTarget: 1900,
     meals: [
       { slot: 'colazione', recipeId: 'colazione-overnight-oats-chia' },
-      // Prep day: Mar = riso saltato (frigo 2 giorni, si scalda al microonde in ufficio).
-      { slot: 'pranzo', recipeId: 'pranzo-riso-integrale-edamame' },
+      { slot: 'pranzo', recipeId: 'pranzo-wrap-hummus-tacchino' },
       { slot: 'spuntino', recipeId: 'spuntino-edamame-salati' },
       { slot: 'cena', recipeId: 'cena-cavolfiore-uova-friggitrice' },
     ],
@@ -291,8 +286,7 @@ const invernoDays: DayTemplate[] = [
     kcalTarget: 1900,
     meals: [
       { slot: 'colazione', recipeId: 'colazione-yogurt-avena' },
-      // Prep day: Gio = zuppa congelata domenica, in frigo dalla sera prima.
-      { slot: 'pranzo', recipeId: 'pranzo-zuppa-lenticchie-farro' },
+      { slot: 'pranzo', recipeId: 'pranzo-orzo-feta-verdure' },
       { slot: 'spuntino', recipeId: 'spuntino-hummus-verdure' },
       { slot: 'cena', recipeId: 'cena-merluzzo-pomodoro' },
     ],
@@ -314,7 +308,7 @@ const invernoDays: DayTemplate[] = [
     kcalTarget: 2200,
     meals: [
       { slot: 'colazione', recipeId: 'colazione-pane-ricotta-miele' },
-      { slot: 'pranzo', recipeId: 'pranzo-orzo-feta-verdure' },
+      { slot: 'pranzo', recipeId: 'pranzo-riso-integrale-edamame' },
       { slot: 'spuntino', recipeId: 'spuntino-yogurt-mandorle' },
       { slot: 'cena', recipeId: 'cena-salmone-broccoli-quinoa' },
     ],

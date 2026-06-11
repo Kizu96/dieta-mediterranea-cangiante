@@ -82,10 +82,11 @@ export interface MealOverride {
 
 // Prep day (domenica): segna quali pranzi della settimana lavorativa sono già
 // stati preparati in batch. `date` = il giorno PER CUI è il pranzo, non quello
-// in cui lo prepari.
+// in cui lo prepari. La riga con slot='settimana' (date = lunedì) è la
+// sentinella del toggle «prep day fatto» che attiva il riordino dei pranzi.
 export interface PrepLog {
   date: string; // ISO yyyy-mm-dd
-  slot: MealSlot; // per ora solo 'pranzo'
+  slot: MealSlot | 'settimana';
   done: boolean;
   updatedAt?: number; // per la fusione in sincronizzazione
 }
