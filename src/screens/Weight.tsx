@@ -50,6 +50,7 @@ export function Weight() {
   const [msg, setMsg] = useState(''); // messaggio motivazionale dopo il salvataggio
 
   // Campi del form
+  const [date, setDate] = useState(today); // misura retrodatabile (es. pesata della settimana scorsa)
   const [kg, setKg] = useState('');
   const [visceral, setVisceral] = useState('');
   const [bodyFat, setBodyFat] = useState('');
@@ -111,9 +112,10 @@ export function Weight() {
     if (hi != null) patch.hipsCm = hi;
     if (Object.keys(patch).length === 0) return;
 
-    const existing = await db.weights.where('date').equals(today).first();
+    const targetDate = date && date <= today ? date : today;
+    const existing = await db.weights.where('date').equals(targetDate).first();
     if (existing?.id != null) await db.weights.update(existing.id, { ...patch, updatedAt: Date.now() });
-    else await db.weights.add({ date: today, kg: patch.kg ?? current, ...patch, updatedAt: Date.now() });
+    else await db.weights.add({ date: targetDate, kg: patch.kg ?? current, ...patch, updatedAt: Date.now() });
 
     // Alert motivazionale: vita o grasso viscerale in calo rispetto all'ultima misura.
     let praise = '';
@@ -149,11 +151,22 @@ export function Weight() {
         </div>
       )}
       <div className="dash-grid">
-        <Card title="Registra misure di oggi" icon="⚖️">
+        <Card title="Registra misure" icon="⚖️">
           <p className="small muted" style={{ marginTop: -4 }}>
             Copia i valori che leggi su <b>StarFit</b>. Il segnaposto mostra l’ultimo dato: lascia
-            vuoto ciò che non vuoi aggiornare.
+            vuoto ciò che non vuoi aggiornare. Puoi anche registrare una misura di giorni fa
+            cambiando la data.
           </p>
+          <div className="field">
+            <label htmlFor="w-date">Data della misura</label>
+            <input
+              id="w-date"
+              type="date"
+              value={date}
+              max={today}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
           <div className="field">
             <label htmlFor="kg-peso">Peso (kg)</label>
             <input
