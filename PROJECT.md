@@ -203,9 +203,19 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
 - **Prep day (DB v3):** store `prepLog` `[date+slot]` (sincronizzato in backup/gist). Vista
   «🍱 Prep» nel Piano: i 5 pranzi da ufficio della settimana target (weekend → settimana
-  prossima; feriale → corrente) con spunta «preparato», regole frigo/freezer (Lun–Mer frigo
-  2-3 gg, Gio–Ven congelare o mini-prep mercoledì) e scaletta della sessione. Banner
+  prossima; feriale → corrente) con spunta «preparato» e scaletta della sessione. Banner
   domenicale in Home → apre Piano in vista Prep (prop `focusPrep`, pattern `spesaDomani`).
+- **Pranzi inverno riordinati per il prep day** (richiesta utente): i congelabili a fine
+  settimana. Entrambe le settimane: Lun/Mar = frigo (wrap domenica sera; pasta/riso 2 gg),
+  Mer = ricetta «3 giorni in frigo», **Gio-Ven = zuppe/piatti cotti da congelare**. In estate
+  le insalate fredde NON si congelano → modello «componenti» (cereali cotti e congelati la
+  domenica + scatolette, assemblaggio 5-10 min la sera prima). `prepAdvice()` in Plan.tsx
+  deriva il verdetto 🧺/🧊/🍳 dalla nota `storage` della ricetta (regex frigo N giorni/congel).
+- **Ufficio: SOLO microonde max 850 W** → `office: true` aggiunto a riso-integrale-edamame e
+  zuppa-lenticchie-farro (si scaldano lì); istruzioni di riscaldamento (850 W, tempi) nel
+  banner «Da ufficio» del dettaglio ricetta e nella vista Prep.
+- **PWA update fix:** la PWA installata non si aggiornava finché non veniva riaperta da zero →
+  `main.tsx` ora fa `registration.update()` a ogni ritorno in primo piano e ogni ora.
 
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.

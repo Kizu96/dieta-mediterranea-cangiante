@@ -552,6 +552,7 @@ export const recipes: Recipe[] = [
     name: 'Riso integrale saltato con edamame e uova',
     slot: ['pranzo'],
     seasons: ['estate', 'inverno'],
+    office: true, // si scalda al microonde dell'ufficio (850 W, 2-3 min)
     equipment: ['pentola', 'padella'],
     timeMin: 25,
     servings: 1,
@@ -1243,6 +1244,7 @@ export const recipes: Recipe[] = [
     name: 'Zuppa di lenticchie e farro',
     slot: ['pranzo', 'cena'],
     seasons: ['inverno'],
+    office: true, // si scalda al microonde dell'ufficio (850 W, 3-4 min mescolando)
     equipment: ['pentola'],
     timeMin: 25,
     servings: 1,

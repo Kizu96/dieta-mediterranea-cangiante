@@ -104,8 +104,10 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
 
       {recipe.office && (
         <div className="banner info" style={{ marginTop: 4 }}>
-          🥡 <b>Da ufficio:</b> preparalo in anticipo (la sera prima o in batch nel weekend),
-          conservalo in frigo in un contenitore e portalo con te. Scaldalo al microonde se serve.
+          🥡 <b>Da ufficio:</b> preparalo in anticipo (la sera prima o al prep day della
+          domenica), conservalo in frigo in un contenitore e portalo con te. Se va mangiato
+          caldo: microonde dell'ufficio (850 W) <b>2-3 minuti</b> mescolando a metà; zuppe e
+          minestre 3-4 minuti, coperte con un piattino.
         </div>
       )}
 

@@ -272,6 +272,17 @@ function WeekView({
   );
 }
 
+// Verdetto prep-day per un pranzo: deriva dalla nota di conservazione della ricetta.
+// `dayIdx` = giorni dalla domenica di prep (Lun=1 … Ven=5).
+function prepAdvice(storage: string, dayIdx: number): string {
+  const freezable = /congel|freezer/i.test(storage);
+  const m = storage.match(/frigo[^0-9]*?(\d)(?:\s*-\s*(\d))?\s*g/i);
+  const fridgeDays = m ? parseInt(m[2] ?? m[1], 10) : 1;
+  if (dayIdx <= fridgeDays) return '🧺 preparalo domenica → frigo';
+  if (freezable) return '🧊 congelalo domenica → frigo dalla sera prima';
+  return '🍳 componenti pronti domenica → assembla la sera prima (5-10 min)';
+}
+
 function PrepView({
   season,
   onOpen,
@@ -337,7 +348,13 @@ function PrepView({
                         <b>{['Lun', 'Mar', 'Mer', 'Gio', 'Ven'][i]}</b> · {l.meal.recipe.name}
                       </>
                     }
-                    detail={`${scaleRound(l.meal.recipe.kcal, factor)} kcal · ${l.meal.recipe.storage}`}
+                    detail={
+                      <>
+                        {scaleRound(l.meal.recipe.kcal, factor)} kcal ·{' '}
+                        {prepAdvice(l.meal.recipe.storage, i + 1)}
+                        <span className="check-storage">🧺 {l.meal.recipe.storage}</span>
+                      </>
+                    }
                     onToggle={() => togglePrep(l.iso)}
                   />
                 ) : (
@@ -360,11 +377,14 @@ function PrepView({
       </Card>
 
       <div className="banner info">
-        🧊 <b>Sicurezza e ordine di consumo:</b> i pranzi cucinati durano in frigo <b>2-3
-        giorni</b> (Lun, Mar, Mer). Per <b>Gio e Ven</b> congela subito le porzioni se la
-        ricetta lo consente (vedi la nota di conservazione), e passale in frigo la sera prima;
-        in alternativa fai un mini-prep di 15 minuti mercoledì sera. Raffredda sempre i
-        contenitori aperti prima di chiuderli in frigo ed etichetta ogni porzione col giorno.
+        🧊 <b>Sicurezza:</b> i pranzi cucinati durano in frigo <b>2-3 giorni</b>, quindi segui
+        il verdetto accanto a ogni pranzo: 🧺 frigo da domenica · 🧊 congelato domenica e
+        passato in frigo la sera prima · 🍳 componenti (cereali cotti e congelati, scatolette)
+        assemblati la sera prima in 5-10 minuti. In inverno Gio-Ven sono zuppe e piatti cotti
+        che si congelano; in estate le insalate fredde non si congelano, per quelle vale il 🍳.
+        Raffredda i contenitori APERTI prima di chiuderli ed etichetta ogni porzione col giorno.
+        In ufficio scaldi al <b>microonde (850 W): 2-3 min</b>, mescolando a metà (le zuppe 3-4
+        min, coperte con un piattino).
       </div>
 
       <Card title="Come organizzare la sessione" icon="⏱️">
