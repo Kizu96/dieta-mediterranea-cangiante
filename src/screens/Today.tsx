@@ -10,6 +10,7 @@ import { missingForDate, surplusIngredients } from '../lib/shopping';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
+import { MealStatusButtons } from '../components/MealStatusButtons';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { ExerciseDetail } from '../components/ExerciseDetail';
@@ -21,12 +22,6 @@ import { scaleRound } from '../lib/intensity';
 import { hasExerciseVideo } from '../lib/exerciseVideo';
 import { SLOT_LABEL, formatLongDate, mondayIndex } from '../components/labels';
 import type { Recipe, WorkoutExercise } from '../data/types';
-
-const STATUS_BTNS: { value: MealStatusValue; label: string }[] = [
-  { value: 'eaten', label: '✓ Mangiato' },
-  { value: 'half', label: '½ Metà' },
-  { value: 'skipped', label: '✕ Saltato' },
-];
 
 export function Today({
   season,
@@ -263,16 +258,10 @@ export function Today({
                       <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
                     </div>
                     <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                      {STATUS_BTNS.map((b) => (
-                        <button
-                          key={b.value}
-                          onClick={() => setMealStatus(m.slot, m.recipe, b.value)}
-                          className={active === b.value ? 'btn' : 'btn ghost'}
-                          style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem', flex: '0 0 auto' }}
-                        >
-                          {b.label}
-                        </button>
-                      ))}
+                      <MealStatusButtons
+                        active={active}
+                        onSelect={(v) => setMealStatus(m.slot, m.recipe, v)}
+                      />
                       <button
                         onClick={() => setSwap({ slot: m.slot, current: m.recipe.id })}
                         className="btn ghost"

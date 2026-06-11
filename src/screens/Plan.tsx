@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { Recipe, Season } from '../data/types';
-import { db } from '../db/db';
+import type { MealSlot, Recipe, Season } from '../data/types';
+import { db, type MealStatusValue } from '../db/db';
+import { setMealStatusWithPantry } from '../lib/pantryQty';
+import { MealStatusButtons } from '../components/MealStatusButtons';
 import {
   addDays,
   buildOverrideMap,
@@ -109,6 +111,23 @@ function DayView({
   const total = meals.reduce((s, m) => s + m.recipe.kcal, 0);
   const isWeekday = mondayIndex(date) < 5; // Lun–Ven = pranzo da ufficio
 
+  // Oggi e giorni passati: si può segnare mangiato/metà/saltato anche a posteriori
+  // (se ti scordi di segnare un pasto, lo recuperi da qui). Aggiorna anche la dispensa.
+  const iso = toISODate(date);
+  const editable = iso <= toISODate(new Date());
+  const statusRows = useLiveQuery(
+    () => db.mealStatus.where('date').equals(iso).toArray(),
+    [iso],
+    [],
+  );
+  const statusBySlot = new Map((statusRows ?? []).map((s) => [s.slot, s.status]));
+  const setStatus = useCallback(
+    async (slot: MealSlot, recipe: Recipe, status: MealStatusValue) => {
+      await setMealStatusWithPantry(iso, slot, recipe, status, factor);
+    },
+    [iso, factor],
+  );
+
   return (
     <Card>
       <div className="flex-between" style={{ marginBottom: 10 }}>
@@ -145,20 +164,28 @@ function DayView({
       ) : (
         <ul className="clean">
           {meals.map((m, i) => (
-            <li
-              key={i}
-              className="meal-row"
-              style={{ cursor: 'pointer' }}
-              onClick={() => onOpen(m.recipe)}
-            >
-              <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
-              <span className="grow">
-                {m.recipe.name}
-                {isWeekday && m.slot === 'pranzo' && m.recipe.office && (
-                  <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
-                )}
-              </span>
-              <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
+            <li key={i} className="meal-row" style={{ display: 'block', cursor: 'default' }}>
+              <div
+                onClick={() => onOpen(m.recipe)}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+              >
+                <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
+                <span className="grow">
+                  {m.recipe.name}
+                  {isWeekday && m.slot === 'pranzo' && m.recipe.office && (
+                    <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
+                  )}
+                </span>
+                <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
+              </div>
+              {editable && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                  <MealStatusButtons
+                    active={statusBySlot.get(m.slot)}
+                    onSelect={(v) => setStatus(m.slot, m.recipe, v)}
+                  />
+                </div>
+              )}
             </li>
           ))}
         </ul>
