@@ -175,6 +175,38 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - **Scambia pasto:** override per `[date+slot]` applicato in **planning** (`getRecipesForDate` ha un param opzionale `overrides?: OverrideMap`, mappa `${dataISO}|${slot}`→recipeId; helper `buildOverrideMap`, `recipesForSlot`). Propagato a `shopping.ts` (`ingredientsForRange`/`buildShoppingList`/`missingForDate`), a **Today/Plan/Shopping** (ognuno carica `db.mealOverride` via `useLiveQuery`) e al promemoria «compra per domani» in `App.tsx`. UI di scambio solo in Oggi (modale con `recipesForSlot`, vale per oggi; pill «🔁 scambiato»; «Ripristina il pasto del piano»). Risolve l'attrito ricorrente «il piano mostra X ma io ho preparato Y».
 - **Lint:** handler con argomenti che chiamano `Date.now()` vanno in `useCallback` (regola `react-hooks/purity`): `setMealStatus`, `setOverride`, `clearOverride`.
 
+### Migliorie giugno 2026 (2ª ondata): dispensa quantitativa, uva, tagli, prep day
+- **Dispensa quantitativa** (`src/lib/pantryQty.ts`): gli ingredienti consumabili (non staple,
+  non condimenti/bevande/dispensa, unità g/ml/pz — `isQtyTracked`) possono avere `qty` reale in
+  `PantryItem` (campo opzionale, niente migrazione). Segnare un pasto Mangiato/Metà scala gli
+  ingredienti tracciati ×fattore intensità (`setMealStatusWithPantry`, transazione unica);
+  lo snapshot `MealStatus.consumed` registra quanto è stato tolto davvero → **storno esatto**
+  se si cambia idea. Saltato/non segnato = 0. Mai sotto zero.
+- **Lista spesa quantitativa:** `buildShoppingList`/`missingForDate` accettano `qtyMap`+`factor`;
+  per i tracciati compare solo la **differenza** (fabbisogno − dispensa), quindi «quasi finito»
+  torna in lista senza aspettare lo zero. All'acquisto: selettore **formati pacco**
+  (`PACK_PRESETS` per unità + campo libero, niente slider); «Aggiungi i comprati alla dispensa»
+  somma le quantità (`addPurchaseToPantry`). `ShoppingCheck.qty` opzionale.
+- **Abbondanze:** `surplusIngredients` = qty > fabbisogno dei prossimi 7 giorni; badge
+  «📦 abbondante» in Dispensa ed evidenza «📦 usa la dispensa» (in cima) nello scambia pasto.
+  In Dispensa: bottone quantità per ingrediente (editor con preset + «smetti di contare»).
+  Il toggle manuale ✓/✗ azzera la quantità (conteggio non più affidabile).
+- **Frutta:** eliminati mirtilli, lamponi e kiwi (l'utente NON tollera frutta con tanti piccoli
+  semi → conati; niente frutti di bosco/fragole/kiwi). Fonte di antociani = **uva nera/rossa
+  con la buccia** (80 g nelle ricette yogurt/kefir, macro ricalcolati; pilastro quotidiano
+  aggiornato con fonte onesta: meta-analisi Pan 2025 sugli antociani come classe).
+- **Lavaggio e tagli:** nuova sezione guida `lavaggio-tagli` (acqua corrente basta, amuchina
+  solo immunodepressi/gravidanza, bicarbonato facoltativo; lavare solo al momento del consumo)
+  + `src/data/cuttingGuide.ts` (fonte unica, 15 schede taglio per principianti). Nel dettaglio
+  ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
+- **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
+  giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+- **Prep day (DB v3):** store `prepLog` `[date+slot]` (sincronizzato in backup/gist). Vista
+  «🍱 Prep» nel Piano: i 5 pranzi da ufficio della settimana target (weekend → settimana
+  prossima; feriale → corrente) con spunta «preparato», regole frigo/freezer (Lun–Mer frigo
+  2-3 gg, Gio–Ven congelare o mini-prep mercoledì) e scaletta della sessione. Banner
+  domenicale in Home → apre Piano in vista Prep (prop `focusPrep`, pattern `spesaDomani`).
+
 ### Note tecniche per riprendere
 - PDF: la rigenerazione richiede Edge/Chrome (assente su CI Linux) → il PDF è in `public/` e va versionato; rigenerare in locale con `npm run build:pdf`.
 - Edge headless richiede `--user-data-dir` dedicato (vedi build-pdf.mjs), altrimenti se Edge è già aperto esce con status 0 senza creare il file.
