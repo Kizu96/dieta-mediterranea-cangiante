@@ -174,14 +174,14 @@ Il **sulforafano** dei germogli di broccoli, consumati **crudi**, è associato a
 - Axelsson AS, et al. *Sulforaphane reduces hepatic glucose production…* Sci Transl Med 2017: https://www.science.org/doi/10.1126/scitranslmed.aah4477
 
 ## Polifenoli, antociani e cioccolato fondente
-- **Antociani (mirtilli e lamponi freschi, uva con la buccia):** i polifenoli viola-rossi migliorano i marcatori cardiometabolici. In uno studio, 1 tazza/die di mirtilli per 6 mesi ha migliorato i marcatori nella sindrome metabolica. Curtis PJ, et al. *Am J Clin Nutr 2019*: https://pmc.ncbi.nlm.nih.gov/articles/PMC6537945/. Una meta-analisi di 29 RCT conferma l'effetto degli antociani su colesterolo, trigliceridi e glicemia: Pan et al. *PLoS One 2025*: https://pmc.ncbi.nlm.nih.gov/articles/PMC11809928/
-  - **Importante:** usa frutti di bosco **freschi**, non surgelati (questi ultimi diventano acquosi e poco gradevoli).
+- **Antociani (uva nera/rossa con la buccia):** i polifenoli viola-rossi migliorano i marcatori cardiometabolici. Gli studi più noti sono sui mirtilli (Curtis PJ, et al. *Am J Clin Nutr 2019*: https://pmc.ncbi.nlm.nih.gov/articles/PMC6537945/), ma una meta-analisi di 29 RCT conferma l'effetto degli **antociani come classe** su colesterolo, trigliceridi e glicemia: Pan et al. *PLoS One 2025*: https://pmc.ncbi.nlm.nih.gov/articles/PMC11809928/
+  - **Nel tuo piano la fonte è l'uva nera o rossa**, non i frutti di bosco (che non tolleri): gli antociani sono concentrati nella **buccia**, quindi va mangiata sempre. A parità di peso l'uva ha un po' più zuccheri dei mirtilli: la porzione resta ~80-100 g.
 - **Cioccolato fondente (flavanoli del cacao):** dosi moderate sono associate a una migliore sensibilità insulinica. Grassi D, et al. *Am J Clin Nutr 2005*: https://pubmed.ncbi.nlm.nih.gov/15755830/
 
 ## In pratica nel tuo piano
 - **Ogni giorno:** germogli crudi, tè verde, olio EVO a crudo, verdura abbondante, una fonte proteica a ogni pasto.
 - **Spesso:** legumi, pesce azzurro (sgombro/sardine), cereali integrali con moderazione, fermentati.
-- **A piacere con misura:** cioccolato 85%, noci/mandorle, mirtilli e lamponi freschi (o uva con la buccia).
+- **A piacere con misura:** cioccolato 85%, noci/mandorle, uva nera o rossa con la buccia.
 - **Ciclizzazione "cangiante":** più carboidrati nei giorni di tapis roulant, meno nei giorni di riposo, per favorire la perdita di grasso preservando i muscoli.
 
 > Nota: gli studi mostrano effetti **a livello di popolazione**; i risultati individuali variano. Questi alimenti aiutano dentro a uno stile di vita complessivo (deficit calorico moderato + movimento).`,
