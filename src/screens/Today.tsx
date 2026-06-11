@@ -6,14 +6,15 @@ import { dailyEssentials } from '../data/dailyEssentials';
 import { workoutWeeks } from '../data/workoutPlan';
 import { currentSeasonByDate } from '../lib/season';
 import { addDays, buildOverrideMap, getRecipesForDate, recipesForSlot, toISODate } from '../lib/planning';
-import { missingForDate } from '../lib/shopping';
+import { missingForDate, surplusIngredients } from '../lib/shopping';
+import { setMealStatusWithPantry } from '../lib/pantryQty';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { ExerciseDetail } from '../components/ExerciseDetail';
 import { WeeklySummary } from '../components/WeeklySummary';
-import { useHaveSet } from '../components/usePantry';
+import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
@@ -52,8 +53,16 @@ export function Today({
   const meals = getRecipesForDate(today, season, includeExtra, overrides);
   const mealsTomorrow = getRecipesForDate(tomorrow, season, includeExtra, overrides);
   const haveSet = useHaveSet();
+  const qtyMap = usePantryQty();
   const { factor } = useIntensity();
-  const missing = missingForDate(haveSet, tomorrow, season, includeExtra, overrides);
+  const missing = missingForDate(haveSet, tomorrow, season, includeExtra, overrides, qtyMap, factor);
+
+  // Ingredienti "abbondanti" (più di quanto serve al piano dei prossimi 7 giorni):
+  // nello scambio pasto le ricette che li usano salgono in cima.
+  const surplus = useMemo(
+    () => surplusIngredients(qtyMap, today, 7, season, includeExtra, overrides, factor),
+    [qtyMap, today, season, includeExtra, overrides, factor],
+  );
 
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);
@@ -68,17 +77,12 @@ export function Today({
   );
   const statusBySlot = new Map((todayMealStatus ?? []).map((s) => [s.slot, s.status]));
 
+  // Segna lo stato e scala/storna la dispensa quantitativa (vedi pantryQty.ts).
   const setMealStatus = useCallback(
-    async (slot: MealSlot, recipeId: string, status: MealStatusValue) => {
-      const key: [string, string] = [todayISO, slot];
-      const existing = await db.mealStatus.get(key);
-      if (existing?.status === status) {
-        await db.mealStatus.delete(key); // ri-tocco lo stato attivo → torna "non segnato"
-      } else {
-        await db.mealStatus.put({ date: todayISO, slot, status, recipeId, updatedAt: Date.now() });
-      }
+    async (slot: MealSlot, recipe: Recipe, status: MealStatusValue) => {
+      await setMealStatusWithPantry(todayISO, slot, recipe, status, factor);
     },
-    [todayISO],
+    [todayISO, factor],
   );
 
   // --- Daily essentials log (keyed date+essentialId) ---
@@ -262,7 +266,7 @@ export function Today({
                       {STATUS_BTNS.map((b) => (
                         <button
                           key={b.value}
-                          onClick={() => setMealStatus(m.slot, m.recipe.id, b.value)}
+                          onClick={() => setMealStatus(m.slot, m.recipe, b.value)}
                           className={active === b.value ? 'btn' : 'btn ghost'}
                           style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem', flex: '0 0 auto' }}
                         >
@@ -446,28 +450,38 @@ export function Today({
         <Modal title={`Scambia ${SLOT_LABEL[swap.slot]} di oggi`} onClose={() => setSwap(null)}>
           <p className="small muted" style={{ marginTop: -4 }}>
             Scegli cosa mangi davvero oggi al posto del pasto del piano. Vale <b>solo per oggi</b> e
-            aggiorna anche la lista della spesa.
+            aggiorna anche la lista della spesa. Le ricette 📦 usano ingredienti che hai in
+            abbondanza in dispensa.
           </p>
           <ul className="clean">
-            {recipesForSlot(swap.slot, season, includeExtra).map((r) => (
-              <li
-                key={r.id}
-                className="meal-row"
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  setOverride(swap.slot, r.id);
-                  setSwap(null);
-                }}
-              >
-                <span className="grow">
-                  {r.name}
-                  {r.id === swap.current && (
-                    <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
-                  )}
-                </span>
-                <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>
-              </li>
-            ))}
+            {recipesForSlot(swap.slot, season, includeExtra)
+              .map((r) => ({
+                recipe: r,
+                usesSurplus: r.ingredients.some((ri) => surplus.has(ri.ingredientId)),
+              }))
+              .sort((a, b) => Number(b.usesSurplus) - Number(a.usesSurplus))
+              .map(({ recipe: r, usesSurplus }) => (
+                <li
+                  key={r.id}
+                  className="meal-row"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    setOverride(swap.slot, r.id);
+                    setSwap(null);
+                  }}
+                >
+                  <span className="grow">
+                    {r.name}
+                    {r.id === swap.current && (
+                      <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
+                    )}
+                    {usesSurplus && r.id !== swap.current && (
+                      <span className="pill" style={{ marginLeft: 6 }}>📦 usa la dispensa</span>
+                    )}
+                  </span>
+                  <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>
+                </li>
+              ))}
           </ul>
           {overriddenToday.has(swap.slot) && (
             <button

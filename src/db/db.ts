@@ -7,12 +7,16 @@ import type { MealSlot } from '../data/types';
 export interface PantryItem {
   ingredientId: string;
   have: boolean;
+  // Quantità reale in dispensa, nell'unità dell'ingrediente (g/ml/pz).
+  // undefined = ingrediente gestito solo come ✓/✗ (staple, condimenti, o mai quantificato).
+  qty?: number;
   updatedAt: number;
 }
 
 export interface ShoppingCheck {
   ingredientId: string;
   bought: boolean;
+  qty?: number; // quantità comprata (formato pacco), da sommare alla dispensa
   updatedAt: number;
 }
 
@@ -61,6 +65,10 @@ export interface MealStatus {
   slot: MealSlot;
   status: MealStatusValue;
   recipeId?: string; // ricetta a cui si riferiva quando è stato segnato
+  // Quantità realmente scalate dalla dispensa quando il pasto è stato segnato:
+  // snapshot che permette lo storno ESATTO se si cambia idea (anche se nel
+  // frattempo cambiano intensità o ricetta del piano).
+  consumed?: { ingredientId: string; qty: number }[];
   updatedAt?: number; // per la fusione in sincronizzazione
 }
 

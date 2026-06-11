@@ -8,7 +8,7 @@ import { db, getSetting, setSetting } from '../db/db';
 import { isStoragePersisted } from '../lib/storage';
 import { currentSeasonByDate } from '../lib/season';
 import { Modal } from '../components/Modal';
-import { useHaveSet } from '../components/usePantry';
+import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { INTENSITY_DESC } from '../lib/intensity';
@@ -39,7 +39,8 @@ export function Settings({
   onClose: () => void;
 }) {
   const haveSet = useHaveSet();
-  const { intensity, setIntensity } = useIntensity();
+  const qtyMap = usePantryQty();
+  const { intensity, factor, setIntensity } = useIntensity();
   const { includeExtra, setIncludeExtra } = useExtraRecipes();
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
   const [perm, setPerm] = useState<NotificationPermission>(permissionStatus());
@@ -101,7 +102,8 @@ export function Settings({
 
   // Helper passato allo scheduler: domani mancano ingredienti?
   const hasMissingForTomorrow = () =>
-    missingForDate(haveSet, addDays(new Date(), 1), season, includeExtra).length > 0;
+    missingForDate(haveSet, addDays(new Date(), 1), season, includeExtra, undefined, qtyMap, factor)
+      .length > 0;
 
   const applyPrefs = async (next: NotifPrefs) => {
     setPrefs(next);

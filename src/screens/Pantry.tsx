@@ -1,11 +1,18 @@
 import { useMemo, useState } from 'react';
-import type { Category } from '../data/types';
+import { useLiveQuery } from 'dexie-react-hooks';
+import type { Category, Ingredient, Season } from '../data/types';
 import { ingredients } from '../data/ingredients';
 import { db } from '../db/db';
+import { buildOverrideMap } from '../lib/planning';
+import { surplusIngredients } from '../lib/shopping';
+import { isQtyTracked, PACK_PRESETS, setPantryQty } from '../lib/pantryQty';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
-import { useHaveSet, setPantryHave } from '../components/usePantry';
-import { CATEGORY_LABEL } from '../components/labels';
+import { Modal } from '../components/Modal';
+import { useHaveSet, usePantryQty, setPantryHave } from '../components/usePantry';
+import { useIntensity } from '../components/useIntensity';
+import { useExtraRecipes } from '../components/useExtraRecipes';
+import { CATEGORY_LABEL, formatQty } from '../components/labels';
 
 const CATEGORY_ORDER: Category[] = [
   'verdura',
@@ -23,9 +30,39 @@ const CATEGORY_ORDER: Category[] = [
   'dispensa',
 ];
 
-export function Pantry() {
+export function Pantry({ season }: { season: Season }) {
   const [q, setQ] = useState('');
   const haveSet = useHaveSet();
+  const qtyMap = usePantryQty();
+  const { factor } = useIntensity();
+  const { includeExtra } = useExtraRecipes();
+  const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
+  const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
+  const today = useMemo(() => new Date(), []);
+
+  // "Abbondante" = in dispensa più di quanto il piano dei prossimi 7 giorni consumerà.
+  const surplus = useMemo(
+    () => surplusIngredients(qtyMap, today, 7, season, includeExtra, overrides, factor),
+    [qtyMap, today, season, includeExtra, overrides, factor],
+  );
+
+  // Editor quantità (correzione rapida quando il conteggio diverge dalla realtà).
+  const [editing, setEditing] = useState<Ingredient | null>(null);
+  const [editQty, setEditQty] = useState('');
+
+  const openEditor = (ing: Ingredient) => {
+    const current = qtyMap.get(ing.id);
+    setEditQty(current != null ? String(current).replace('.', ',') : '');
+    setEditing(ing);
+  };
+
+  const saveQty = async () => {
+    if (!editing) return;
+    const value = parseFloat(editQty.replace(',', '.'));
+    if (!isFinite(value) || value < 0) return;
+    await setPantryQty(editing.id, value);
+    setEditing(null);
+  };
 
   const grouped = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -77,23 +114,96 @@ export function Pantry() {
         grouped.map((g) => (
           <Card key={g.category} title={CATEGORY_LABEL[g.category]}>
             <ul className="clean">
-              {g.items.map((ing) => (
-                <CheckRow
-                  key={ing.id}
-                  checked={haveSet.has(ing.id)}
-                  title={
-                    <>
-                      {ing.name}{' '}
-                      {ing.staple && <span className="pill" style={{ marginLeft: 4 }}>⭐ base</span>}
-                    </>
-                  }
-                  detail={`${ing.storage} · ${ing.shelfLife}`}
-                  onToggle={() => setPantryHave(ing.id, !haveSet.has(ing.id))}
-                />
-              ))}
+              {g.items.map((ing) => {
+                const qty = qtyMap.get(ing.id);
+                const showQtyBtn = isQtyTracked(ing) && (haveSet.has(ing.id) || qty != null);
+                return (
+                  <li key={ing.id} style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <CheckRow
+                        checked={haveSet.has(ing.id)}
+                        title={
+                          <>
+                            {ing.name}{' '}
+                            {ing.staple && (
+                              <span className="pill" style={{ marginLeft: 4 }}>⭐ base</span>
+                            )}
+                            {surplus.has(ing.id) && (
+                              <span className="pill olive" style={{ marginLeft: 4 }}>
+                                📦 abbondante
+                              </span>
+                            )}
+                          </>
+                        }
+                        detail={`${ing.storage} · ${ing.shelfLife}`}
+                        onToggle={() => setPantryHave(ing.id, !haveSet.has(ing.id))}
+                      />
+                    </div>
+                    {showQtyBtn && (
+                      <button
+                        className="btn ghost"
+                        style={{ flex: '0 0 auto', alignSelf: 'center', minHeight: 38, padding: '0 10px', fontSize: '0.82rem' }}
+                        onClick={() => openEditor(ing)}
+                        aria-label={`Quantità di ${ing.name}`}
+                      >
+                        {qty != null ? `${formatQty(qty)} ${ing.unit}` : '✎ qtà'}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </Card>
         ))
+      )}
+
+      {editing && (
+        <Modal title={`Quantità · ${editing.name}`} onClose={() => setEditing(null)}>
+          <p className="small muted" style={{ marginTop: -4 }}>
+            Quanto ne hai davvero in dispensa ({editing.unit})? Si scala da solo quando segni un
+            pasto come mangiato; correggi qui se il conteggio diverge dalla realtà.
+          </p>
+          <div className="pill-row" style={{ marginBottom: 12 }}>
+            {(PACK_PRESETS[editing.unit] ?? []).map((p) => (
+              <button
+                key={p}
+                className={parseFloat(editQty.replace(',', '.')) === p ? 'btn' : 'btn ghost'}
+                style={{ minHeight: 38, padding: '0 14px' }}
+                onClick={() => setEditQty(String(p))}
+              >
+                {formatQty(p)} {editing.unit}
+              </button>
+            ))}
+          </div>
+          <div className="row">
+            <div className="field grow" style={{ marginBottom: 0 }}>
+              <label htmlFor="pantry-qty">Quantità ({editing.unit})</label>
+              <input
+                id="pantry-qty"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                value={editQty.replace(',', '.')}
+                onChange={(e) => setEditQty(e.target.value)}
+              />
+            </div>
+            <button className="btn" onClick={saveQty} style={{ flex: '0 0 auto' }}>
+              Salva
+            </button>
+          </div>
+          {qtyMap.has(editing.id) && (
+            <button
+              className="btn ghost block"
+              style={{ marginTop: 10 }}
+              onClick={async () => {
+                await setPantryQty(editing.id, null);
+                setEditing(null);
+              }}
+            >
+              Smetti di contare (torna a ✓/✗)
+            </button>
+          )}
+        </Modal>
       )}
     </div>
   );

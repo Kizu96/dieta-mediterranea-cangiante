@@ -3,13 +3,14 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, toISODate } from '../lib/planning';
-import { buildShoppingList } from '../lib/shopping';
+import { buildShoppingList, type ShoppingItem } from '../lib/shopping';
+import { addPurchaseToPantry, isQtyTracked, PACK_PRESETS } from '../lib/pantryQty';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
-import { useHaveSet } from '../components/usePantry';
+import { Modal } from '../components/Modal';
+import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
-import { scaleQty } from '../lib/intensity';
 import { CATEGORY_LABEL, formatQty } from '../components/labels';
 
 export function Shopping({
@@ -24,38 +25,67 @@ export function Shopping({
   const start = useMemo(() => (mode === 'domani' ? addDays(today, 1) : today), [mode, today]);
   const days = mode === 'domani' ? 1 : mode;
   const haveSet = useHaveSet();
+  const qtyMap = usePantryQty();
   const { factor } = useIntensity();
   const { includeExtra } = useExtraRecipes();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
 
   const groups = useMemo(
-    () => buildShoppingList(haveSet, start, days, season, includeExtra, overrides),
-    [haveSet, start, days, season, includeExtra, overrides],
+    () => buildShoppingList(haveSet, start, days, season, includeExtra, overrides, qtyMap, factor),
+    [haveSet, start, days, season, includeExtra, overrides, qtyMap, factor],
   );
 
   const boughtRows = useLiveQuery(() => db.shopping.toArray(), [], []);
-  const boughtSet = new Set((boughtRows ?? []).filter((s) => s.bought).map((s) => s.ingredientId));
-
-  const toggleBought = useCallback(
-    async (ingredientId: string, bought: boolean) => {
-      await db.shopping.put({ ingredientId, bought, updatedAt: Date.now() });
-    },
-    [],
+  const boughtMap = new Map(
+    (boughtRows ?? []).filter((s) => s.bought).map((s) => [s.ingredientId, s]),
   );
 
-  // Sposta i "comprati" in dispensa (have=true) e pulisce i flag di spesa.
+  // Scelta della quantità comprata (formati pacco) per gli ingredienti tracciati.
+  const [buying, setBuying] = useState<ShoppingItem | null>(null);
+  const [buyQty, setBuyQty] = useState('');
+
+  const markBought = useCallback(async (ingredientId: string, qty?: number) => {
+    await db.shopping.put({ ingredientId, bought: true, qty, updatedAt: Date.now() });
+  }, []);
+
+  const unmarkBought = useCallback(async (ingredientId: string) => {
+    await db.shopping.put({ ingredientId, bought: false, updatedAt: Date.now() });
+  }, []);
+
+  const onRowToggle = (it: ShoppingItem) => {
+    if (boughtMap.has(it.ingredient.id)) {
+      unmarkBought(it.ingredient.id);
+    } else if (isQtyTracked(it.ingredient)) {
+      // Apre il selettore: pre-compilato col formato pacco più vicino al fabbisogno.
+      const presets = PACK_PRESETS[it.ingredient.unit] ?? [];
+      const suggested = presets.find((p) => p >= it.qtyToBuy) ?? presets[presets.length - 1];
+      setBuyQty(String(suggested ?? Math.ceil(it.qtyToBuy)));
+      setBuying(it);
+    } else {
+      markBought(it.ingredient.id);
+    }
+  };
+
+  const confirmBuy = async () => {
+    if (!buying) return;
+    const qty = parseFloat(buyQty.replace(',', '.'));
+    if (!isFinite(qty) || qty <= 0) return;
+    await markBought(buying.ingredient.id, qty);
+    setBuying(null);
+  };
+
+  // Sposta i "comprati" in dispensa (sommando le quantità) e pulisce i flag di spesa.
   const addBoughtToPantry = async () => {
-    const ids = [...boughtSet];
-    if (ids.length === 0) return;
-    const now = Date.now();
-    await db.pantry.bulkPut(ids.map((id) => ({ ingredientId: id, have: true, updatedAt: now })));
-    await db.shopping.bulkDelete(ids);
+    const rows = (boughtRows ?? []).filter((s) => s.bought);
+    if (rows.length === 0) return;
+    for (const r of rows) await addPurchaseToPantry(r.ingredientId, r.qty);
+    await db.shopping.bulkDelete(rows.map((r) => r.ingredientId));
   };
 
   const totalItems = groups.reduce((s, g) => s + g.items.length, 0);
   const boughtCount = groups.reduce(
-    (s, g) => s + g.items.filter((i) => boughtSet.has(i.ingredient.id)).length,
+    (s, g) => s + g.items.filter((i) => boughtMap.has(i.ingredient.id)).length,
     0,
   );
 
@@ -90,25 +120,42 @@ export function Shopping({
           {groups.map((g) => (
             <Card key={g.category} title={CATEGORY_LABEL[g.category]}>
               <ul className="clean">
-                {g.items.map((it) => (
-                  <CheckRow
-                    key={it.ingredient.id}
-                    checked={boughtSet.has(it.ingredient.id)}
-                    title={it.ingredient.name}
-                    detail={
-                      <>
-                        Serve circa {formatQty(scaleQty(it.qty, factor))} {it.unit}
-                        {it.ingredient.storage && (
-                          <span className="check-storage">
-                            🧺 {it.ingredient.storage}
-                            {it.ingredient.shelfLife && ` · dura ${it.ingredient.shelfLife}`}
-                          </span>
-                        )}
-                      </>
-                    }
-                    onToggle={() => toggleBought(it.ingredient.id, !boughtSet.has(it.ingredient.id))}
-                  />
-                ))}
+                {g.items.map((it) => {
+                  const bought = boughtMap.get(it.ingredient.id);
+                  return (
+                    <CheckRow
+                      key={it.ingredient.id}
+                      checked={bought != null}
+                      title={it.ingredient.name}
+                      detail={
+                        <>
+                          {it.qtyHave != null && it.qtyHave > 0 ? (
+                            <>
+                              Serve {formatQty(it.qty)} {it.unit} · ne hai{' '}
+                              {formatQty(it.qtyHave)} → compra ~{formatQty(it.qtyToBuy)} {it.unit}
+                            </>
+                          ) : (
+                            <>
+                              Serve circa {formatQty(it.qtyToBuy)} {it.unit}
+                            </>
+                          )}
+                          {bought?.qty != null && (
+                            <span className="check-storage">
+                              🛒 comprato: {formatQty(bought.qty)} {it.unit}
+                            </span>
+                          )}
+                          {it.ingredient.storage && (
+                            <span className="check-storage">
+                              🧺 {it.ingredient.storage}
+                              {it.ingredient.shelfLife && ` · dura ${it.ingredient.shelfLife}`}
+                            </span>
+                          )}
+                        </>
+                      }
+                      onToggle={() => onRowToggle(it)}
+                    />
+                  );
+                })}
               </ul>
             </Card>
           ))}
@@ -122,6 +169,46 @@ export function Shopping({
             ➕ Aggiungi i comprati alla dispensa ({boughtCount})
           </button>
         </>
+      )}
+
+      {buying && (
+        <Modal title={`Quanto ne compri? · ${buying.ingredient.name}`} onClose={() => setBuying(null)}>
+          <p className="small muted" style={{ marginTop: -4 }}>
+            Serve {formatQty(buying.qty)} {buying.unit}
+            {buying.qtyHave != null && buying.qtyHave > 0
+              ? ` e ne hai ${formatQty(buying.qtyHave)}: mancano ~${formatQty(buying.qtyToBuy)} ${buying.unit}.`
+              : '.'}{' '}
+            Scegli il formato che compri davvero: la dispensa terrà il conto.
+          </p>
+          <div className="pill-row" style={{ marginBottom: 12 }}>
+            {(PACK_PRESETS[buying.ingredient.unit] ?? []).map((p) => (
+              <button
+                key={p}
+                className={parseFloat(buyQty.replace(',', '.')) === p ? 'btn' : 'btn ghost'}
+                style={{ minHeight: 38, padding: '0 14px' }}
+                onClick={() => setBuyQty(String(p))}
+              >
+                {formatQty(p)} {buying.ingredient.unit}
+              </button>
+            ))}
+          </div>
+          <div className="row">
+            <div className="field grow" style={{ marginBottom: 0 }}>
+              <label htmlFor="buy-qty">Altro ({buying.ingredient.unit})</label>
+              <input
+                id="buy-qty"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                value={buyQty}
+                onChange={(e) => setBuyQty(e.target.value)}
+              />
+            </div>
+            <button className="btn" onClick={confirmBuy} style={{ flex: '0 0 auto' }}>
+              ✓ Comprato
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );

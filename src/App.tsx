@@ -6,6 +6,7 @@ import { currentSeasonByDate } from './lib/season';
 import { addDays, buildOverrideMap } from './lib/planning';
 import { missingForDate } from './lib/shopping';
 import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRecipes';
+import { INTENSITY_FACTOR, INTENSITY_SETTING_KEY, type Intensity } from './lib/intensity';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
 import { requestPersistentStorage } from './lib/storage';
 import { syncInBackground } from './lib/sync';
@@ -82,14 +83,25 @@ function App() {
         hasMissingForTomorrow: async () => {
           const items = await db.pantry.toArray();
           const haveSet = new Set(items.filter((p) => p.have).map((p) => p.ingredientId));
+          const qtyMap = new Map(
+            items.filter((p) => p.qty != null).map((p) => [p.ingredientId, p.qty as number]),
+          );
           const includeExtra = await getSetting<boolean>(
             EXTRA_RECIPES_SETTING_KEY,
             EXTRA_RECIPES_DEFAULT,
           );
+          const intensity = await getSetting<Intensity>(INTENSITY_SETTING_KEY, 'moderata');
           const overrides = buildOverrideMap(await db.mealOverride.toArray());
           return (
-            missingForDate(haveSet, addDays(new Date(), 1), season, includeExtra, overrides).length >
-            0
+            missingForDate(
+              haveSet,
+              addDays(new Date(), 1),
+              season,
+              includeExtra,
+              overrides,
+              qtyMap,
+              INTENSITY_FACTOR[intensity],
+            ).length > 0
           );
         },
       });
@@ -122,7 +134,7 @@ function App() {
         )}
         {view === 'piano' && <Plan season={season} />}
         {view === 'ricette' && <Recipes season={season} />}
-        {view === 'dispensa' && <Pantry />}
+        {view === 'dispensa' && <Pantry season={season} />}
         {view === 'spesa' && <Shopping season={season} focusTomorrow={spesaDomani} />}
         {view === 'peso' && <Weight />}
         {view === 'allenamenti' && <Workouts />}
