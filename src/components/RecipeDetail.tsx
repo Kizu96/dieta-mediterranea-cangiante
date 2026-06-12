@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Briefcase, ChefHat, CookingPot } from 'lucide-react';
 import type { Recipe } from '../data/types';
 import { techniquesForIngredients } from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
@@ -36,7 +37,7 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
       <div className="pill-row" style={{ marginBottom: 12 }}>
         {recipe.equipment.map((e) => (
           <span className="pill" key={e}>
-            🍳 {EQUIPMENT_LABEL[e]}
+            <CookingPot size={11} className="ic" /> {EQUIPMENT_LABEL[e]}
           </span>
         ))}
       </div>
@@ -118,7 +119,7 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
 
       <h3 className="section-label">Preparazione</h3>
       <button className="btn block" style={{ marginBottom: 10 }} onClick={() => setCooking(true)}>
-        👨‍🍳 Modalità cucina (passi grandi + timer)
+        <ChefHat size={16} className="ic" /> Modalità cucina (passi grandi + timer)
       </button>
       <ol className="steps" style={{ marginBottom: 14 }}>
         {recipe.steps.map((s, i) => (
@@ -129,7 +130,7 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
 
       {recipe.office && (
         <div className="banner info" style={{ marginTop: 4 }}>
-          🥡 <b>Da ufficio:</b> preparalo in anticipo (la sera prima o al prep day della
+          <Briefcase size={15} className="ic" /> <b>Da ufficio:</b> preparalo in anticipo (la sera prima o al prep day della
           domenica), conservalo in frigo in un contenitore e portalo con te. Se va mangiato
           caldo: microonde dell'ufficio (850 W) <b>2-3 minuti</b> mescolando a metà; zuppe e
           minestre 3-4 minuti, coperte con un piattino.

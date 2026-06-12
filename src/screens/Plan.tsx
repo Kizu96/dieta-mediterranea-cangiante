@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { CalendarDays } from 'lucide-react';
+import { Briefcase, CalendarDays, Flame, MapPin } from 'lucide-react';
 import type { MealSlot, Recipe, Season } from '../data/types';
 import { db, type MealStatusValue } from '../db/db';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
@@ -152,7 +152,7 @@ function DayView({
         {tpl && (
           <>
             <span className={tpl.active ? 'pill active' : 'pill'}>
-              {tpl.active ? '🔥 Giorno attivo' : 'Giorno base'}
+              {tpl.active ? <><Flame size={12} className="ic" /> Giorno attivo</> : 'Giorno base'}
             </span>
             <span className="pill olive">Obiettivo {tpl.kcalTarget} kcal</span>
           </>
@@ -174,7 +174,7 @@ function DayView({
                 <span className="grow">
                   {m.recipe.name}
                   {isWeekday && m.slot === 'pranzo' && m.recipe.office && (
-                    <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
+                    <span className="pill olive" style={{ marginLeft: 6 }}><Briefcase size={12} className="ic" /> ufficio</span>
                   )}
                 </span>
                 <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
@@ -225,12 +225,12 @@ function WeekView({
           <Card key={i}>
             <div className="flex-between" style={{ marginBottom: 8 }}>
               <h3 style={{ margin: 0 }}>
-                {isToday ? '📍 ' : ''}
+                {isToday ? <><MapPin size={14} className="ic" />{' '}</> : ''}
                 {formatShortDate(d)}
                 {tpl ? ` · ${tpl.dayLabel}` : ''}
               </h3>
               <div className="pill-row">
-                {tpl?.active && <span className="pill active">🔥 attivo</span>}
+                {tpl?.active && <span className="pill active"><Flame size={12} className="ic" /> attivo</span>}
                 {tpl && <span className="pill olive">{tpl.kcalTarget} kcal</span>}
               </div>
             </div>
@@ -249,7 +249,7 @@ function WeekView({
                     <span className="grow small">
                       {m.recipe.name}
                       {isWeekday && m.slot === 'pranzo' && m.recipe.office && (
-                        <span className="pill olive" style={{ marginLeft: 4 }}>🥡</span>
+                        <span className="pill olive" style={{ marginLeft: 4 }}><Briefcase size={11} className="ic" /></span>
                       )}
                     </span>
                     <span className="nowrap muted small">{scaleRound(m.recipe.kcal, factor)}</span>
@@ -283,7 +283,7 @@ function MonthView({ start, season }: { start: Date; season: Season }) {
   return (
     <Card title={`Panoramica · ${monthName}`} icon={<CalendarDays />}>
       <p className="small muted" style={{ marginTop: -4 }}>
-        🔥 = giorno attivo (tapis roulant, più carboidrati).
+        <Flame size={12} className="ic" /> = giorno attivo (tapis roulant, più carboidrati).
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
         {['L', 'M', 'M', 'G', 'V', 'S', 'D'].map((w, i) => (
@@ -310,7 +310,7 @@ function MonthView({ start, season }: { start: Date; season: Season }) {
               <div style={{ fontWeight: 700 }}>{c.getDate()}</div>
               {tpl && (
                 <div style={{ fontSize: '0.6rem', lineHeight: 1.1 }}>
-                  {tpl.active ? '🔥' : ''}
+                  {tpl.active ? <Flame size={9} className="ic" /> : ''}
                   <div>{tpl.kcalTarget}</div>
                 </div>
               )}

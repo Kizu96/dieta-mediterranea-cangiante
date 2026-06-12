@@ -209,6 +209,31 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (4ª ondata): tema scuro, icone lucide, lazy, shortcuts
+- **Icone professionali**: emoji sostituite da **lucide-react** (SVG monocromatici currentColor)
+  in nav (9 voci), header (Settings/CloudAlert), titoli card (`Card.icon` ora ReactNode,
+  classe `.card-icon`), pill (`Briefcase` ufficio, `Package` abbondante, `Snowflake` freezer,
+  `Star` base, `Flame` attivo), bottoni e banner (classe utility `svg.ic` = inline baseline).
+  Le emoji restano SOLO come contenuto (verdetti prep 🧺🧊🍳, messaggi motivazionali).
+- **Tema scuro**: `useTheme.ts` (pref `themePref` auto/chiaro/scuro in settings Dexie,
+  per-dispositivo); App applica `data-theme` su `<html>` + aggiorna `meta theme-color`
+  (chiaro #2f9389, scuro #12332f) e segue `prefers-color-scheme` in auto. CSS:
+  `:root[data-theme='dark']` ridefinisce le var (teal notte #0e1b19, card #142624;
+  ATTENZIONE: `--olive-dark` al buio è un colore da TESTO chiaro — le superfici che lo
+  usavano come sfondo (header, sidebar desktop) e i testi che usavano `--cream` (header,
+  `.btn`) hanno override dedicati). Toggle in Impostazioni, sezione «Tema».
+- **Indicatore sync**: `SYNC_EVENT` emesso dopo ogni sync → icona `CloudAlert` ambra
+  nell'header quando attiva+fallita (apre Impostazioni); lo stato in Impostazioni si
+  auto-aggiorna sull'evento.
+- **Lazy loading**: tutte le schermate tranne Oggi in `React.lazy` (bundle iniziale
+  ~280 kB da ~506; il SW precacha comunque tutto → offline ok).
+- **Shortcut Android** (manifest `shortcuts`): Lista spesa / Oggi / Pesata via `?view=`,
+  letto all'avvio (`initialView()` in App).
+- **Grafico Peso**: media mobile 7 gg per data (linea tratteggiata grigia), punti cerchiati
+  sulle misure complete (`fullValue` quando c'è visceralFat), tooltip/griglia compatibili
+  col tema scuro, legenda sotto il grafico.
+- **scripts/screenshot.mjs** ora fotografa anche le varianti dark (4 combo).
+
 ### Migliorie giugno 2026 (3ª ondata): scadenze frigo, modalità cucina, germogli, aderenza
 - **Avvisi scadenza frigo** (`src/lib/freshness.ts`): `PantryItem.freshSince` (timestamp,
   opzionale) viene impostato quando un DEPERIBILE entra in dispensa (acquisto in

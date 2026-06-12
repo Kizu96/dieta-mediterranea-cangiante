@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Download, Stethoscope } from 'lucide-react';
 import { guideSections } from '../data/guide';
 import { Card } from '../components/Card';
 import { Markdown } from '../components/Markdown';
@@ -15,7 +15,7 @@ export function Guide() {
           Tutto ciò che serve: germogli, fermentati, conservazione, scienza e fonti.
         </p>
         <a className="btn terracotta block" href={`${import.meta.env.BASE_URL}Guida-Dieta.pdf`} download>
-          ⬇️ Scarica la guida in PDF
+          <Download size={16} className="ic" /> Scarica la guida in PDF
         </a>
         <p className="small muted center" style={{ marginTop: 8, marginBottom: 0 }}>
           Il PDF si apre/scarica se il file è disponibile.
@@ -59,7 +59,7 @@ export function Guide() {
       )}
 
       <div className="banner info">
-        ⚕️ <b>Disclaimer:</b> contenuti educativi, non sostituiscono il parere di un medico o
+        <Stethoscope size={15} className="ic" /> <b>Disclaimer:</b> contenuti educativi, non sostituiscono il parere di un medico o
         nutrizionista. In caso di patologie, terapie o dubbi, consulta un professionista.
       </div>
     </div>

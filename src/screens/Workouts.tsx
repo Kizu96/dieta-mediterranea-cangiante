@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { BedDouble, Dumbbell, Footprints, Lightbulb, PersonStanding, Play } from 'lucide-react';
 import type { WorkoutDay, WorkoutExercise } from '../data/types';
 import { workoutWeeks } from '../data/workoutPlan';
 import { db } from '../db/db';
@@ -9,11 +10,11 @@ import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { ExerciseDetail } from '../components/ExerciseDetail';
 
-const TYPE_ICON: Record<WorkoutDay['type'], string> = {
-  cardio: '🏃',
-  forza: '💪',
-  mobilita: '🧘',
-  riposo: '😴',
+const TYPE_ICON: Record<WorkoutDay['type'], ReactNode> = {
+  cardio: <Footprints size={16} className="ic" />,
+  forza: <Dumbbell size={16} className="ic" />,
+  mobilita: <PersonStanding size={16} className="ic" />,
+  riposo: <BedDouble size={16} className="ic" />,
 };
 
 const TYPE_LABEL: Record<WorkoutDay['type'], string> = {
@@ -56,7 +57,7 @@ export function Workouts() {
   if (!week) {
     return (
       <div className="empty">
-        <span className="emoji">🏋️</span>
+        <Dumbbell size={34} />
         Nessun piano di allenamento disponibile.
       </div>
     );
@@ -134,7 +135,7 @@ export function Workouts() {
                         <b>{ex.name}</b>
                         {openable && (
                           <span className="nowrap" style={{ color: 'var(--terracotta-dark)', fontSize: '0.8rem' }}>
-                            ▶︎ apri ›
+                            <Play size={12} className="ic" /> apri ›
                           </span>
                         )}
                       </div>
@@ -144,7 +145,7 @@ export function Workouts() {
                 })}
               </ul>
             )}
-            {day.notes && <p className="small muted" style={{ marginTop: 8 }}>💡 {day.notes}</p>}
+            {day.notes && <p className="small muted" style={{ marginTop: 8 }}><Lightbulb size={13} className="ic" /> {day.notes}</p>}
           </Card>
         );
       })}

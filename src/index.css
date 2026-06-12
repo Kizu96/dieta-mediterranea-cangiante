@@ -41,6 +41,69 @@
   color: var(--ink);
 }
 
+/* =========================================================================
+   TEMA SCURO — palette derivata dallo stesso turchese (in Impostazioni:
+   Auto/Chiaro/Scuro; auto segue il sistema). Le variabili usate come TESTO
+   (olive-dark nei titoli) diventano chiare; le superfici che usavano
+   olive-dark come SFONDO (header, sidebar) sono ri-dichiarate più sotto.
+   ========================================================================= */
+:root[data-theme='dark'] {
+  --olive: #3aa99e;
+  --olive-dark: #8fd6cb; /* qui è un colore da TESTO (titoli, label) */
+  --olive-light: #1f4f48; /* chip/pill scure con testo chiaro */
+  --terracotta: #b97f63;
+  --terracotta-dark: #d4a98f;
+  --cream: #0e1b19; /* sfondo notte-teal */
+  --cream-2: #16302c;
+  --ink: #e8f2ef;
+  --ink-soft: #9fb8b2;
+  --card: #142624;
+  --line: #24443f;
+  --danger: #e08a72;
+  --ok: #3aa99e;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+/* Superfici che usano il teal scuro come sfondo (non come testo) */
+:root[data-theme='dark'] .app-header {
+  background: linear-gradient(135deg, #12332f, #1d4a44);
+  color: var(--ink); /* il testo header usava --cream, che al buio è lo sfondo */
+}
+:root[data-theme='dark'] .app-header .header-btn {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+}
+/* Bottoni primari: testo scuro sul teal acceso (al buio --cream non è più chiaro) */
+:root[data-theme='dark'] .btn {
+  color: #0b2421;
+}
+:root[data-theme='dark'] .btn.secondary {
+  color: var(--olive-dark);
+}
+:root[data-theme='dark'] .btn.ghost {
+  color: var(--ink-soft);
+}
+:root[data-theme='dark'] .btn.terracotta {
+  color: #2b1710;
+}
+:root[data-theme='dark'] .banner.warn {
+  background: #33231a;
+  border-color: #6b4a35;
+  color: #ecccb8;
+}
+:root[data-theme='dark'] .banner.info {
+  background: #13312d;
+  border-color: #2c5a52;
+  color: #bfe5dd;
+}
+:root[data-theme='dark'] .banner .btn.ghost {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+:root[data-theme='dark'] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -245,6 +308,17 @@ textarea {
 .card-icon svg {
   width: 19px;
   height: 19px;
+}
+/* Icona lucide inline nel testo (pill, bottoni, banner): allineata alla baseline. */
+svg.ic {
+  vertical-align: -0.18em;
+  flex: 0 0 auto;
+}
+.empty svg {
+  display: block;
+  margin: 0 auto 8px;
+  color: var(--ink-soft);
+  opacity: 0.7;
 }
 
 .muted {
@@ -844,6 +918,21 @@ ol.steps li {
 @media (min-width: 1280px) {
   :root {
     --content-max: 1120px;
+  }
+}
+
+/* Tema scuro: la sidebar desktop non può usare --olive-dark (che al buio è
+   un colore da testo, chiaro) — superficie scura dedicata. */
+@media (min-width: 900px) {
+  :root[data-theme='dark'] .bottom-nav {
+    background: #11302c;
+    border-right-color: rgba(255, 255, 255, 0.06);
+  }
+  :root[data-theme='dark'] .bottom-nav button {
+    color: rgba(232, 242, 239, 0.8);
+  }
+  :root[data-theme='dark'] .nav-brand {
+    color: var(--ink);
   }
 }
 

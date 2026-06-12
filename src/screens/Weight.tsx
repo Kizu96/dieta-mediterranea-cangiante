@@ -1,6 +1,18 @@
 import { lazy, Suspense, useMemo, useState, type KeyboardEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChartLine, Gauge, NotebookText, Scale, Target } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  ChartLine,
+  Flame,
+  Gauge,
+  NotebookText,
+  Plus,
+  Ruler,
+  Scale,
+  Stethoscope,
+  Target,
+  Trash2,
+} from 'lucide-react';
 import { db, getSetting, setSetting, type WeightEntry } from '../db/db';
 import { addDays, toISODate } from '../lib/planning';
 import { adherenceStats } from '../lib/adherence';
@@ -110,9 +122,34 @@ export function Weight() {
   const m = METRICS[metric];
   const chartData = useMemo(() => {
     const val = METRICS[metric].value;
-    return list
-      .map((w) => ({ label: formatShortDate(new Date(w.date)), value: val(w) }))
-      .filter((d): d is { label: string; value: number } => typeof d.value === 'number');
+    const pts = list
+      .map((w) => ({
+        date: w.date,
+        label: formatShortDate(new Date(w.date)),
+        value: val(w),
+        // Misura completa = quella con la bilancia smart (c'è il viscerale).
+        isFull: w.visceralFat != null,
+      }))
+      .filter(
+        (d): d is { date: string; label: string; value: number; isFull: boolean } =>
+          typeof d.value === 'number',
+      );
+    // Media mobile sui 7 giorni PRECEDENTI (finestra per data, non per indice:
+    // le misure possono essere sparse). Smorza le oscillazioni dell'acqua.
+    return pts.map((p) => {
+      const t = new Date(p.date).getTime();
+      const win = pts.filter((q) => {
+        const qt = new Date(q.date).getTime();
+        return qt <= t && qt > t - 7 * 86_400_000;
+      });
+      const avg = win.reduce((s, q) => s + q.value, 0) / win.length;
+      return {
+        label: p.label,
+        value: p.value,
+        avg: Math.round(avg * 10) / 10,
+        fullValue: p.isFull ? p.value : undefined,
+      };
+    });
   }, [list, metric]);
   const chartTarget = metric === 'peso' ? (profile?.targetKg ?? DEFAULT_PROFILE.targetKg) : undefined;
 
@@ -174,7 +211,7 @@ export function Weight() {
       )}
       {fullMeasureDue && (
         <div className="banner info" style={{ marginBottom: 14 }}>
-          📏 {lastFullDate == null ? (
+          <Ruler size={15} className="ic" /> {lastFullDate == null ? (
             <>Non hai ancora registrato una <b>misura completa</b> (StarFit):</>
           ) : (
             <>È passato più di un mese dall'ultima <b>misura completa</b> ({lastFullDate}):</>
@@ -242,7 +279,7 @@ export function Weight() {
           )}
 
           <button className="btn ghost block" onClick={() => setShowMore((v) => !v)} style={{ marginBottom: 8 }}>
-            {showMore ? '− Nascondi vita/fianchi' : '➕ Vita e fianchi (metro)'}
+            {showMore ? '− Nascondi vita/fianchi' : <><Plus size={15} className="ic" /> Vita e fianchi (metro)</>}
           </button>
           <button className="btn block" onClick={save}>
             Salva
@@ -313,7 +350,7 @@ export function Weight() {
           </p>
           {(cls === 'obesità I' || cls === 'obesità II' || cls === 'obesità III') && (
             <div className="banner warn" style={{ marginTop: 6, marginBottom: 0 }}>
-              ⚕️ BMI in classe obesità: valuta un consulto medico. Contenuti educativi, non
+              <Stethoscope size={15} className="ic" /> BMI in classe obesità: valuta un consulto medico. Contenuti educativi, non
               sostituiscono il parere del medico.
             </div>
           )}
@@ -333,6 +370,10 @@ export function Weight() {
         ) : (
           <Suspense fallback={<p className="muted small">Carico il grafico…</p>}>
             <WeightChart data={chartData} target={chartTarget} color={m.color} unit={m.unit} />
+            <p className="small muted" style={{ marginTop: 6, marginBottom: 0 }}>
+              Linea tratteggiata = <b>media 7 giorni</b> (il valore "vero", senza le oscillazioni
+              dell'acqua) · punti cerchiati = <b>misura completa</b> StarFit.
+            </p>
           </Suspense>
         )}
       </Card>
@@ -360,14 +401,14 @@ export function Weight() {
               </div>
               <div className="stat">
                 <div className="stat-num">{adherence.streak}</div>
-                <div className="stat-label">Giorni di fila 🔥</div>
+                <div className="stat-label">Giorni di fila <Flame size={11} className="ic" /></div>
               </div>
             </div>
             {adherence.mostSkipped.length > 0 && (
               <>
                 <p className="small" style={{ marginTop: 10, marginBottom: 4 }}>
                   <b>Ricette che salti più spesso</b> — la dieta che funziona è quella che
-                  segui: scambiale con qualcosa che mangi volentieri (⇄ in Oggi):
+                  segui: scambiale con qualcosa che mangi volentieri (<ArrowLeftRight size={12} className="ic" /> in Oggi):
                 </p>
                 <ul className="clean">
                   {adherence.mostSkipped.map((r) => (
@@ -405,7 +446,7 @@ export function Weight() {
                     aria-label="Elimina"
                     onClick={() => removeEntry(w.id)}
                   >
-                    🗑
+                    <Trash2 size={16} />
                   </button>
                 </li>
               ))}

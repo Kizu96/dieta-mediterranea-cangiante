@@ -1,14 +1,29 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import {
+  Bell,
+  CircleCheck,
+  Download,
+  Info,
+  Link2,
+  Lock,
+  RefreshCw,
+  Save,
+  Shield,
+  Trash2,
+  TriangleAlert,
+  Upload,
+} from 'lucide-react';
 import type { Season } from '../data/types';
 import { addDays, toISODate } from '../lib/planning';
 import { missingForDate } from '../lib/shopping';
 import { exportData, importData } from '../lib/backup';
-import { getSyncStatus, linkAccount, syncNow, unlinkAccount, type SyncStatus } from '../lib/sync';
+import { getSyncStatus, linkAccount, SYNC_EVENT, syncNow, unlinkAccount, type SyncStatus } from '../lib/sync';
 import { db, getSetting, setSetting } from '../db/db';
 import { isStoragePersisted } from '../lib/storage';
 import { currentSeasonByDate } from '../lib/season';
 import { Modal } from '../components/Modal';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
+import { useThemePref, type ThemePref } from '../components/useTheme';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { INTENSITY_DESC } from '../lib/intensity';
@@ -40,6 +55,7 @@ export function Settings({
 }) {
   const haveSet = useHaveSet();
   const qtyMap = usePantryQty();
+  const { pref: themePref, setPref: setThemePref } = useThemePref();
   const { intensity, factor, setIntensity } = useIntensity();
   const { includeExtra, setIncludeExtra } = useExtraRecipes();
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
@@ -98,6 +114,9 @@ export function Settings({
     getNotifPrefs().then(setPrefs);
     getSetting<string | null>(LAST_BACKUP_KEY, null).then(setLastBackup);
     isStoragePersisted().then(setPersisted);
+    // Lo stato sync si aggiorna anche quando una sincronizzazione di sfondo finisce.
+    window.addEventListener(SYNC_EVENT, refreshSync);
+    return () => window.removeEventListener(SYNC_EVENT, refreshSync);
   }, []);
 
   // Helper passato allo scheduler: domani mancano ingredienti?
@@ -187,6 +206,23 @@ export function Settings({
 
   return (
     <Modal title="Impostazioni" onClose={onClose}>
+      {/* Tema */}
+      <h3 className="section-label">Tema</h3>
+      <p className="small muted" style={{ marginTop: -4 }}>
+        «Auto» segue il tema del sistema (comodo la sera).
+      </p>
+      <div className="segmented">
+        {(['auto', 'chiaro', 'scuro'] as ThemePref[]).map((t) => (
+          <button
+            key={t}
+            className={themePref === t ? 'active' : ''}
+            onClick={() => setThemePref(t)}
+          >
+            {t === 'auto' ? 'Auto' : t === 'chiaro' ? 'Chiaro' : 'Scuro'}
+          </button>
+        ))}
+      </div>
+
       {/* Stagione */}
       <h3 className="section-label">Stagione del menù</h3>
       <p className="small muted" style={{ marginTop: -4 }}>
@@ -269,7 +305,7 @@ export function Settings({
             Attiva i promemoria per spesa, allenamento e pesata.
           </p>
           <button className="btn block" onClick={enableNotifications}>
-            🔔 Attiva le notifiche
+            <Bell size={16} className="ic" /> Attiva le notifiche
           </button>
           {perm === 'denied' && (
             <p className="small" style={{ color: 'var(--danger)' }}>
@@ -314,7 +350,7 @@ export function Settings({
           )}
 
           <div className="banner info" style={{ marginTop: 10 }}>
-            ℹ️ Senza un server i promemoria scattano solo mentre l’app è aperta. Tieni la PWA
+            <Info size={15} className="ic" /> Senza un server i promemoria scattano solo mentre l’app è aperta. Tieni la PWA
             installata e aperta in background per maggiore affidabilità.
           </div>
         </>
@@ -356,17 +392,17 @@ export function Settings({
             />
           </div>
           <button className="btn block" onClick={doLink} disabled={syncBusy || !token.trim()}>
-            🔗 Collega e sincronizza
+            <Link2 size={16} className="ic" /> Collega e sincronizza
           </button>
           <div className="banner info" style={{ marginTop: 10 }}>
-            🔒 Il token resta <b>solo su questo dispositivo</b> e viene usato solo con GitHub. Non
+            <Lock size={15} className="ic" /> Il token resta <b>solo su questo dispositivo</b> e viene usato solo con GitHub. Non
             inserirlo mai in chat o in altri siti.
           </div>
         </>
       ) : (
         <>
           <p className="small" style={{ marginTop: -4 }}>
-            ✅ Attiva{sync.login ? ` — account ${sync.login}` : ''}.{' '}
+            <CircleCheck size={15} className="ic" style={{ color: 'var(--ok)' }} /> Attiva{sync.login ? ` — account ${sync.login}` : ''}.{' '}
             {sync.hasGist ? 'Archivio collegato.' : 'Archivio in creazione…'}
           </p>
           <p className="small muted" style={{ marginTop: 0 }}>
@@ -375,11 +411,11 @@ export function Settings({
           </p>
           {sync.lastError && (
             <div className="banner warn" style={{ marginTop: 6 }}>
-              ⚠️ Ultimo errore: {sync.lastError}
+              <TriangleAlert size={15} className="ic" /> Ultimo errore: {sync.lastError}
             </div>
           )}
           <button className="btn block" onClick={doSyncNow} disabled={syncBusy} style={{ marginBottom: 8 }}>
-            🔄 Sincronizza ora
+            <RefreshCw size={16} className="ic" /> Sincronizza ora
           </button>
           <button
             className="btn ghost block"
@@ -405,25 +441,25 @@ export function Settings({
         dispositivo, se il browser libera spazio o se cambia l’indirizzo del sito.
       </p>
       <p className="small" style={{ marginTop: 0 }}>
-        🛡️ Protezione anti-cancellazione: <b>{persisted ? 'attiva' : 'non garantita'}</b>
+        <Shield size={14} className="ic" /> Protezione anti-cancellazione: <b>{persisted ? 'attiva' : 'non garantita'}</b>
         {' · '}Ultimo backup:{' '}
         <b>{lastBackup ? `${lastBackup}${daysSinceBackup ? ` (${daysSinceBackup} gg fa)` : ' (oggi)'}` : 'mai'}</b>
       </p>
       {backupStale && (
         <div className="banner warn" style={{ marginTop: 6 }}>
-          💾 {lastBackup ? 'È passato un po’ dall’ultimo backup.' : 'Non hai ancora fatto un backup.'}{' '}
+          <Save size={15} className="ic" /> {lastBackup ? 'È passato un po’ dall’ultimo backup.' : 'Non hai ancora fatto un backup.'}{' '}
           Esporta i dati e conserva il file (così non perdi nulla quando torneremo su Netlify).
         </div>
       )}
       <button className="btn secondary block" onClick={doExport} style={{ marginBottom: 8 }}>
-        ⬇️ Esporta dati (backup)
+        <Download size={16} className="ic" /> Esporta dati (backup)
       </button>
       <button
         className="btn secondary block"
         onClick={() => fileRef.current?.click()}
         style={{ marginBottom: 8 }}
       >
-        ⬆️ Importa backup
+        <Upload size={16} className="ic" /> Importa backup
       </button>
       <input ref={fileRef} type="file" accept="application/json" onChange={doImport} style={{ display: 'none' }} />
       {dataMsg && (
@@ -432,7 +468,7 @@ export function Settings({
         </p>
       )}
       <button className="btn ghost block" onClick={resetData} style={{ color: 'var(--danger)', borderColor: 'var(--danger)', marginTop: 8 }}>
-        🗑 Cancella tutti i dati locali
+        <Trash2 size={16} className="ic" /> Cancella tutti i dati locali
       </button>
 
       <p className="small muted center" style={{ marginTop: 14, marginBottom: 0 }}>

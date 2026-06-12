@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AlarmClock, Check, ChefHat, Play } from 'lucide-react';
 import type { Recipe } from '../data/types';
 import { ingredientById } from '../lib/shopping';
 import { scaleQty } from '../lib/intensity';
@@ -134,7 +135,7 @@ export function CookMode({
         style={{ padding: '12px 16px 8px', flex: '0 0 auto' }}
       >
         <b style={{ fontSize: '0.95rem', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          👨‍🍳 {recipe.name}
+          <ChefHat size={16} className="ic" /> {recipe.name}
         </b>
         <button className="btn ghost" style={{ minHeight: 40, flex: '0 0 auto' }} onClick={onClose}>
           ✕ Esci
@@ -157,7 +158,7 @@ export function CookMode({
           onClick={() => timerDone && setTimerDone(false)}
         >
           {timerDone ? (
-            <b>⏰ Tempo scaduto! ({timerLabel}) — tocca per chiudere</b>
+            <b><AlarmClock size={15} className="ic" /> Tempo scaduto! ({timerLabel}) — tocca per chiudere</b>
           ) : (
             <>
               ⏱ <b>
@@ -209,7 +210,7 @@ export function CookMode({
                 onClick={() => startTimer(stepMinutes, `passo ${step + 1}`)}
                 disabled={timerEnd != null}
               >
-                ▶ Avvia timer {stepMinutes} min
+                <Play size={16} className="ic" /> Avvia timer {stepMinutes} min
               </button>
             )}
           </>
@@ -241,11 +242,11 @@ export function CookMode({
             style={{ flex: 2, minHeight: 52, fontSize: '1.05rem' }}
             onClick={() => setStep((s) => s + 1)}
           >
-            {step === -1 ? '▶ Inizia a cucinare' : 'Avanti ›'}
+            {step === -1 ? <><Play size={16} className="ic" /> Inizia a cucinare</> : 'Avanti ›'}
           </button>
         ) : (
           <button className="btn" style={{ flex: 2, minHeight: 52, fontSize: '1.05rem' }} onClick={onClose}>
-            ✅ Finito, buon appetito!
+            <Check size={16} className="ic" /> Finito, buon appetito!
           </button>
         )}
       </div>

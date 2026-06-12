@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChefHat, Package, Timer } from 'lucide-react';
+import { ChefHat, Package, Snowflake, Timer } from 'lucide-react';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
@@ -69,7 +69,7 @@ export function Prep({ season }: { season: Season }) {
         <ul className="clean">
           <CheckRow
             checked={prepOn}
-            title={<b>🍱 Ho fatto il prep day per questa settimana</b>}
+            title={<b>Ho fatto il prep day per questa settimana</b>}
             detail="Attivo: i 5 pranzi vengono ridistribuiti tra i giorni — i più deperibili a inizio settimana, i surgelabili Gio-Ven. Spento: settimana normale del piano. Il piano base non viene mai modificato."
             onToggle={() => setPrepWeek(monday, !prepOn, season, includeExtra)}
           />
@@ -87,7 +87,7 @@ export function Prep({ season }: { season: Season }) {
       </Card>
 
       <div className="banner info">
-        🧊 <b>Sicurezza:</b> i pranzi cucinati durano in frigo <b>2-3 giorni</b>, quindi segui
+        <Snowflake size={15} className="ic" /> <b>Sicurezza:</b> i pranzi cucinati durano in frigo <b>2-3 giorni</b>, quindi segui
         il verdetto sotto al titolo di ogni giorno: 🧺 frigo da domenica · 🧊 congelato domenica
         e passato in frigo la sera prima · 🍳 componenti (cereali cotti e congelati, scatolette)
         assemblati la sera prima in 5-10 minuti. In inverno Gio-Ven sono zuppe e piatti cotti

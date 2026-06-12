@@ -142,6 +142,10 @@ export interface SyncResult {
 
 let inFlight: Promise<SyncResult> | null = null;
 
+// Evento emesso dopo OGNI sincronizzazione (riuscita o fallita): la UI
+// (indicatore nell'header, Impostazioni) si aggiorna senza fare polling.
+export const SYNC_EVENT = 'dieta-sync-done';
+
 async function doSync(): Promise<SyncResult> {
   const token = get(LS.token);
   if (!token) throw new Error('Token mancante.');
@@ -197,6 +201,7 @@ export function syncNow(): Promise<SyncResult> {
     })
     .finally(() => {
       inFlight = null;
+      window.dispatchEvent(new CustomEvent(SYNC_EVENT));
     }) as Promise<SyncResult>;
   return inFlight;
 }

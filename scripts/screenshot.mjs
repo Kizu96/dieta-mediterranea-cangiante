@@ -19,8 +19,10 @@ const EDGE_PATHS = [
 ];
 
 const SIZES = [
-  { name: 'mobile', width: 390, height: 844, mobile: true },
-  { name: 'desktop', width: 1440, height: 900, mobile: false },
+  { name: 'mobile', width: 390, height: 844, mobile: true, dark: false },
+  { name: 'desktop', width: 1440, height: 900, mobile: false, dark: false },
+  { name: 'mobile-dark', width: 390, height: 844, mobile: true, dark: true },
+  { name: 'desktop-dark', width: 1440, height: 900, mobile: false, dark: true },
 ];
 
 mkdirSync('.screenshots', { recursive: true });
@@ -43,6 +45,9 @@ try {
       hasTouch: size.mobile,
       deviceScaleFactor: 2,
     });
+    await page.emulateMediaFeatures([
+      { name: 'prefers-color-scheme', value: size.dark ? 'dark' : 'light' },
+    ]);
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 800)); // liveQuery/transizioni
 

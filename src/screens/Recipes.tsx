@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { Briefcase, SlidersHorizontal, Star } from 'lucide-react';
 import type { Equipment, MealSlot, Recipe, Season } from '../data/types';
 import { recipes } from '../data/recipes';
 import { makeableRecipes } from '../lib/shopping';
@@ -129,12 +129,12 @@ export function Recipes({ season }: { season: Season }) {
                   ))}
                   {r.extra && (
                     <span className="pill" title={r.extraReason}>
-                      ⭐ extra
+                      <Star size={11} className="ic" /> extra
                     </span>
                   )}
                   {r.office && (
                     <span className="pill olive" title="Da preparare in anticipo e portare in ufficio">
-                      🥡 ufficio
+                      <Briefcase size={11} className="ic" /> ufficio
                     </span>
                   )}
                   <span className="pill">⏱ {r.timeMin} min</span>

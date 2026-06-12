@@ -36,6 +36,27 @@ export default defineConfig({
         theme_color: '#2f9389',
         background_color: '#eef6f4',
         categories: ['health', 'lifestyle', 'food'],
+        // Tieni premuta l'icona dell'app su Android → azioni rapide.
+        shortcuts: [
+          {
+            name: 'Lista spesa',
+            short_name: 'Spesa',
+            url: '/dieta-mediterranea-cangiante/?view=spesa',
+            icons: [{ src: 'pwa-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Segna i pasti di oggi',
+            short_name: 'Oggi',
+            url: '/dieta-mediterranea-cangiante/?view=oggi',
+            icons: [{ src: 'pwa-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Pesata',
+            short_name: 'Peso',
+            url: '/dieta-mediterranea-cangiante/?view=peso',
+            icons: [{ src: 'pwa-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+        ],
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

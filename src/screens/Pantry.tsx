@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Package, Refrigerator, ShoppingBasket, Snowflake, Star } from 'lucide-react';
 import type { Category, Ingredient, Season } from '../data/types';
 import { ingredients } from '../data/ingredients';
 import { db } from '../db/db';
@@ -110,12 +111,12 @@ export function Pantry({ season }: { season: Season }) {
       </div>
 
       <button className="btn secondary block" onClick={markStaples} style={{ marginBottom: 14 }}>
-        ⭐ Segna tutti gli essenziali come disponibili
+        <Star size={16} className="ic" /> Segna tutti gli essenziali come disponibili
       </button>
 
       {grouped.length === 0 ? (
         <div className="empty">
-          <span className="emoji">🧺</span>
+          <ShoppingBasket size={34} />
           Nessun ingrediente trovato.
         </div>
       ) : (
@@ -134,15 +135,15 @@ export function Pantry({ season }: { season: Season }) {
                           <>
                             {ing.name}{' '}
                             {ing.staple && (
-                              <span className="pill" style={{ marginLeft: 4 }}>⭐ base</span>
+                              <span className="pill" style={{ marginLeft: 4 }}><Star size={11} className="ic" /> base</span>
                             )}
                             {surplus.has(ing.id) && (
                               <span className="pill olive" style={{ marginLeft: 4 }}>
-                                📦 abbondante
+                                <Package size={11} className="ic" /> abbondante
                               </span>
                             )}
                             {frozenSet.has(ing.id) && (
-                              <span className="pill" style={{ marginLeft: 4 }}>🧊 freezer</span>
+                              <span className="pill" style={{ marginLeft: 4 }}><Snowflake size={11} className="ic" /> freezer</span>
                             )}
                           </>
                         }
@@ -219,9 +220,11 @@ export function Pantry({ season }: { season: Season }) {
                 setEditing(null);
               }}
             >
-              {frozenSet.has(editing.id)
-                ? '🧺 L\'ho messo in frigo a scongelare'
-                : '🧊 Segna come messo in freezer'}
+              {frozenSet.has(editing.id) ? (
+                <><Refrigerator size={16} className="ic" /> L'ho messo in frigo a scongelare</>
+              ) : (
+                <><Snowflake size={16} className="ic" /> Segna come messo in freezer</>
+              )}
             </button>
           )}
           {qtyMap.has(editing.id) && (

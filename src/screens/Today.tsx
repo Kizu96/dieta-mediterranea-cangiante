@@ -1,6 +1,21 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Dumbbell, ListChecks, MoonStar, Scale, UtensilsCrossed } from 'lucide-react';
+import {
+  AlarmClock,
+  ArrowLeftRight,
+  Briefcase,
+  Check,
+  ChefHat,
+  Dumbbell,
+  ListChecks,
+  MoonStar,
+  Package,
+  Play,
+  Scale,
+  ShoppingCart,
+  Snowflake,
+  UtensilsCrossed,
+} from 'lucide-react';
 import { db, type MealStatusValue } from '../db/db';
 import type { MealSlot, Season } from '../data/types';
 import { dailyEssentials } from '../data/dailyEssentials';
@@ -231,7 +246,7 @@ export function Today({
 
       {mondayIndex(today) === 6 && (
         <div className="banner info">
-          🍱 <b>Oggi è il prep day:</b> prepara in una sola sessione i 5 pranzi da ufficio della
+          <ChefHat size={15} className="ic" /> <b>Oggi è il prep day:</b> prepara in una sola sessione i 5 pranzi da ufficio della
           settimana che inizia domani, così la sera cucini solo la cena.
           <div style={{ marginTop: 10 }}>
             <button className="btn" onClick={onGoPrep}>
@@ -243,7 +258,7 @@ export function Today({
 
       {freshAlerts.length > 0 && (
         <div className="banner warn">
-          <b>⏰ In frigo da troppo — cucinali oggi o congelali:</b>
+          <b><AlarmClock size={15} className="ic" /> In frigo da troppo — cucinali oggi o congelali:</b>
           <ul className="clean" style={{ marginTop: 8 }}>
             {freshAlerts.map((a) => (
               <li key={a.ingredient.id} className="meal-row">
@@ -257,14 +272,14 @@ export function Today({
                     style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
                     onClick={() => markFrozen(a.ingredient.id)}
                   >
-                    🧊 Congelato
+                    <Snowflake size={14} className="ic" /> Congelato
                   </button>
                   <button
                     className="btn ghost"
                     style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
                     onClick={() => dismissFreshness(a.ingredient.id)}
                   >
-                    ✓ Gestito
+                    <Check size={14} className="ic" /> Gestito
                   </button>
                 </span>
               </li>
@@ -279,11 +294,11 @@ export function Today({
 
       {frozenToday.length > 0 && (
         <div className="banner warn">
-          <b>🧊 Serve OGGI ma è in freezer:</b>{' '}
+          <b><Snowflake size={15} className="ic" /> Serve OGGI ma è in freezer:</b>{' '}
           {frozenToday.map((i) => i.name).join(', ')}.
           <p className="small" style={{ margin: '6px 0 8px' }}>
             Recupero rapido: microonde con funzione <b>scongelamento</b> (defrost) e cucinalo
-            subito dopo — oppure scambia il pasto (⇄) con uno fattibile.
+            subito dopo — oppure scambia il pasto (<ArrowLeftRight size={13} className="ic" />) con uno fattibile.
           </p>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {frozenToday.map((i) => (
@@ -302,7 +317,7 @@ export function Today({
 
       {frozenTomorrow.length > 0 && (
         <div className="banner info">
-          <b>🧊 Stasera, prima di andare a letto:</b> sposta dal freezer al frigo{' '}
+          <b><Snowflake size={15} className="ic" /> Stasera, prima di andare a letto:</b> sposta dal freezer al frigo{' '}
           {frozenTomorrow.map((i) => i.name).join(', ')} — {frozenTomorrow.length === 1 ? 'serve' : 'servono'}{' '}
           domani e lo scongelamento in frigo richiede una notte.
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
@@ -322,7 +337,7 @@ export function Today({
 
       {missing.length > 0 && (
         <div className="banner warn">
-          <b>🛒 Compra per domani:</b>{' '}
+          <b><ShoppingCart size={15} className="ic" /> Compra per domani:</b>{' '}
           {missing.map((m) => m.name).join(', ')}.
           <div style={{ marginTop: 10 }}>
             <button className="btn terracotta" onClick={onGoShopping}>
@@ -367,7 +382,7 @@ export function Today({
                       <span className="grow">
                         {m.recipe.name}
                         {isWeekdayToday && m.slot === 'pranzo' && m.recipe.office && (
-                          <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
+                          <span className="pill olive" style={{ marginLeft: 6 }}><Briefcase size={12} className="ic" /> ufficio</span>
                         )}
                         {overriddenToday.has(m.slot) && (
                           <span className="pill" style={{ marginLeft: 6 }}>🔁 scambiato</span>
@@ -385,7 +400,7 @@ export function Today({
                         className="btn ghost"
                         style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem', flex: '0 0 auto' }}
                       >
-                        ⇄ Scambia
+                        <ArrowLeftRight size={14} className="ic" /> Scambia
                       </button>
                     </div>
                   </li>
@@ -441,7 +456,7 @@ export function Today({
                 <span className="grow">
                   {m.recipe.name}
                   {isWeekdayTomorrow && m.slot === 'pranzo' && m.recipe.office && (
-                    <span className="pill olive" style={{ marginLeft: 6 }}>🥡 ufficio</span>
+                    <span className="pill olive" style={{ marginLeft: 6 }}><Briefcase size={12} className="ic" /> ufficio</span>
                   )}
                 </span>
                 <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
@@ -503,7 +518,7 @@ export function Today({
                       {openable && (
                         <span className="nowrap" style={{ color: 'var(--terracotta-dark)' }}>
                           {' '}
-                          ▶︎ apri ›
+                          <Play size={12} className="ic" /> apri ›
                         </span>
                       )}
                     </li>
@@ -559,8 +574,8 @@ export function Today({
         <Modal title={`Scambia ${SLOT_LABEL[swap.slot]} di oggi`} onClose={() => setSwap(null)}>
           <p className="small muted" style={{ marginTop: -4 }}>
             Scegli cosa mangi davvero oggi al posto del pasto del piano. Vale <b>solo per oggi</b> e
-            aggiorna anche la lista della spesa. Le ricette 📦 usano ingredienti che hai in
-            abbondanza in dispensa.
+            aggiorna anche la lista della spesa. Le ricette «usa la dispensa» sfruttano
+            ingredienti che hai in abbondanza.
           </p>
           <ul className="clean">
             {recipesForSlot(swap.slot, season, includeExtra)
@@ -585,7 +600,7 @@ export function Today({
                       <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
                     )}
                     {usesSurplus && r.id !== swap.current && (
-                      <span className="pill" style={{ marginLeft: 6 }}>📦 usa la dispensa</span>
+                      <span className="pill" style={{ marginLeft: 6 }}><Package size={12} className="ic" /> usa la dispensa</span>
                     )}
                   </span>
                   <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>

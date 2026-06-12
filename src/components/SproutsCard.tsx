@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Sprout } from 'lucide-react';
+import { Check, Sprout } from 'lucide-react';
 import { db } from '../db/db';
 import {
   cancelBatch,
@@ -55,7 +55,7 @@ export function SproutsCard() {
           <div style={{ display: 'flex', gap: 8 }}>
             {day >= SPROUT_READY_DAY - 1 && (
               <button className="btn" style={{ flex: 2 }} onClick={() => harvestBatch(active, today)}>
-                ✅ Raccolti, in frigo
+                <Check size={16} className="ic" /> Raccolti, in frigo
               </button>
             )}
             <button
@@ -83,7 +83,7 @@ export function SproutsCard() {
             )}
           </p>
           <button className="btn block" onClick={() => startBatch(today)}>
-            🌱 Avvia un barattolo oggi (ammollo stasera)
+            <Sprout size={16} className="ic" /> Avvia un barattolo oggi (ammollo stasera)
           </button>
         </>
       )}

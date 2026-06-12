@@ -1,3 +1,4 @@
+import { Play, Video } from 'lucide-react';
 import type { WorkoutExercise } from '../data/types';
 import { exerciseVideoId, exerciseSearchUrl } from '../lib/exerciseVideo';
 
@@ -21,7 +22,7 @@ export function ExerciseDetail({ exercise }: { exercise: WorkoutExercise }) {
         </div>
       ) : (
         <div className="banner info" style={{ marginBottom: 12 }}>
-          🎥 Video dimostrativo non incorporato per questo esercizio: aprilo su YouTube qui sotto.
+          <Video size={15} className="ic" /> Video dimostrativo non incorporato per questo esercizio: aprilo su YouTube qui sotto.
         </div>
       )}
 
@@ -41,7 +42,7 @@ export function ExerciseDetail({ exercise }: { exercise: WorkoutExercise }) {
       </ul>
 
       <a className="btn block" href={search} target="_blank" rel="noopener noreferrer">
-        ▶︎ {videoId ? 'Altri video su YouTube' : 'Guarda i video su YouTube'}
+        <Play size={16} className="ic" /> {videoId ? 'Altri video su YouTube' : 'Guarda i video su YouTube'}
       </a>
     </div>
   );

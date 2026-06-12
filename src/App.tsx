@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Settings as SettingsIcon } from 'lucide-react';
+import { CloudAlert, Settings as SettingsIcon } from 'lucide-react';
 import type { Season } from './data/types';
 import { getSetting, setSetting } from './db/db';
 import { currentSeasonByDate } from './lib/season';
@@ -10,19 +10,26 @@ import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRec
 import { INTENSITY_FACTOR, INTENSITY_SETTING_KEY, type Intensity } from './lib/intensity';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
 import { requestPersistentStorage } from './lib/storage';
-import { syncInBackground } from './lib/sync';
+import { getSyncStatus, SYNC_EVENT, syncInBackground } from './lib/sync';
 import { db } from './db/db';
+import { resolveTheme, THEME_COLOR, useThemePref } from './components/useTheme';
 import { BottomNav, type ViewKey } from './components/BottomNav';
 import { Today } from './screens/Today';
-import { Plan } from './screens/Plan';
-import { Prep } from './screens/Prep';
-import { Recipes } from './screens/Recipes';
-import { Pantry } from './screens/Pantry';
-import { Shopping } from './screens/Shopping';
-import { Weight } from './screens/Weight';
-import { Workouts } from './screens/Workouts';
-import { Guide } from './screens/Guide';
-import { Settings } from './screens/Settings';
+
+// Tutte le schermate tranne "Oggi" sono lazy: il primo avvio carica solo la
+// home, il resto arriva quando serve (il service worker poi precacha tutto,
+// quindi offline funzionano comunque).
+const Plan = lazy(() => import('./screens/Plan').then((m) => ({ default: m.Plan })));
+const Prep = lazy(() => import('./screens/Prep').then((m) => ({ default: m.Prep })));
+const Recipes = lazy(() => import('./screens/Recipes').then((m) => ({ default: m.Recipes })));
+const Pantry = lazy(() => import('./screens/Pantry').then((m) => ({ default: m.Pantry })));
+const Shopping = lazy(() => import('./screens/Shopping').then((m) => ({ default: m.Shopping })));
+const Weight = lazy(() => import('./screens/Weight').then((m) => ({ default: m.Weight })));
+const Workouts = lazy(() => import('./screens/Workouts').then((m) => ({ default: m.Workouts })));
+const Guide = lazy(() => import('./screens/Guide').then((m) => ({ default: m.Guide })));
+const Settings = lazy(() => import('./screens/Settings').then((m) => ({ default: m.Settings })));
+
+const ScreenFallback = () => <p className="muted small center" style={{ padding: 24 }}>Carico…</p>;
 
 const SEASON_OVERRIDE_KEY = 'seasonOverride';
 
@@ -38,8 +45,14 @@ const TITLES: Record<ViewKey, string> = {
   guida: 'Guida',
 };
 
+// Vista iniziale dal parametro ?view= (scorciatoie Android del manifest).
+function initialView(): ViewKey {
+  const v = new URLSearchParams(window.location.search).get('view');
+  return v && v in TITLES ? (v as ViewKey) : 'oggi';
+}
+
 function App() {
-  const [view, setView] = useState<ViewKey>('oggi');
+  const [view, setView] = useState<ViewKey>(initialView);
   const [showSettings, setShowSettings] = useState(false);
   // true = la schermata Spesa si apre sui soli ingredienti di domani (dal banner "Compra per domani").
   const [spesaDomani, setSpesaDomani] = useState(false);
@@ -59,6 +72,35 @@ function App() {
   // All'avvio: chiede storage persistente così il browser non cancella i dati locali.
   useEffect(() => {
     requestPersistentStorage();
+  }, []);
+
+  // Tema chiaro/scuro: applica data-theme e aggiorna il colore della barra di
+  // stato; in "auto" segue il sistema anche se cambia mentre l'app è aperta.
+  const { pref: themePref } = useThemePref();
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      const theme = resolveTheme(themePref, mq.matches);
+      document.documentElement.dataset.theme = theme;
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', THEME_COLOR[theme]);
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, [themePref]);
+
+  // Indicatore di sync fallita nell'header: si aggiorna a ogni sync (evento).
+  const [syncFailed, setSyncFailed] = useState(false);
+  useEffect(() => {
+    const refresh = () => {
+      const s = getSyncStatus();
+      setSyncFailed(s.enabled && s.lastError != null);
+    };
+    refresh();
+    window.addEventListener(SYNC_EVENT, refresh);
+    return () => window.removeEventListener(SYNC_EVENT, refresh);
   }, []);
 
   // Sincronizzazione cloud (se attiva): all'avvio e ogni volta che l'app torna
@@ -119,31 +161,46 @@ function App() {
     <>
       <header className="app-header">
         <h1>{TITLES[view]}</h1>
-        <button className="header-btn" onClick={() => setShowSettings(true)} aria-label="Impostazioni">
-          <SettingsIcon size={20} />
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {syncFailed && (
+            <button
+              className="header-btn"
+              onClick={() => setShowSettings(true)}
+              aria-label="Sincronizzazione non riuscita: apri le impostazioni"
+              title="Ultima sincronizzazione non riuscita"
+              style={{ color: '#ffd9a8' }}
+            >
+              <CloudAlert size={20} />
+            </button>
+          )}
+          <button className="header-btn" onClick={() => setShowSettings(true)} aria-label="Impostazioni">
+            <SettingsIcon size={20} />
+          </button>
+        </div>
       </header>
 
       <main className="screen">
-        {view === 'oggi' && (
-          <Today
-            season={season}
-            onSeasonOverride={setSeasonOverride}
-            onGoShopping={() => {
-              setSpesaDomani(true);
-              setView('spesa');
-            }}
-            onGoPrep={() => setView('prep')}
-          />
-        )}
-        {view === 'piano' && <Plan season={season} />}
-        {view === 'prep' && <Prep season={season} />}
-        {view === 'ricette' && <Recipes season={season} />}
-        {view === 'dispensa' && <Pantry season={season} />}
-        {view === 'spesa' && <Shopping season={season} focusTomorrow={spesaDomani} />}
-        {view === 'peso' && <Weight />}
-        {view === 'allenamenti' && <Workouts />}
-        {view === 'guida' && <Guide />}
+        <Suspense fallback={<ScreenFallback />}>
+          {view === 'oggi' && (
+            <Today
+              season={season}
+              onSeasonOverride={setSeasonOverride}
+              onGoShopping={() => {
+                setSpesaDomani(true);
+                setView('spesa');
+              }}
+              onGoPrep={() => setView('prep')}
+            />
+          )}
+          {view === 'piano' && <Plan season={season} />}
+          {view === 'prep' && <Prep season={season} />}
+          {view === 'ricette' && <Recipes season={season} />}
+          {view === 'dispensa' && <Pantry season={season} />}
+          {view === 'spesa' && <Shopping season={season} focusTomorrow={spesaDomani} />}
+          {view === 'peso' && <Weight />}
+          {view === 'allenamenti' && <Workouts />}
+          {view === 'guida' && <Guide />}
+        </Suspense>
       </main>
 
       <BottomNav
@@ -155,12 +212,14 @@ function App() {
       />
 
       {showSettings && (
-        <Settings
-          season={season}
-          seasonOverride={seasonOverride ?? null}
-          onSeasonOverride={setSeasonOverride}
-          onClose={() => setShowSettings(false)}
-        />
+        <Suspense fallback={null}>
+          <Settings
+            season={season}
+            seasonOverride={seasonOverride ?? null}
+            onSeasonOverride={setSeasonOverride}
+            onClose={() => setShowSettings(false)}
+          />
+        </Suspense>
       )}
     </>
   );

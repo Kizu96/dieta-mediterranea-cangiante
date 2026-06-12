@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Archive, PackagePlus, Share2, ShoppingCart } from 'lucide-react';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, toISODate } from '../lib/planning';
@@ -139,7 +140,7 @@ export function Shopping({
 
       {totalItems === 0 ? (
         <div className="empty">
-          <span className="emoji">🛒</span>
+          <ShoppingCart size={34} />
           Niente da comprare: hai già tutto in dispensa!
         </div>
       ) : (
@@ -175,12 +176,12 @@ export function Shopping({
                           )}
                           {bought?.qty != null && (
                             <span className="check-storage">
-                              🛒 comprato: {formatQty(bought.qty)} {it.unit}
+                              <ShoppingCart size={12} className="ic" /> comprato: {formatQty(bought.qty)} {it.unit}
                             </span>
                           )}
                           {it.ingredient.storage && (
                             <span className="check-storage">
-                              🧺 {it.ingredient.storage}
+                              <Archive size={12} className="ic" /> {it.ingredient.storage}
                               {it.ingredient.shelfLife && ` · dura ${it.ingredient.shelfLife}`}
                             </span>
                           )}
@@ -200,7 +201,7 @@ export function Shopping({
             disabled={boughtCount === 0}
             style={{ marginBottom: 8 }}
           >
-            ➕ Aggiungi i comprati alla dispensa ({boughtCount})
+            <PackagePlus size={16} className="ic" /> Aggiungi i comprati alla dispensa ({boughtCount})
           </button>
           <button
             className="btn secondary block"
@@ -208,7 +209,7 @@ export function Shopping({
             disabled={boughtCount === totalItems}
             style={{ marginBottom: 8 }}
           >
-            📤 Condividi / copia la lista
+            <Share2 size={16} className="ic" /> Condividi / copia la lista
           </button>
           {shareMsg && <p className="small muted center">{shareMsg}</p>}
         </>
