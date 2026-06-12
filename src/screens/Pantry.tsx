@@ -6,6 +6,7 @@ import { db } from '../db/db';
 import { buildOverrideMap } from '../lib/planning';
 import { surplusIngredients } from '../lib/shopping';
 import { isQtyTracked, PACK_PRESETS, setPantryQty } from '../lib/pantryQty';
+import { markFrozen, markThawedToFridge, perishableFridgeDays } from '../lib/freshness';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
@@ -36,6 +37,11 @@ export function Pantry({ season }: { season: Season }) {
   const haveSet = useHaveSet();
   const qtyMap = usePantryQty();
   const levels = usePantryLevels();
+  const pantryRows = useLiveQuery(() => db.pantry.toArray(), [], []);
+  const frozenSet = useMemo(
+    () => new Set((pantryRows ?? []).filter((p) => p.frozen).map((p) => p.ingredientId)),
+    [pantryRows],
+  );
   const { factor } = useIntensity();
   const { includeExtra } = useExtraRecipes();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
@@ -135,6 +141,9 @@ export function Pantry({ season }: { season: Season }) {
                                 📦 abbondante
                               </span>
                             )}
+                            {frozenSet.has(ing.id) && (
+                              <span className="pill" style={{ marginLeft: 4 }}>🧊 freezer</span>
+                            )}
                           </>
                         }
                         detail={`${ing.storage} · ${ing.shelfLife}`}
@@ -200,6 +209,21 @@ export function Pantry({ season }: { season: Season }) {
               Salva
             </button>
           </div>
+          {perishableFridgeDays(editing) != null && haveSet.has(editing.id) && (
+            <button
+              className="btn ghost block"
+              style={{ marginTop: 10 }}
+              onClick={async () => {
+                if (frozenSet.has(editing.id)) await markThawedToFridge(editing.id);
+                else await markFrozen(editing.id);
+                setEditing(null);
+              }}
+            >
+              {frozenSet.has(editing.id)
+                ? '🧺 L\'ho messo in frigo a scongelare'
+                : '🧊 Segna come messo in freezer'}
+            </button>
+          )}
           {qtyMap.has(editing.id) && (
             <button
               className="btn ghost block"

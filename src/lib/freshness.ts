@@ -49,13 +49,46 @@ export function freshnessAlerts(rows: PantryItem[], now = Date.now()): Freshness
   return out.sort((a, b) => b.daysIn - b.maxDays - (a.daysIn - a.maxDays));
 }
 
-/** Avviso gestito (cucinato/congelato/buttato): azzera il timer di freschezza. */
+/** Avviso gestito (cucinato/mangiato/buttato): azzera il timer di freschezza. */
 export async function dismissFreshness(ingredientId: string): Promise<void> {
   const row = await db.pantry.get(ingredientId);
   if (!row) return;
   const next = { ...row, updatedAt: Date.now() };
   delete next.freshSince;
   await db.pantry.put(next);
+}
+
+/** Messo in freezer: stop al timer di frigo, parte il promemoria "sposta in frigo la sera prima". */
+export async function markFrozen(ingredientId: string): Promise<void> {
+  const row = await db.pantry.get(ingredientId);
+  if (!row) return;
+  const next = { ...row, frozen: true, updatedAt: Date.now() };
+  delete next.freshSince;
+  await db.pantry.put(next);
+}
+
+/**
+ * Tirato fuori dal freezer e messo in frigo a scongelare: via il flag freezer
+ * e RIPARTE il timer di freschezza (lo scongelato tiene 1-2 giorni e non si
+ * ricongela da crudo — l'avviso "cucinalo" tornerà da solo).
+ */
+export async function markThawedToFridge(ingredientId: string): Promise<void> {
+  const row = await db.pantry.get(ingredientId);
+  if (!row) return;
+  const next = { ...row, updatedAt: Date.now(), ...(freshSinceFor(ingredientId) != null ? { freshSince: Date.now() } : {}) };
+  delete next.frozen;
+  await db.pantry.put(next);
+}
+
+/** Tra `neededIds`, gli ingredienti in dispensa flaggati "in freezer". */
+export function frozenNeeded(rows: PantryItem[], neededIds: Set<string>): Ingredient[] {
+  const out: Ingredient[] = [];
+  for (const row of rows) {
+    if (!row.frozen || !neededIds.has(row.ingredientId)) continue;
+    const ing = ingredientMap.get(row.ingredientId);
+    if (ing) out.push(ing);
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /** freshSince da impostare quando un ingrediente entra in dispensa (se deperibile). */

@@ -17,6 +17,9 @@ export interface PantryItem {
   // stato messo in frigo (acquisto/spunta manuale): alimenta gli avvisi
   // "cucinalo o congelalo" in Oggi. undefined = non deperibile o avviso gestito.
   freshSince?: number;
+  // L'utente l'ha messo in freezer: niente avvisi di frigo, ma se serve domani
+  // Oggi ricorda di spostarlo in frigo la sera prima (scongelamento lento).
+  frozen?: boolean;
   updatedAt: number;
 }
 

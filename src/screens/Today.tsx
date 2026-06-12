@@ -8,7 +8,13 @@ import { currentSeasonByDate } from '../lib/season';
 import { addDays, buildOverrideMap, getRecipesForDate, recipesForSlot, toISODate } from '../lib/planning';
 import { missingForDate, surplusIngredients } from '../lib/shopping';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
-import { dismissFreshness, freshnessAlerts } from '../lib/freshness';
+import {
+  dismissFreshness,
+  freshnessAlerts,
+  frozenNeeded,
+  markFrozen,
+  markThawedToFridge,
+} from '../lib/freshness';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { MealStatusButtons } from '../components/MealStatusButtons';
@@ -59,6 +65,18 @@ export function Today({
   // Deperibili che hanno raggiunto i giorni di frigo dichiarati → "cucinalo o congelalo".
   const pantryRows = useLiveQuery(() => db.pantry.toArray(), [], []);
   const freshAlerts = useMemo(() => freshnessAlerts(pantryRows ?? []), [pantryRows]);
+
+  // Ingredienti flaggati "in freezer" che servono oggi (recupero: microonde) o
+  // domani (vanno spostati in frigo stasera per lo scongelamento lento).
+  const frozenToday = frozenNeeded(
+    pantryRows ?? [],
+    new Set(meals.flatMap((m) => m.recipe.ingredients.map((ri) => ri.ingredientId))),
+  );
+  const frozenTodayIds = new Set(frozenToday.map((i) => i.id));
+  const frozenTomorrow = frozenNeeded(
+    pantryRows ?? [],
+    new Set(mealsTomorrow.flatMap((m) => m.recipe.ingredients.map((ri) => ri.ingredientId))),
+  ).filter((i) => !frozenTodayIds.has(i.id));
 
   // Ingredienti "abbondanti" (più di quanto serve al piano dei prossimi 7 giorni):
   // nello scambio pasto le ricette che li usano salgono in cima.
@@ -232,19 +250,72 @@ export function Today({
                   <b>{a.ingredient.name}</b> · in frigo da {a.daysIn}{' '}
                   {a.daysIn === 1 ? 'giorno' : 'giorni'} (tiene {a.maxDays})
                 </span>
-                <button
-                  className="btn ghost"
-                  style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
-                  onClick={() => dismissFreshness(a.ingredient.id)}
-                >
-                  ✓ Gestito
-                </button>
+                <span style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
+                  <button
+                    className="btn ghost"
+                    style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
+                    onClick={() => markFrozen(a.ingredient.id)}
+                  >
+                    🧊 Congelato
+                  </button>
+                  <button
+                    className="btn ghost"
+                    style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
+                    onClick={() => dismissFreshness(a.ingredient.id)}
+                  >
+                    ✓ Gestito
+                  </button>
+                </span>
               </li>
             ))}
           </ul>
           <p className="small muted" style={{ margin: '6px 0 0' }}>
-            «Gestito» = cucinato, congelato o buttato: spegne l'avviso.
+            «Congelato» = messo in freezer (ti ricorderò di scongelarlo quando serve) ·
+            «Gestito» = cucinato, mangiato o buttato.
           </p>
+        </div>
+      )}
+
+      {frozenToday.length > 0 && (
+        <div className="banner warn">
+          <b>🧊 Serve OGGI ma è in freezer:</b>{' '}
+          {frozenToday.map((i) => i.name).join(', ')}.
+          <p className="small" style={{ margin: '6px 0 8px' }}>
+            Recupero rapido: microonde con funzione <b>scongelamento</b> (defrost) e cucinalo
+            subito dopo — oppure scambia il pasto (⇄) con uno fattibile.
+          </p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {frozenToday.map((i) => (
+              <button
+                key={i.id}
+                className="btn ghost"
+                style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
+                onClick={() => markThawedToFridge(i.id)}
+              >
+                ✓ {i.name}: scongelato
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {frozenTomorrow.length > 0 && (
+        <div className="banner info">
+          <b>🧊 Stasera, prima di andare a letto:</b> sposta dal freezer al frigo{' '}
+          {frozenTomorrow.map((i) => i.name).join(', ')} — {frozenTomorrow.length === 1 ? 'serve' : 'servono'}{' '}
+          domani e lo scongelamento in frigo richiede una notte.
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+            {frozenTomorrow.map((i) => (
+              <button
+                key={i.id}
+                className="btn ghost"
+                style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
+                onClick={() => markThawedToFridge(i.id)}
+              >
+                ✓ {i.name}: è in frigo
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

@@ -109,7 +109,16 @@ export async function setPantryQty(ingredientId: string, qty: number | null): Pr
     // è una correzione del conteggio → il riferimento resta e la barra cala.
     const qtyFull =
       row?.qty != null && q <= row.qty ? Math.max(row.qtyFull ?? q, q) : q;
-    await db.pantry.put({ ingredientId, have: q > 0, qty: q, qtyFull, updatedAt: Date.now() });
+    // Correggere il conteggio non tocca freschezza/freezer: si preservano i flag.
+    await db.pantry.put({
+      ingredientId,
+      have: q > 0,
+      qty: q,
+      qtyFull,
+      ...(row?.freshSince != null ? { freshSince: row.freshSince } : {}),
+      ...(row?.frozen ? { frozen: row.frozen } : {}),
+      updatedAt: Date.now(),
+    });
   }
 }
 

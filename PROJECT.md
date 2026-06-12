@@ -215,7 +215,14 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   `addPurchaseToPantry` o spunta manuale in `setPantryHave`); deperibile = lo storage
   dell'ingrediente dichiara giorni di frigo (regex su "Frigo 1-2 gg"; uova "Frigo" senza numero
   = escluse). Quando i giorni sono raggiunti → banner in Oggi «cucinalo oggi o congelalo» con
-  bottone «Gestito» (= `dismissFreshness`, azzera solo il timer).
+  bottoni «🧊 Congelato» (= `markFrozen`: flag `PantryItem.frozen`, stop timer) e «Gestito»
+  (= `dismissFreshness`, azzera solo il timer).
+- **Promemoria scongelamento:** se un ingrediente flaggato `frozen` serve nei pasti di DOMANI
+  → banner info in Oggi «stasera sposta dal freezer al frigo» (scongelamento lento); se serve
+  OGGI → banner warn col recupero (microonde defrost o scambia pasto). «✓ è in frigo» =
+  `markThawedToFridge`: toglie il flag e RIAVVIA `freshSince` (lo scongelato tiene 1-2 gg →
+  tornerà l'avviso "cucinalo", e non si ricongela da crudo). Flag gestibile anche dal modal
+  quantità in Dispensa (pill «🧊 freezer»); acquisti e toggle manuali lo azzerano.
 - **Modalità cucina** (`src/components/CookMode.tsx`, bottone nel dettaglio ricetta): overlay
   a tutto schermo (z-index 1000, sopra i Modal), schermata ingredienti → un passo alla volta a
   caratteri grandi, **timer** auto-rilevato dai minuti nel testo del passo (resta attivo
