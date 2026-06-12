@@ -30,6 +30,13 @@ export const PACK_PRESETS: Record<string, number[]> = {
   pz: [1, 2, 4, 6],
 };
 
+/** Preset per QUESTO ingrediente: il suo formato confezione per primo, poi i generici. */
+export function packPresetsFor(ing: Ingredient): number[] {
+  const generic = PACK_PRESETS[ing.unit] ?? [];
+  if (ing.packSize == null) return generic;
+  return [ing.packSize, ...generic.filter((p) => p !== ing.packSize)];
+}
+
 // 'offplan' non scarica la dispensa: hai mangiato fuori, gli ingredienti sono ancora lì.
 const STATUS_FRACTION: Record<MealStatusValue, number> = {
   eaten: 1,

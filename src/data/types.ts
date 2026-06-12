@@ -32,6 +32,9 @@ export interface Ingredient {
   storage: string; // come conservarlo vivendo da soli
   shelfLife: string; // durata indicativa
   staple?: boolean; // da tenere sempre in dispensa
+  // Formato confezione tipico (nell'unità dell'ingrediente): compare come
+  // primo preset quando si compra o si imposta la quantità in dispensa.
+  packSize?: number;
   seasons?: Season[]; // se stagionale; assente = tutto l'anno
 }
 

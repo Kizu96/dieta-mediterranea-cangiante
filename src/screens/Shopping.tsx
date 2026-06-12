@@ -5,7 +5,7 @@ import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, toISODate } from '../lib/planning';
 import { buildShoppingList, type ShoppingItem } from '../lib/shopping';
-import { addPurchaseToPantry, isQtyTracked, PACK_PRESETS } from '../lib/pantryQty';
+import { addPurchaseToPantry, isQtyTracked, packPresetsFor } from '../lib/pantryQty';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
@@ -134,9 +134,12 @@ export function Shopping({
     if (boughtMap.has(it.ingredient.id)) {
       unmarkBought(it.ingredient.id);
     } else if (isQtyTracked(it.ingredient)) {
-      // Apre il selettore: pre-compilato col formato pacco più vicino al fabbisogno.
-      const presets = PACK_PRESETS[it.ingredient.unit] ?? [];
-      const suggested = presets.find((p) => p >= it.qtyToBuy) ?? presets[presets.length - 1];
+      // Apre il selettore: pre-compilato col formato pacco più vicino al fabbisogno
+      // (il formato confezione dell'ingrediente, se dichiarato, ha la precedenza).
+      const presets = packPresetsFor(it.ingredient);
+      const suggested =
+        it.ingredient.packSize ??
+        (presets.find((p) => p >= it.qtyToBuy) ?? presets[presets.length - 1]);
       setBuyQty(String(suggested ?? Math.ceil(it.qtyToBuy)));
       setBuying(it);
     } else {
@@ -331,7 +334,7 @@ export function Shopping({
             Scegli il formato che compri davvero: la dispensa terrà il conto.
           </p>
           <div className="pill-row" style={{ marginBottom: 12 }}>
-            {(PACK_PRESETS[buying.ingredient.unit] ?? []).map((p) => (
+            {packPresetsFor(buying.ingredient).map((p) => (
               <button
                 key={p}
                 className={parseFloat(buyQty.replace(',', '.')) === p ? 'btn' : 'btn ghost'}

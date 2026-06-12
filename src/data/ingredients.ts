@@ -81,7 +81,9 @@ export const ingredients: Ingredient[] = [
   { id: 'salmone-fresco', name: 'Filetto di salmone fresco', category: 'pesce', unit: 'g', storage: 'Frigo 1 giorno; oppure congelare', shelfLife: '2-3 mesi in freezer' },
   { id: 'salmone-affumicato', name: 'Salmone affumicato', category: 'pesce', unit: 'g', storage: 'Frigo; una volta aperto 2-3 gg', shelfLife: '2-3 settimane chiuso' },
   { id: 'gamberetti-surgelati', name: 'Gamberetti surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '6-12 mesi', staple: true },
-  { id: 'merluzzo-surgelato', name: 'Filetti di merluzzo surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '6-12 mesi', staple: true },
+  // Niente staple: si traccia a grammi (scatola tipica da 360 g) così la
+  // dispensa scala e la spesa propone il formato giusto.
+  { id: 'merluzzo-surgelato', name: 'Filetti di merluzzo surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '6-12 mesi', packSize: 360 },
   { id: 'platessa-surgelata', name: 'Filetti di platessa surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '6-12 mesi' },
 
   // ----- LATTICINI -----------------------------------------------------------

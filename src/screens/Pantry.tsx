@@ -6,7 +6,7 @@ import { ingredients } from '../data/ingredients';
 import { db } from '../db/db';
 import { buildOverrideMap } from '../lib/planning';
 import { surplusIngredients } from '../lib/shopping';
-import { isQtyTracked, PACK_PRESETS, setPantryQty } from '../lib/pantryQty';
+import { isQtyTracked, packPresetsFor, setPantryQty } from '../lib/pantryQty';
 import { markFrozen, markThawedToFridge, perishableFridgeDays } from '../lib/freshness';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
@@ -183,7 +183,7 @@ export function Pantry({ season }: { season: Season }) {
             pasto come mangiato; correggi qui se il conteggio diverge dalla realtà.
           </p>
           <div className="pill-row" style={{ marginBottom: 12 }}>
-            {(PACK_PRESETS[editing.unit] ?? []).map((p) => (
+            {packPresetsFor(editing).map((p) => (
               <button
                 key={p}
                 className={parseFloat(editQty.replace(',', '.')) === p ? 'btn' : 'btn ghost'}
