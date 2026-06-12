@@ -30,7 +30,13 @@ export const PACK_PRESETS: Record<string, number[]> = {
   pz: [1, 2, 4, 6],
 };
 
-const STATUS_FRACTION: Record<MealStatusValue, number> = { eaten: 1, half: 0.5, skipped: 0 };
+// 'offplan' non scarica la dispensa: hai mangiato fuori, gli ingredienti sono ancora lì.
+const STATUS_FRACTION: Record<MealStatusValue, number> = {
+  eaten: 1,
+  half: 0.5,
+  skipped: 0,
+  offplan: 0,
+};
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -50,6 +56,7 @@ export async function setMealStatusWithPantry(
   recipe: Recipe,
   status: MealStatusValue,
   factor: number,
+  offPlanKcal?: number,
 ): Promise<void> {
   await db.transaction('rw', db.mealStatus, db.pantry, async () => {
     const key: [string, string] = [date, slot];
@@ -92,6 +99,7 @@ export async function setMealStatusWithPantry(
       slot,
       status,
       recipeId: recipe.id,
+      ...(status === 'offplan' && offPlanKcal != null ? { offPlanKcal } : {}),
       consumed,
       updatedAt: Date.now(),
     });

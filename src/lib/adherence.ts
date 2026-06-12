@@ -11,6 +11,8 @@ export interface AdherenceStats {
   eaten: number;
   half: number;
   skipped: number;
+  /** Pasti sostituiti con altro fuori dal piano (kcal stimate). */
+  offPlan: number;
   /** % di aderenza sui pasti segnati: (mangiati + metà/2) / totale segnati. */
   pct: number;
   /** Giorni consecutivi (fino a oggi/ieri) con almeno un pasto mangiato e nessun saltato. */
@@ -26,12 +28,14 @@ export function adherenceStats(rows: MealStatus[], todayISO: string): AdherenceS
   let eaten = 0;
   let half = 0;
   let skipped = 0;
+  let offPlan = 0;
   const byDay = new Map<string, MealStatus[]>();
   const skipCount = new Map<string, number>();
 
   for (const s of rows) {
     if (s.status === 'eaten') eaten++;
     else if (s.status === 'half') half++;
+    else if (s.status === 'offplan') offPlan++;
     else {
       skipped++;
       if (s.recipeId) skipCount.set(s.recipeId, (skipCount.get(s.recipeId) ?? 0) + 1);
@@ -41,7 +45,9 @@ export function adherenceStats(rows: MealStatus[], todayISO: string): AdherenceS
     byDay.set(s.date, arr);
   }
 
-  const marked = eaten + half + skipped;
+  // Il fuori piano conta nel denominatore (non stavi seguendo il piano) ma non
+  // è un digiuno: resta distinto dai saltati.
+  const marked = eaten + half + skipped + offPlan;
   const pct = marked > 0 ? Math.round(((eaten + half * 0.5) / marked) * 100) : 0;
 
   // Streak: si parte da oggi (o da ieri, se oggi non hai ancora segnato nulla)
@@ -64,5 +70,5 @@ export function adherenceStats(rows: MealStatus[], todayISO: string): AdherenceS
     .filter(([, n]) => n >= 2) // 1 salto capita a chiunque: segnala dal 2° in poi
     .map(([id, times]) => ({ name: recipeName(id), times }));
 
-  return { eaten, half, skipped, pct, streak, mostSkipped };
+  return { eaten, half, skipped, offPlan, pct, streak, mostSkipped };
 }

@@ -12,6 +12,7 @@ import {
   Stethoscope,
   Target,
   Trash2,
+  TrendingDown,
 } from 'lucide-react';
 import { db, getSetting, setSetting, type WeightEntry } from '../db/db';
 import { addDays, toISODate } from '../lib/planning';
@@ -89,15 +90,46 @@ export function Weight() {
     }
     return undefined;
   };
-  const vfNow = latestOf('visceralFat');
-  const bfNow = latestOf('bodyFatPct');
-  const muNow = latestOf('muscleKg');
-  const waistNow = latestOf('waistCm');
-  const hipsNow = latestOf('hipsCm');
+  // Arrotonda a 1 decimale per la VISUALIZZAZIONE (i float possono arrivare
+  // come 15.999999999999998 e gli indicatori devono restare leggibili).
+  const r1 = (v: number | undefined): number | undefined =>
+    v != null ? Math.round(v * 10) / 10 : undefined;
+  const vfNow = r1(latestOf('visceralFat'));
+  const bfNow = r1(latestOf('bodyFatPct'));
+  const muNow = r1(latestOf('muscleKg'));
+  const waistNow = r1(latestOf('waistCm'));
+  const hipsNow = r1(latestOf('hipsCm'));
   const ph = (v: number | undefined) => (v != null ? String(v) : '—'); // segnaposto = ultimo valore
 
   const perWeek = weeklyLoss(500);
   const weeks = weeksToTarget(current, profile?.targetKg ?? DEFAULT_PROFILE.targetKg, perWeek);
+
+  // Proiezione sul trend REALE: regressione lineare sul peso degli ultimi 28
+  // giorni (serve ≥3 pesate su ≥10 giorni). Più onesta del deficit teorico.
+  const realTrend = useMemo(() => {
+    const cutoff = toISODate(addDays(new Date(), -28));
+    const pts = list
+      .filter((w) => w.date >= cutoff)
+      .map((w) => ({ t: new Date(w.date + 'T00:00:00').getTime(), kg: w.kg }));
+    if (pts.length < 3) return null;
+    const spanDays = (pts[pts.length - 1].t - pts[0].t) / 86_400_000;
+    if (spanDays < 10) return null;
+    const n = pts.length;
+    const mt = pts.reduce((s, p) => s + p.t, 0) / n;
+    const mk = pts.reduce((s, p) => s + p.kg, 0) / n;
+    let num = 0;
+    let den = 0;
+    for (const p of pts) {
+      num += (p.t - mt) * (p.kg - mk);
+      den += (p.t - mt) ** 2;
+    }
+    if (den === 0) return null;
+    const perWeekReal = (num / den) * 86_400_000 * 7; // kg/settimana (negativo = cala)
+    const target = profile?.targetKg ?? DEFAULT_PROFILE.targetKg;
+    if (perWeekReal >= -0.05 || current <= target) return { perWeekReal, eta: null };
+    const weeksLeft = (current - target) / -perWeekReal;
+    return { perWeekReal, eta: weeksLeft <= 200 ? addDays(new Date(), Math.round(weeksLeft * 7)) : null };
+  }, [list, profile, current]);
 
   // Promemoria misura completa: l'ultima registrazione con grasso viscerale
   // risale a più di 30 giorni fa (o non c'è mai stata).
@@ -348,6 +380,40 @@ export function Weight() {
             {profile?.heightCm ?? DEFAULT_PROFILE.heightCm} cm. Il <b>grasso viscerale</b> e la{' '}
             <b>vita</b> sono gli indicatori migliori da seguire.
           </p>
+          {realTrend && (
+            <div className="banner info" style={{ marginTop: 8, marginBottom: 0 }}>
+              <TrendingDown size={15} className="ic" />{' '}
+              <b>Trend reale (ultime 4 settimane):</b>{' '}
+              {realTrend.perWeekReal < -0.05 ? (
+                <>
+                  {realTrend.perWeekReal.toFixed(2).replace('.', ',')} kg/settimana
+                  {realTrend.eta ? (
+                    <>
+                      {' '}— di questo passo arrivi a {profile?.targetKg ?? DEFAULT_PROFILE.targetKg} kg
+                      intorno a{' '}
+                      <b>
+                        {realTrend.eta.toLocaleDateString('it-IT', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </b>
+                      .
+                    </>
+                  ) : (
+                    '.'
+                  )}
+                </>
+              ) : (
+                <>
+                  {realTrend.perWeekReal >= 0 ? '+' : ''}
+                  {realTrend.perWeekReal.toFixed(2).replace('.', ',')} kg/settimana — peso stabile:
+                  la proiezione torna quando il calo riprende. Capita a tutti, guarda la media
+                  mobile e non il singolo giorno.
+                </>
+              )}
+            </div>
+          )}
           {(cls === 'obesità I' || cls === 'obesità II' || cls === 'obesità III') && (
             <div className="banner warn" style={{ marginTop: 6, marginBottom: 0 }}>
               <Stethoscope size={15} className="ic" /> BMI in classe obesità: valuta un consulto medico. Contenuti educativi, non
@@ -379,7 +445,7 @@ export function Weight() {
       </Card>
 
       <Card title="Aderenza al piano · ultime 4 settimane" icon={<Target />}>
-        {adherence.eaten + adherence.half + adherence.skipped === 0 ? (
+        {adherence.eaten + adherence.half + adherence.skipped + adherence.offPlan === 0 ? (
           <p className="muted small">
             Segna i pasti come Mangiato/Metà/Saltato (in Oggi o in Piano → Giorno) e qui vedrai
             quanto stai seguendo il piano.
@@ -404,6 +470,12 @@ export function Weight() {
                 <div className="stat-label">Giorni di fila <Flame size={11} className="ic" /></div>
               </div>
             </div>
+            {adherence.offPlan > 0 && (
+              <p className="small muted" style={{ marginTop: 8, marginBottom: 0 }}>
+                Di cui <b>{adherence.offPlan}</b> {adherence.offPlan === 1 ? 'pasto' : 'pasti'} fuori
+                piano (kcal stimate, contano nella barra calorie ma non come digiuno).
+              </p>
+            )}
             {adherence.mostSkipped.length > 0 && (
               <>
                 <p className="small" style={{ marginTop: 10, marginBottom: 4 }}>

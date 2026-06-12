@@ -68,13 +68,17 @@ export interface Setting {
   value: any;
 }
 
-// Stato del pasto di un giorno (mangiato / metà / saltato): alimenta la barra calorie.
-export type MealStatusValue = 'eaten' | 'half' | 'skipped';
+// Stato del pasto di un giorno: alimenta la barra calorie e l'aderenza.
+// 'skipped' = digiuno vero; 'offplan' = mangiato ALTRO fuori dal piano
+// (pizza, ristorante…) con kcal stimate — tiene la barra calorie onesta.
+export type MealStatusValue = 'eaten' | 'half' | 'skipped' | 'offplan';
 export interface MealStatus {
   date: string; // ISO yyyy-mm-dd
   slot: MealSlot;
   status: MealStatusValue;
   recipeId?: string; // ricetta a cui si riferiva quando è stato segnato
+  // Solo per status 'offplan': kcal stimate del pasto fuori piano.
+  offPlanKcal?: number;
   // Quantità realmente scalate dalla dispensa quando il pasto è stato segnato:
   // snapshot che permette lo storno ESATTO se si cambia idea (anche se nel
   // frattempo cambiano intensità o ricetta del piano).

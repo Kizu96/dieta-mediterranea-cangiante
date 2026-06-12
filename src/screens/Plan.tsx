@@ -121,10 +121,10 @@ function DayView({
     [iso],
     [],
   );
-  const statusBySlot = new Map((statusRows ?? []).map((s) => [s.slot, s.status]));
+  const statusBySlot = new Map((statusRows ?? []).map((s) => [s.slot, s]));
   const setStatus = useCallback(
-    async (slot: MealSlot, recipe: Recipe, status: MealStatusValue) => {
-      await setMealStatusWithPantry(iso, slot, recipe, status, factor);
+    async (slot: MealSlot, recipe: Recipe, status: MealStatusValue, offPlanKcal?: number) => {
+      await setMealStatusWithPantry(iso, slot, recipe, status, factor, offPlanKcal);
     },
     [iso, factor],
   );
@@ -182,8 +182,9 @@ function DayView({
               {editable && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                   <MealStatusButtons
-                    active={statusBySlot.get(m.slot)}
-                    onSelect={(v) => setStatus(m.slot, m.recipe, v)}
+                    active={statusBySlot.get(m.slot)?.status}
+                    offPlanKcal={statusBySlot.get(m.slot)?.offPlanKcal}
+                    onSelect={(v, kcal) => setStatus(m.slot, m.recipe, v, kcal)}
                   />
                 </div>
               )}

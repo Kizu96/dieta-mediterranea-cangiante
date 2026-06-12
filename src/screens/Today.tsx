@@ -132,12 +132,12 @@ export function Today({
     [todayISO],
     [],
   );
-  const statusBySlot = new Map((todayMealStatus ?? []).map((s) => [s.slot, s.status]));
+  const statusBySlot = new Map((todayMealStatus ?? []).map((s) => [s.slot, s]));
 
   // Segna lo stato e scala/storna la dispensa quantitativa (vedi pantryQty.ts).
   const setMealStatus = useCallback(
-    async (slot: MealSlot, recipe: Recipe, status: MealStatusValue) => {
-      await setMealStatusWithPantry(todayISO, slot, recipe, status, factor);
+    async (slot: MealSlot, recipe: Recipe, status: MealStatusValue, offPlanKcal?: number) => {
+      await setMealStatusWithPantry(todayISO, slot, recipe, status, factor, offPlanKcal);
     },
     [todayISO, factor],
   );
@@ -225,16 +225,22 @@ export function Today({
   const totalKcal = meals.reduce((s, m) => s + m.recipe.kcal, 0);
   const totalKcalTomorrow = mealsTomorrow.reduce((s, m) => s + m.recipe.kcal, 0);
 
-  // Calorie consumate finora: pasto "mangiato" = intero, "metà" = 50%, "saltato"/non segnato = 0.
+  // Calorie consumate finora: mangiato = intero, metà = 50%, saltato = 0,
+  // fuori piano = kcal stimate (NON scalate dall'intensità: sono già assolute).
   const consumedKcal = meals.reduce((s, m) => {
-    const st = statusBySlot.get(m.slot);
-    if (st === 'eaten') return s + m.recipe.kcal;
-    if (st === 'half') return s + m.recipe.kcal / 2;
+    const row = statusBySlot.get(m.slot);
+    if (row?.status === 'eaten') return s + m.recipe.kcal;
+    if (row?.status === 'half') return s + m.recipe.kcal / 2;
     return s;
   }, 0);
-  const consumedScaled = scaleRound(consumedKcal, factor);
+  const offPlanKcalToday = meals.reduce((s, m) => {
+    const row = statusBySlot.get(m.slot);
+    return row?.status === 'offplan' ? s + (row.offPlanKcal ?? 0) : s;
+  }, 0);
+  const consumedScaled = scaleRound(consumedKcal, factor) + offPlanKcalToday;
   const plannedScaled = scaleRound(totalKcal, factor);
-  const consumedPct = totalKcal > 0 ? Math.min(100, Math.round((consumedKcal / totalKcal) * 100)) : 0;
+  const consumedPct =
+    plannedScaled > 0 ? Math.min(100, Math.round((consumedScaled / plannedScaled) * 100)) : 0;
 
   return (
     <div>
@@ -393,7 +399,7 @@ export function Today({
             </div>
             <ul className="clean">
               {meals.map((m, i) => {
-                const active = statusBySlot.get(m.slot);
+                const statusRow = statusBySlot.get(m.slot);
                 return (
                   <li key={i} className="meal-row" style={{ display: 'block', cursor: 'default' }}>
                     <div
@@ -414,8 +420,9 @@ export function Today({
                     </div>
                     <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       <MealStatusButtons
-                        active={active}
-                        onSelect={(v) => setMealStatus(m.slot, m.recipe, v)}
+                        active={statusRow?.status}
+                        offPlanKcal={statusRow?.offPlanKcal}
+                        onSelect={(v, kcal) => setMealStatus(m.slot, m.recipe, v, kcal)}
                       />
                       <button
                         onClick={() => setSwap({ slot: m.slot, current: m.recipe.id })}

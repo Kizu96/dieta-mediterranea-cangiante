@@ -44,6 +44,13 @@ interface WakeLockSentinel {
   release: () => Promise<void>;
 }
 
+interface CookTimer {
+  id: number;
+  label: string;
+  endsAt: number;
+  done: boolean;
+}
+
 export function CookMode({
   recipe,
   factor,
@@ -55,10 +62,10 @@ export function CookMode({
 }) {
   // step -1 = schermata ingredienti ("mise en place"), 0..n-1 = passi.
   const [step, setStep] = useState(-1);
-  const [timerEnd, setTimerEnd] = useState<number | null>(null);
-  const [timerLabel, setTimerLabel] = useState('');
-  const [timerDone, setTimerDone] = useState(false);
+  // Più timer simultanei (al prep day: farro in pentola E pollo in padella).
+  const [timers, setTimers] = useState<CookTimer[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const nextId = useRef(1);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
 
   // Schermo sempre acceso finché la modalità cucina è aperta.
@@ -85,33 +92,45 @@ export function CookMode({
     };
   }, []);
 
-  // Tick del timer (anche fuori dal passo che l'ha avviato: i cereali cuociono
-  // mentre tu passi al taglio delle verdure).
+  // Tick condiviso: i timer corrono anche fuori dal passo che li ha avviati
+  // (i cereali cuociono mentre tu tagli le verdure del passo dopo).
+  const anyRunning = timers.some((t) => !t.done);
   useEffect(() => {
-    if (timerEnd == null) return;
+    if (!anyRunning) return;
     const id = setInterval(() => {
-      setNow(Date.now());
-      if (Date.now() >= timerEnd) {
-        setTimerEnd(null);
-        setTimerDone(true);
+      const ts = Date.now();
+      setNow(ts);
+      setTimers((prev) => {
+        const expired = prev.filter((t) => !t.done && ts >= t.endsAt);
+        if (expired.length === 0) return prev;
         beep();
         navigator.vibrate?.([300, 150, 300]);
-      }
+        return prev.map((t) => (ts >= t.endsAt ? { ...t, done: true } : t));
+      });
     }, 250);
     return () => clearInterval(id);
-  }, [timerEnd]);
+  }, [anyRunning]);
 
   const startTimer = useCallback((minutes: number, label: string) => {
-    setTimerEnd(Date.now() + minutes * 60000);
-    setTimerLabel(label);
-    setTimerDone(false);
+    setTimers((prev) => [
+      ...prev,
+      { id: nextId.current++, label, endsAt: Date.now() + minutes * 60000, done: false },
+    ]);
+  }, []);
+  const removeTimer = useCallback((id: number) => {
+    setTimers((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const steps = recipe.steps;
   const stepMinutes = step >= 0 ? minutesInStep(steps[step]) : null;
-  const remaining = timerEnd != null ? Math.max(0, timerEnd - now) : 0;
-  const mm = Math.floor(remaining / 60000);
-  const ss = Math.floor((remaining % 60000) / 1000);
+  const stepLabel = `Passo ${step + 1}`;
+  // Un timer per passo: se è già attivo per QUESTO passo, niente doppioni.
+  const stepTimerRunning = timers.some((t) => t.label === stepLabel && !t.done);
+
+  const fmt = (ms: number) => {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  };
 
   const progressPct = step >= 0 ? Math.round(((step + 1) / steps.length) * 100) : 0;
 
@@ -151,28 +170,75 @@ export function CookMode({
         />
       </div>
 
-      {(timerEnd != null || timerDone) && (
+      {timers.length > 0 && (
         <div
-          className={timerDone ? 'banner warn' : 'banner info'}
-          style={{ margin: '0 16px 10px', flex: '0 0 auto' }}
-          onClick={() => timerDone && setTimerDone(false)}
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            margin: '0 16px 10px',
+            flex: '0 0 auto',
+          }}
         >
-          {timerDone ? (
-            <b><AlarmClock size={15} className="ic" /> Tempo scaduto! ({timerLabel}) — tocca per chiudere</b>
-          ) : (
-            <>
-              ⏱ <b>
-                {mm}:{String(ss).padStart(2, '0')}
-              </b>{' '}
-              · {timerLabel}{' '}
+          {timers.map((t) =>
+            t.done ? (
               <button
-                className="btn ghost"
-                style={{ minHeight: 32, marginLeft: 8 }}
-                onClick={() => setTimerEnd(null)}
+                key={t.id}
+                onClick={() => removeTimer(t.id)}
+                className="banner warn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  margin: 0,
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  cursor: 'pointer',
+                  font: 'inherit',
+                  fontWeight: 700,
+                  animation: 'slideUp 0.18s ease-out',
+                }}
+                aria-label={`${t.label} finito: tocca per chiudere`}
               >
-                annulla
+                <AlarmClock size={16} className="ic" /> {t.label} — finito! ✕
               </button>
-            </>
+            ) : (
+              <span
+                key={t.id}
+                className="banner info"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  margin: 0,
+                  padding: '6px 8px 6px 14px',
+                  borderRadius: 999,
+                }}
+              >
+                <b style={{ fontVariantNumeric: 'tabular-nums', fontSize: '1.05rem' }}>
+                  {fmt(t.endsAt - now)}
+                </b>
+                <span className="small">{t.label}</span>
+                <button
+                  onClick={() => removeTimer(t.id)}
+                  aria-label={`Annulla timer ${t.label}`}
+                  style={{
+                    border: 'none',
+                    background: 'rgba(0, 0, 0, 0.08)',
+                    borderRadius: 999,
+                    width: 28,
+                    height: 28,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'inherit',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  ✕
+                </button>
+              </span>
+            ),
           )}
         </div>
       )}
@@ -207,10 +273,13 @@ export function CookMode({
               <button
                 className="btn block"
                 style={{ marginTop: 14, fontSize: '1.05rem' }}
-                onClick={() => startTimer(stepMinutes, `passo ${step + 1}`)}
-                disabled={timerEnd != null}
+                onClick={() => startTimer(stepMinutes, stepLabel)}
+                disabled={stepTimerRunning}
               >
-                <Play size={16} className="ic" /> Avvia timer {stepMinutes} min
+                <Play size={16} className="ic" />{' '}
+                {stepTimerRunning
+                  ? `Timer del passo ${step + 1} già attivo`
+                  : `Avvia timer ${stepMinutes} min (passo ${step + 1})`}
               </button>
             )}
           </>

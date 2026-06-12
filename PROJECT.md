@@ -209,6 +209,28 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (5ª ondata): fuori piano, trend reale, timer multipli, grafico SVG
+- **Pasto fuori piano**: tap su «Saltato» → modal «Hai digiunato?» — Sì = saltato (digiuno);
+  No = taglia stimata (Leggero ~400 / Normale ~700 / Abbondante ~1100 kcal) → status
+  **'offplan'** con `MealStatus.offPlanKcal`. Conta nella barra calorie (kcal assolute, NON
+  scalate dall'intensità) e nell'aderenza (denominatore, distinto dai saltati, non rompe lo
+  streak); la dispensa NON viene scaricata. Chip terracotta «Fuori piano · ~X kcal» quando
+  attivo (ri-tocco = annulla). Flusso dentro `MealStatusButtons` (Oggi + Piano→Giorno).
+- **Trend reale in Peso**: regressione lineare sul peso degli ultimi 28 gg (≥3 pesate su
+  ≥10 gg) → kg/settimana reali e data stimata di arrivo all'obiettivo; se stabile/in salita
+  lo dice onestamente. Banner sotto gli Indicatori.
+- **Timer multipli in modalità cucina**: array di timer con chip arrotondati (countdown
+  tabular-nums + ✕ annulla; scaduto = chip warn cliccabile, bip+vibrazione), un timer per
+  passo (no doppioni), tick condiviso.
+- **Grafico Peso in SVG puro**: rimosso recharts (−345 kB, precache 1180→852 KiB). Stesse
+  feature: media mobile tratteggiata, anelli sulle misure complete, linea obiettivo (solo
+  quando entra nel range dei dati — altrimenti schiaccia la serie), tooltip al tocco,
+  ResizeObserver per la larghezza. Indicatori arrotondati a 1 decimale (fix 15.999…).
+- Script di verifica: `scripts/test-chart.mjs` (semina pesate in IndexedDB locale e
+  fotografa Peso), `scripts/test-theme-toggle.mjs` (click sul toggle tema).
+- NIENTE contatore acqua (utente già buon bevitore, notifiche extra = fastidio) e PDF
+  rimandato («per ora meh»).
+
 ### Migliorie giugno 2026 (4ª ondata): tema scuro, icone lucide, lazy, shortcuts
 - **Icone professionali**: emoji sostituite da **lucide-react** (SVG monocromatici currentColor)
   in nav (9 voci), header (Settings/CloudAlert), titoli card (`Card.icon` ora ReactNode,
