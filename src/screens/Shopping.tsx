@@ -8,7 +8,8 @@ import { addPurchaseToPantry, isQtyTracked, PACK_PRESETS } from '../lib/pantryQt
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
-import { useHaveSet, usePantryQty } from '../components/usePantry';
+import { QtyBar } from '../components/QtyBar';
+import { useHaveSet, usePantryQty, usePantryLevels } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { CATEGORY_LABEL, formatQty } from '../components/labels';
@@ -26,6 +27,7 @@ export function Shopping({
   const days = mode === 'domani' ? 1 : mode;
   const haveSet = useHaveSet();
   const qtyMap = usePantryQty();
+  const levels = usePantryLevels();
   const { factor } = useIntensity();
   const { includeExtra } = useExtraRecipes();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
@@ -133,6 +135,13 @@ export function Shopping({
                             <>
                               Serve {formatQty(it.qty)} {it.unit} · ne hai{' '}
                               {formatQty(it.qtyHave)} → compra ~{formatQty(it.qtyToBuy)} {it.unit}
+                              {levels.has(it.ingredient.id) && (
+                                <QtyBar
+                                  qty={levels.get(it.ingredient.id)!.qty}
+                                  full={levels.get(it.ingredient.id)!.full}
+                                  label={`In dispensa: ${formatQty(it.qtyHave)} ${it.unit}`}
+                                />
+                              )}
                             </>
                           ) : (
                             <>

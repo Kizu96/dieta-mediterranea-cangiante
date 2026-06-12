@@ -191,6 +191,14 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   «📦 abbondante» in Dispensa ed evidenza «📦 usa la dispensa» (in cima) nello scambia pasto.
   In Dispensa: bottone quantità per ingrediente (editor con preset + «smetti di contare»).
   Il toggle manuale ✓/✗ azzera la quantità (conteggio non più affidabile).
+- **Barra di quantità** (`src/components/QtyBar.tsx`, giugno 2026): per ogni ingrediente
+  tracciato la barra mostra `qty/qtyFull`, dove `PantryItem.qtyFull` = livello dell'ultimo
+  rifornimento (acquisto o correzione al rialzo lo resettano a «pieno»; consumo e correzioni
+  al ribasso lo lasciano fermo → la barra scende; ≤20% diventa terracotta). Campo opzionale,
+  niente migrazione; viaggia gratis in backup/sync (righe pantry intere). Visibile in
+  Dispensa (sotto ogni riga), nel dettaglio ricetta (sotto ogni ingrediente, con «in
+  dispensa: X g») e in Lista spesa (righe «ne hai X»). Hook `usePantryLevels()`; QtyBar è
+  fatta di `<span display:block>` per poter stare nel `detail` inline di CheckRow.
 - **Frutta:** eliminati mirtilli, lamponi e kiwi (l'utente NON tollera frutta con tanti piccoli
   semi → conati; niente frutti di bosco/fragole/kiwi). Fonte di antociani = **uva nera/rossa
   con la buccia** (80 g nelle ricette yogurt/kefir, macro ricalcolati; pilastro quotidiano
@@ -202,9 +210,12 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
 - **Prep day (DB v3):** store `prepLog` `[date+slot]` (sincronizzato in backup/gist). Sezione dedicata «🍱 Prep day» nel menu (9ª voce, schermata `src/screens/Prep.tsx`): i 5 pranzi da ufficio della settimana target (weekend → settimana
-  prossima; feriale → corrente) con spunta «preparato» e scaletta della sessione. Banner
-  domenicale in Home → apre la sezione Prep day. NB: l'utente la vuole come voce di menu
-  PROPRIA, consultabile ogni giorno (non solo la domenica) — me l'ha ribadito due volte.
+  prossima; feriale → corrente). Layout stile «Oggi» (richiesta utente 2026-06-12): UNICA
+  spunta = il toggle «prep day fatto»; niente spunte per pranzo. Ogni giorno Lun–Ven è una
+  card col verdetto 🧺/🧊/🍳 e la ricetta COMPLETA aperta inline (`RecipeDetail`),
+  richiudibile dal titolo. Banner domenicale in Home → apre la sezione Prep day. NB:
+  l'utente la vuole come voce di menu PROPRIA, consultabile ogni giorno (non solo la
+  domenica) — me l'ha ribadito due volte.
 - **Toggle «prep day fatto»** (`src/lib/prep.ts`) — IMPORTANTE: il piano base NON si tocca
   (l'utente l'ha chiesto esplicitamente dopo un primo tentativo sbagliato di riordino fisso).
   Sentinella in `prepLog` (`slot: 'settimana'`, date = lunedì). ON → `prepWeekArrangement`

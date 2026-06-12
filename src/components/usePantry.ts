@@ -23,6 +23,22 @@ export function usePantryQty(): Map<string, number> {
   return new Map(entries);
 }
 
+/**
+ * Mappa reattiva ingredientId -> { qty, full } per la barra di quantità:
+ * `full` = livello dell'ultimo rifornimento (mai sotto qty, così la barra
+ * non supera mai il 100%).
+ */
+export function usePantryLevels(): Map<string, { qty: number; full: number }> {
+  const items = useLiveQuery(() => db.pantry.toArray(), [], []);
+  const entries: [string, { qty: number; full: number }][] = [];
+  for (const p of items ?? []) {
+    if (p.qty != null) {
+      entries.push([p.ingredientId, { qty: p.qty, full: Math.max(p.qtyFull ?? p.qty, p.qty) }]);
+    }
+  }
+  return new Map(entries);
+}
+
 // Il toggle manuale azzera anche la quantità tracciata: se spunti/togli a mano
 // stai dicendo all'app che il conteggio non è più affidabile → si riparte da ✓/✗.
 export async function setPantryHave(ingredientId: string, have: boolean): Promise<void> {

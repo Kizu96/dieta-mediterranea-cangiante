@@ -9,7 +9,8 @@ import { isQtyTracked, PACK_PRESETS, setPantryQty } from '../lib/pantryQty';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
-import { useHaveSet, usePantryQty, setPantryHave } from '../components/usePantry';
+import { QtyBar } from '../components/QtyBar';
+import { useHaveSet, usePantryQty, usePantryLevels, setPantryHave } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { CATEGORY_LABEL, formatQty } from '../components/labels';
@@ -34,6 +35,7 @@ export function Pantry({ season }: { season: Season }) {
   const [q, setQ] = useState('');
   const haveSet = useHaveSet();
   const qtyMap = usePantryQty();
+  const levels = usePantryLevels();
   const { factor } = useIntensity();
   const { includeExtra } = useExtraRecipes();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
@@ -138,6 +140,13 @@ export function Pantry({ season }: { season: Season }) {
                         detail={`${ing.storage} · ${ing.shelfLife}`}
                         onToggle={() => setPantryHave(ing.id, !haveSet.has(ing.id))}
                       />
+                      {levels.has(ing.id) && (
+                        <QtyBar
+                          qty={levels.get(ing.id)!.qty}
+                          full={levels.get(ing.id)!.full}
+                          label={`${ing.name}: ${formatQty(levels.get(ing.id)!.qty)} ${ing.unit} su ${formatQty(levels.get(ing.id)!.full)}`}
+                        />
+                      )}
                     </div>
                     {showQtyBtn && (
                       <button

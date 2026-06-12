@@ -10,6 +10,9 @@ export interface PantryItem {
   // Quantità reale in dispensa, nell'unità dell'ingrediente (g/ml/pz).
   // undefined = ingrediente gestito solo come ✓/✗ (staple, condimenti, o mai quantificato).
   qty?: number;
+  // Livello "pieno" di riferimento per la barra di quantità: la quantità
+  // raggiunta dopo l'ultimo acquisto/rifornimento. La barra mostra qty/qtyFull.
+  qtyFull?: number;
   updatedAt: number;
 }
 

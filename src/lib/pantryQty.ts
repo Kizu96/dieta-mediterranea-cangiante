@@ -59,7 +59,8 @@ export async function setMealStatusWithPantry(
         const row = await db.pantry.get(c.ingredientId);
         if (row?.qty == null) continue; // quantità rimossa a mano nel frattempo
         const qty = round2(row.qty + c.qty);
-        await db.pantry.put({ ...row, qty, have: qty > 0, updatedAt: Date.now() });
+        const qtyFull = Math.max(row.qtyFull ?? row.qty, qty);
+        await db.pantry.put({ ...row, qty, qtyFull, have: qty > 0, updatedAt: Date.now() });
       }
     }
 
@@ -79,7 +80,9 @@ export async function setMealStatusWithPantry(
         const take = Math.min(row.qty, scaleQty(ri.qty * frac, factor));
         if (take <= 0) continue;
         const qty = round2(row.qty - take);
-        await db.pantry.put({ ...row, qty, have: qty > 0, updatedAt: Date.now() });
+        // Il consumo non tocca il riferimento "pieno": la barra scende.
+        const qtyFull = Math.max(row.qtyFull ?? row.qty, qty);
+        await db.pantry.put({ ...row, qty, qtyFull, have: qty > 0, updatedAt: Date.now() });
         consumed.push({ ingredientId: ri.ingredientId, qty: take });
       }
     }
@@ -101,7 +104,11 @@ export async function setPantryQty(ingredientId: string, qty: number | null): Pr
     await db.pantry.put({ ingredientId, have: row?.have ?? false, updatedAt: Date.now() });
   } else {
     const q = Math.max(0, round2(qty));
-    await db.pantry.put({ ingredientId, have: q > 0, qty: q, updatedAt: Date.now() });
+    // Se la quantità SALE è un rifornimento → nuovo livello "pieno"; se scende
+    // è una correzione del conteggio → il riferimento resta e la barra cala.
+    const qtyFull =
+      row?.qty != null && q <= row.qty ? Math.max(row.qtyFull ?? q, q) : q;
+    await db.pantry.put({ ingredientId, have: q > 0, qty: q, qtyFull, updatedAt: Date.now() });
   }
 }
 
@@ -110,13 +117,21 @@ export async function addPurchaseToPantry(ingredientId: string, qty?: number): P
   const ing = ingredientMap.get(ingredientId);
   const row = await db.pantry.get(ingredientId);
   if (qty != null && qty > 0 && ing && isQtyTracked(ing)) {
+    const newQty = round2((row?.qty ?? 0) + qty);
     await db.pantry.put({
       ingredientId,
       have: true,
-      qty: round2((row?.qty ?? 0) + qty),
+      qty: newQty,
+      // Acquisto = rifornimento: il livello raggiunto è il nuovo "pieno".
+      qtyFull: newQty,
       updatedAt: Date.now(),
     });
   } else {
-    await db.pantry.put({ ingredientId, have: true, ...(row?.qty != null ? { qty: row.qty } : {}), updatedAt: Date.now() });
+    await db.pantry.put({
+      ingredientId,
+      have: true,
+      ...(row?.qty != null ? { qty: row.qty, qtyFull: Math.max(row.qtyFull ?? row.qty, row.qty) } : {}),
+      updatedAt: Date.now(),
+    });
   }
 }
