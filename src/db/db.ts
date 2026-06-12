@@ -105,6 +105,21 @@ export interface PrepLog {
   updatedAt?: number; // per la fusione in sincronizzazione
 }
 
+// Voce LIBERA della lista spesa (detersivo, carta cucina…): non legata al
+// piano, si spunta e si elimina; inclusa nella condivisione della lista.
+export interface CustomShoppingItem {
+  id?: number;
+  name: string;
+  bought: boolean;
+  updatedAt?: number; // per la fusione in sincronizzazione
+}
+
+// Ricetta preferita (cuore): la presenza della riga = preferita.
+export interface FavoriteRecipe {
+  recipeId: string;
+  updatedAt?: number; // per la fusione in sincronizzazione
+}
+
 // Barattolo di germogli di broccoli (mason jar): un record per "infornata".
 // `startedAt` = giorno dell'ammollo (giorno 0); `harvestedAt` = raccolto e in
 // frigo (il barattolo attivo è quello senza harvestedAt).
@@ -126,6 +141,8 @@ export class DietDB extends Dexie {
   mealOverride!: Table<MealOverride, [string, string]>;
   prepLog!: Table<PrepLog, [string, string]>;
   sprouts!: Table<SproutBatch, number>;
+  customShopping!: Table<CustomShoppingItem, number>;
+  favorites!: Table<FavoriteRecipe, string>;
 
   constructor() {
     super('dietaMediterraneaCangiante');
@@ -150,6 +167,11 @@ export class DietDB extends Dexie {
     // v4: tracker dei germogli di broccoli (barattoli avviati/raccolti).
     this.version(4).stores({
       sprouts: '++id, startedAt',
+    });
+    // v5: voci libere della lista spesa + ricette preferite.
+    this.version(5).stores({
+      customShopping: '++id, name',
+      favorites: 'recipeId',
     });
   }
 }

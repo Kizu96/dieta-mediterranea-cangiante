@@ -80,6 +80,19 @@ export async function setMealStatusWithPantry(
     const frac = STATUS_FRACTION[status];
     const consumed: { ingredientId: string; qty: number }[] = [];
     if (frac > 0) {
+      // Hai cucinato/mangiato il pasto: gli avvisi "in frigo da troppo" e i
+      // flag freezer degli ingredienti usati non hanno più ragione di esistere.
+      for (const ri of recipe.ingredients) {
+        const row = await db.pantry.get(ri.ingredientId);
+        if (row && (row.freshSince != null || row.frozen)) {
+          const next = { ...row, updatedAt: Date.now() };
+          delete next.freshSince;
+          delete next.frozen;
+          await db.pantry.put(next);
+        }
+      }
+    }
+    if (frac > 0) {
       for (const ri of recipe.ingredients) {
         const ing = ingredientMap.get(ri.ingredientId);
         if (!ing || !isQtyTracked(ing) || ri.unit !== ing.unit) continue;

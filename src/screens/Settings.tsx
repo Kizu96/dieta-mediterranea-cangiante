@@ -23,6 +23,7 @@ import { isStoragePersisted } from '../lib/storage';
 import { currentSeasonByDate } from '../lib/season';
 import { Modal } from '../components/Modal';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
+import { useVacation } from '../lib/vacation';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { INTENSITY_DESC } from '../lib/intensity';
@@ -54,6 +55,9 @@ export function Settings({
 }) {
   const haveSet = useHaveSet();
   const qtyMap = usePantryQty();
+  const { vacation, setVacation } = useVacation();
+  const [vacFrom, setVacFrom] = useState('');
+  const [vacTo, setVacTo] = useState('');
   const { intensity, factor, setIntensity } = useIntensity();
   const { includeExtra, setIncludeExtra } = useExtraRecipes();
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
@@ -275,6 +279,44 @@ export function Settings({
           ? 'Attive: piano, «compra per domani» e lista della spesa includono frullato verde, matcha, germogli e tahin.'
           : 'Disattivate: il piano usa solo ingredienti da supermercato (niente frullatore né prodotti da ordinare). Comodo finché non li hai comprati.'}
       </p>
+
+      {/* Vacanza */}
+      <h3 className="section-label">Modalità vacanza</h3>
+      {vacation ? (
+        <>
+          <p className="small" style={{ marginTop: -4 }}>
+            🏖️ Attiva dal <b>{vacation.from}</b> al <b>{vacation.to}</b>: niente avvisi
+            spesa/frigo/prep, lista del piano in pausa, lo streak non si rompe.
+          </p>
+          <button className="btn ghost block" onClick={() => setVacation(null)}>
+            Termina la vacanza
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="small muted" style={{ marginTop: -4 }}>
+            Parti qualche giorno? L'app mette in pausa avvisi e lista spesa, e non conta i
+            giorni come saltati. (Impostala su ogni dispositivo: non si sincronizza.)
+          </p>
+          <div className="row">
+            <div className="field">
+              <label htmlFor="vac-from">Dal</label>
+              <input id="vac-from" type="date" value={vacFrom} onChange={(e) => setVacFrom(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="vac-to">Al</label>
+              <input id="vac-to" type="date" value={vacTo} min={vacFrom || undefined} onChange={(e) => setVacTo(e.target.value)} />
+            </div>
+          </div>
+          <button
+            className="btn block"
+            disabled={!vacFrom || !vacTo || vacTo < vacFrom}
+            onClick={() => setVacation({ from: vacFrom, to: vacTo })}
+          >
+            🏖️ Attiva la modalità vacanza
+          </button>
+        </>
+      )}
 
       {/* Notifiche */}
       <h3 className="section-label">Promemoria locali</h3>

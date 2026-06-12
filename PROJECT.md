@@ -209,6 +209,29 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (6ª ondata): voci libere, cucinalo-oggi, preferiti, heatmap, vacanza
+- **DB v6→v5**: store `customShopping` (`++id, name`) e `favorites` (`recipeId`), entrambi in
+  backup/sync (merge: nome lowercase / recipeId).
+- **Voci libere in Spesa**: card «Altro» con input (Enter o bottone), niente doppioni
+  case-insensitive (riattiva come non comprata), ✕ elimina, incluse nello share sotto «ALTRO»;
+  «Aggiungi i comprati» le rimuove se spuntate. Visibili anche a lista piano vuota/in pausa.
+- **«Trova ricetta» sugli avvisi frigo**: modal con le ricette che usano l'ingrediente
+  (cene prima); il click scrive un mealOverride di OGGI sullo slot adatto. In più, segnare un
+  pasto Mangiato/Metà azzera `freshSince`/`frozen` degli ingredienti della ricetta
+  (l'avviso si spegne da solo quando cucini).
+- **Preferiti**: cuore nel dettaglio ricetta (`useFavorites`), ♥ in lista Ricette, nello
+  scambia-pasto preferite in cima (poi «usa la dispensa»).
+- **Heatmap aderenza** (`AdherenceHeatmap.tsx`, card Aderenza in Peso): 12 settimane,
+  colonne=settimane righe=Lun→Dom, intensità con `color-mix` sul turchese, rosso tenue =
+  giorno solo saltati/fuori piano, righe oblique = vacanza; query mealStatus unica a 84 gg.
+- **Modalità vacanza** (`lib/vacation.ts`, setting per-dispositivo NON sincronizzato): date
+  da/a in Impostazioni; in periodo: banner 🏖️ in Oggi, soppressi avvisi spesa/frigo/freezer/
+  prep, lista spesa del piano in pausa (voci libere restano), promemoria spesa zitto, lo
+  streak salta i giorni di vacanza (`adherenceStats` con callback `isVacation`).
+- Verifica: `scripts/test-wave6.mjs` (semina stati pasto e fotografa heatmap + voci libere).
+- NB React Compiler: in Today `todayISO`/`tomorrow` ora in `useMemo` (il compiler rifiutava
+  la memoizzazione manuale dei callback con dipendenze "derivate" non memoizzate).
+
 ### Migliorie giugno 2026 (5ª ondata): fuori piano, trend reale, timer multipli, grafico SVG
 - **Pasto fuori piano**: tap su «Saltato» → modal «Hai digiunato?» — Sì = saltato (digiuno);
   No = taglia stimata (Leggero ~400 / Normale ~700 / Abbondante ~1100 kcal) → status

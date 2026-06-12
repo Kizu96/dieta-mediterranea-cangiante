@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Briefcase, SlidersHorizontal, Star } from 'lucide-react';
+import { Briefcase, Heart, SlidersHorizontal, Star } from 'lucide-react';
 import type { Equipment, MealSlot, Recipe, Season } from '../data/types';
 import { recipes } from '../data/recipes';
 import { makeableRecipes } from '../lib/shopping';
@@ -7,6 +7,7 @@ import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { useHaveSet } from '../components/usePantry';
+import { useFavorites } from '../components/useFavorites';
 import { useIntensity } from '../components/useIntensity';
 import { scaleRound } from '../lib/intensity';
 import { EQUIPMENT_LABEL, SEASON_LABEL, SLOT_LABEL } from '../components/labels';
@@ -24,6 +25,7 @@ export function Recipes({ season }: { season: Season }) {
   const [detail, setDetail] = useState<Recipe | null>(null);
 
   const haveSet = useHaveSet();
+  const favorites = useFavorites();
   const { factor } = useIntensity();
 
   const filtered = useMemo(() => {
@@ -118,7 +120,12 @@ export function Recipes({ season }: { season: Season }) {
                 tabIndex={0}
               >
                 <div className="flex-between">
-                  <h3 style={{ margin: 0 }}>{r.name}</h3>
+                  <h3 style={{ margin: 0 }}>
+                    {favorites.has(r.id) && (
+                      <Heart size={14} className="ic" fill="currentColor" style={{ color: 'var(--terracotta)' }} />
+                    )}{' '}
+                    {r.name}
+                  </h3>
                   <span className="pill olive nowrap">{scaleRound(r.kcal, factor)} kcal</span>
                 </div>
                 <div className="pill-row" style={{ marginTop: 8 }}>

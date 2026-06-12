@@ -20,6 +20,8 @@ import { adherenceStats } from '../lib/adherence';
 import { bmi, bmiClass, DEFAULT_PROFILE, weeklyLoss, weeksToTarget } from '../lib/nutrition';
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
+import { AdherenceHeatmap } from '../components/AdherenceHeatmap';
+import { isVacationDay, useVacation } from '../lib/vacation';
 import { formatShortDate } from '../components/labels';
 
 const WeightChart = lazy(() => import('../components/WeightChart'));
@@ -142,14 +144,25 @@ export function Weight() {
   const fullMeasureDue =
     lastFullDate == null || lastFullDate <= toISODate(addDays(new Date(), -30));
 
-  // Aderenza al piano: stati pasto degli ultimi 28 giorni.
-  const since = toISODate(addDays(new Date(), -28));
+  // Aderenza al piano: statistiche sugli ultimi 28 giorni, heatmap sulle
+  // ultime 12 settimane (un'unica query a 84 giorni).
+  const since84 = toISODate(addDays(new Date(), -84));
+  const since28 = toISODate(addDays(new Date(), -28));
   const statusRows = useLiveQuery(
-    () => db.mealStatus.where('date').aboveOrEqual(since).toArray(),
-    [since],
+    () => db.mealStatus.where('date').aboveOrEqual(since84).toArray(),
+    [since84],
     [],
   );
-  const adherence = useMemo(() => adherenceStats(statusRows ?? [], today), [statusRows, today]);
+  const { vacation } = useVacation();
+  const adherence = useMemo(
+    () =>
+      adherenceStats(
+        (statusRows ?? []).filter((s) => s.date >= since28),
+        today,
+        (iso) => isVacationDay(iso, vacation),
+      ),
+    [statusRows, since28, today, vacation],
+  );
 
   const m = METRICS[metric];
   const chartData = useMemo(() => {
@@ -476,6 +489,12 @@ export function Weight() {
                 piano (kcal stimate, contano nella barra calorie ma non come digiuno).
               </p>
             )}
+            <div style={{ marginTop: 12 }}>
+              <AdherenceHeatmap
+                rows={statusRows ?? []}
+                isVacation={(iso) => isVacationDay(iso, vacation)}
+              />
+            </div>
             {adherence.mostSkipped.length > 0 && (
               <>
                 <p className="small" style={{ marginTop: 10, marginBottom: 4 }}>

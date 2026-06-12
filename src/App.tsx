@@ -4,11 +4,12 @@ import { CloudAlert, Moon, Settings as SettingsIcon, Sun } from 'lucide-react';
 import type { Season } from './data/types';
 import { getSetting, setSetting } from './db/db';
 import { currentSeasonByDate } from './lib/season';
-import { addDays, buildOverrideMap } from './lib/planning';
+import { addDays, buildOverrideMap, toISODate } from './lib/planning';
 import { missingForDate } from './lib/shopping';
 import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRecipes';
 import { INTENSITY_FACTOR, INTENSITY_SETTING_KEY, type Intensity } from './lib/intensity';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
+import { getVacation, isVacationDay } from './lib/vacation';
 import { requestPersistentStorage } from './lib/storage';
 import { getSyncStatus, SYNC_EVENT, syncInBackground } from './lib/sync';
 import { db } from './db/db';
@@ -119,6 +120,9 @@ function App() {
       if (cancelled || !prefs.enabled) return;
       await scheduleAll(prefs, {
         hasMissingForTomorrow: async () => {
+          // In vacanza il promemoria spesa tace.
+          const tomorrowISO = toISODate(addDays(new Date(), 1));
+          if (isVacationDay(tomorrowISO, await getVacation())) return false;
           const items = await db.pantry.toArray();
           const haveSet = new Set(items.filter((p) => p.have).map((p) => p.ingredientId));
           const qtyMap = new Map(

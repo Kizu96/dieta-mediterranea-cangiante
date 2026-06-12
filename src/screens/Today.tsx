@@ -6,6 +6,7 @@ import {
   Briefcase,
   Check,
   ChefHat,
+  CookingPot,
   Dumbbell,
   ListChecks,
   MonitorSmartphone,
@@ -32,6 +33,7 @@ import {
   markFrozen,
   markThawedToFridge,
 } from '../lib/freshness';
+import { isVacationDay, useVacation } from '../lib/vacation';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { MealStatusButtons } from '../components/MealStatusButtons';
@@ -41,13 +43,15 @@ import { ExerciseDetail } from '../components/ExerciseDetail';
 import { SproutsCard } from '../components/SproutsCard';
 import { WeeklySummary } from '../components/WeeklySummary';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
+import { useFavorites } from '../components/useFavorites';
 import { useInstallPrompt } from '../components/useInstallPrompt';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
 import { hasExerciseVideo } from '../lib/exerciseVideo';
 import { SLOT_LABEL, formatLongDate, mondayIndex } from '../components/labels';
-import type { Recipe, WorkoutExercise } from '../data/types';
+import { recipes } from '../data/recipes';
+import type { Ingredient, Recipe, WorkoutExercise } from '../data/types';
 
 // Banner "installa l'app": compare solo quando il browser dice che la PWA è
 // installabile e non sta già girando come app (finestra standalone).
@@ -79,8 +83,8 @@ export function Today({
   onGoPrep: () => void;
 }) {
   const today = useMemo(() => new Date(), []);
-  const todayISO = toISODate(today);
-  const tomorrow = addDays(today, 1);
+  const todayISO = useMemo(() => toISODate(today), [today]);
+  const tomorrow = useMemo(() => addDays(today, 1), [today]);
   const autoSeason = currentSeasonByDate(today);
   const isWeekdayToday = mondayIndex(today) < 5; // Lun–Ven = pranzo da ufficio
   const isWeekdayTomorrow = mondayIndex(tomorrow) < 5;
@@ -97,6 +101,12 @@ export function Today({
   const qtyMap = usePantryQty();
   const { factor } = useIntensity();
   const missing = missingForDate(haveSet, tomorrow, season, includeExtra, overrides, qtyMap, factor);
+
+  // Modalità vacanza: oggi (o domani, per il banner spesa) dentro il periodo
+  // → l'app non rimprovera: niente avvisi spesa/frigo/freezer/prep.
+  const { vacation } = useVacation();
+  const onVacationToday = isVacationDay(todayISO, vacation);
+  const onVacationTomorrow = isVacationDay(toISODate(tomorrow), vacation);
 
   // Deperibili che hanno raggiunto i giorni di frigo dichiarati → "cucinalo o congelalo".
   const pantryRows = useLiveQuery(() => db.pantry.toArray(), [], []);
@@ -123,6 +133,7 @@ export function Today({
 
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);
+  const favorites = useFavorites();
   // I pasti di domani partono chiusi: si aprono solo al tocco, per non confonderli con oggi.
   const [showTomorrow, setShowTomorrow] = useState(false);
 
@@ -167,6 +178,8 @@ export function Today({
 
   // --- Scambia pasto: sostituzione del pasto del piano solo per oggi ---
   const [swap, setSwap] = useState<{ slot: MealSlot; current: string } | null>(null);
+  // "Trova ricetta" dall'avviso frigo: ingrediente da cucinare oggi.
+  const [freshSwap, setFreshSwap] = useState<Ingredient | null>(null);
   const setOverride = useCallback(
     async (slot: MealSlot, recipeId: string) => {
       await db.mealOverride.put({ date: todayISO, slot, recipeId, updatedAt: Date.now() });
@@ -272,7 +285,14 @@ export function Today({
 
       <InstallBanner />
 
-      {mondayIndex(today) === 6 && (
+      {onVacationToday && vacation && (
+        <div className="banner info">
+          🏖️ <b>Modalità vacanza fino al {vacation.to}:</b> niente avvisi di spesa, frigo o
+          prep day, e lo streak non si rompe. Goditela — si riprende al ritorno.
+        </div>
+      )}
+
+      {!onVacationToday && mondayIndex(today) === 6 && (
         <div className="banner info">
           <ChefHat size={15} className="ic" /> <b>Oggi è il prep day:</b> prepara in una sola sessione i 5 pranzi da ufficio della
           settimana che inizia domani, così la sera cucini solo la cena.
@@ -284,7 +304,7 @@ export function Today({
         </div>
       )}
 
-      {freshAlerts.length > 0 && (
+      {!onVacationToday && freshAlerts.length > 0 && (
         <div className="banner warn">
           <b><AlarmClock size={15} className="ic" /> In frigo da troppo — cucinali oggi o congelali:</b>
           <ul className="clean" style={{ marginTop: 8 }}>
@@ -294,7 +314,14 @@ export function Today({
                   <b>{a.ingredient.name}</b> · in frigo da {a.daysIn}{' '}
                   {a.daysIn === 1 ? 'giorno' : 'giorni'} (tiene {a.maxDays})
                 </span>
-                <span style={{ display: 'flex', gap: 6, flex: '0 0 auto' }}>
+                <span style={{ display: 'flex', gap: 6, flex: '0 0 auto', flexWrap: 'wrap' }}>
+                  <button
+                    className="btn ghost"
+                    style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
+                    onClick={() => setFreshSwap(a.ingredient)}
+                  >
+                    <CookingPot size={14} className="ic" /> Trova ricetta
+                  </button>
                   <button
                     className="btn ghost"
                     style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
@@ -320,7 +347,7 @@ export function Today({
         </div>
       )}
 
-      {frozenToday.length > 0 && (
+      {!onVacationToday && frozenToday.length > 0 && (
         <div className="banner warn">
           <b><Snowflake size={15} className="ic" /> Serve OGGI ma è in freezer:</b>{' '}
           {frozenToday.map((i) => i.name).join(', ')}.
@@ -343,7 +370,7 @@ export function Today({
         </div>
       )}
 
-      {frozenTomorrow.length > 0 && (
+      {!onVacationTomorrow && frozenTomorrow.length > 0 && (
         <div className="banner info">
           <b><Snowflake size={15} className="ic" /> Stasera, prima di andare a letto:</b> sposta dal freezer al frigo{' '}
           {frozenTomorrow.map((i) => i.name).join(', ')} — {frozenTomorrow.length === 1 ? 'serve' : 'servono'}{' '}
@@ -363,7 +390,7 @@ export function Today({
         </div>
       )}
 
-      {missing.length > 0 && (
+      {!onVacationTomorrow && missing.length > 0 && (
         <div className="banner warn">
           <b><ShoppingCart size={15} className="ic" /> Compra per domani:</b>{' '}
           {missing.map((m) => m.name).join(', ')}.
@@ -599,6 +626,46 @@ export function Today({
         </Modal>
       )}
 
+      {freshSwap && (
+        <Modal title={`Cucina ${freshSwap.name} oggi`} onClose={() => setFreshSwap(null)}>
+          <p className="small muted" style={{ marginTop: -4 }}>
+            Ricette del piano che lo usano: scegline una e prende il posto del pasto di oggi
+            (prima le cene). Quando poi segni il pasto come mangiato, l'avviso si spegne da solo.
+          </p>
+          <ul className="clean">
+            {recipes
+              .filter(
+                (r) =>
+                  r.ingredients.some((ri) => ri.ingredientId === freshSwap.id) &&
+                  (r.seasons.includes(season) || includeExtra),
+              )
+              .sort((a, b) => Number(b.slot.includes('cena')) - Number(a.slot.includes('cena')))
+              .map((r) => {
+                const targetSlot: MealSlot = r.slot.includes('cena') ? 'cena' : r.slot[0];
+                return (
+                  <li
+                    key={r.id}
+                    className="meal-row"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setOverride(targetSlot, r.id);
+                      setFreshSwap(null);
+                    }}
+                  >
+                    <span className="grow">
+                      {r.name}
+                      <span className="pill terracotta" style={{ marginLeft: 6 }}>
+                        {SLOT_LABEL[targetSlot]}
+                      </span>
+                    </span>
+                    <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>
+                  </li>
+                );
+              })}
+          </ul>
+        </Modal>
+      )}
+
       {swap && (
         <Modal title={`Scambia ${SLOT_LABEL[swap.slot]} di oggi`} onClose={() => setSwap(null)}>
           <p className="small muted" style={{ marginTop: -4 }}>
@@ -611,9 +678,14 @@ export function Today({
               .map((r) => ({
                 recipe: r,
                 usesSurplus: r.ingredients.some((ri) => surplus.has(ri.ingredientId)),
+                isFav: favorites.has(r.id),
               }))
-              .sort((a, b) => Number(b.usesSurplus) - Number(a.usesSurplus))
-              .map(({ recipe: r, usesSurplus }) => (
+              // Preferite in cima, poi quelle che smaltiscono la dispensa.
+              .sort(
+                (a, b) =>
+                  Number(b.isFav) * 2 + Number(b.usesSurplus) - (Number(a.isFav) * 2 + Number(a.usesSurplus)),
+              )
+              .map(({ recipe: r, usesSurplus, isFav }) => (
                 <li
                   key={r.id}
                   className="meal-row"
@@ -627,6 +699,9 @@ export function Today({
                     {r.name}
                     {r.id === swap.current && (
                       <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
+                    )}
+                    {isFav && (
+                      <span className="pill terracotta" style={{ marginLeft: 6 }}>♥</span>
                     )}
                     {usesSurplus && r.id !== swap.current && (
                       <span className="pill" style={{ marginLeft: 6 }}><Package size={12} className="ic" /> usa la dispensa</span>

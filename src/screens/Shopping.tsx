@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Archive, PackagePlus, Share2, ShoppingCart } from 'lucide-react';
+import { Archive, PackagePlus, Plus, Share2, ShoppingCart, Trash2 } from 'lucide-react';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, toISODate } from '../lib/planning';
@@ -11,9 +11,35 @@ import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
 import { QtyBar } from '../components/QtyBar';
 import { useHaveSet, usePantryQty, usePantryLevels } from '../components/usePantry';
+import { isVacationDay, useVacation } from '../lib/vacation';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { CATEGORY_LABEL, formatQty } from '../components/labels';
+
+// --- Voci libere: helper a livello modulo (fuori dal render) -----------------
+async function addCustomItem(
+  rows: { id?: number; name: string }[],
+  rawName: string,
+): Promise<boolean> {
+  const name = rawName.trim();
+  if (!name) return false;
+  // Niente doppioni (case-insensitive): se esiste la riattivo come non comprata.
+  const existing = rows.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  if (existing?.id != null) {
+    await db.customShopping.update(existing.id, { bought: false, updatedAt: Date.now() });
+  } else {
+    await db.customShopping.add({ name, bought: false, updatedAt: Date.now() });
+  }
+  return true;
+}
+
+async function toggleCustom(id: number, bought: boolean): Promise<void> {
+  await db.customShopping.update(id, { bought, updatedAt: Date.now() });
+}
+
+async function removeCustom(id: number): Promise<void> {
+  await db.customShopping.delete(id);
+}
 
 export function Shopping({
   season,
@@ -34,15 +60,33 @@ export function Shopping({
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
 
+  // Vacanza: il giorno di partenza della lista è nel periodo → piano in pausa
+  // (restano solo le voci libere).
+  const { vacation } = useVacation();
+  const paused = isVacationDay(toISODate(start), vacation);
+
   const groups = useMemo(
-    () => buildShoppingList(haveSet, start, days, season, includeExtra, overrides, qtyMap, factor),
-    [haveSet, start, days, season, includeExtra, overrides, qtyMap, factor],
+    () =>
+      paused
+        ? []
+        : buildShoppingList(haveSet, start, days, season, includeExtra, overrides, qtyMap, factor),
+    [paused, haveSet, start, days, season, includeExtra, overrides, qtyMap, factor],
   );
 
   const boughtRows = useLiveQuery(() => db.shopping.toArray(), [], []);
   const boughtMap = new Map(
     (boughtRows ?? []).filter((s) => s.bought).map((s) => [s.ingredientId, s]),
   );
+
+  // Voci LIBERE (detersivo, carta cucina…): non vengono dal piano, restano in
+  // lista finché non le elimini; le spunte si sincronizzano come il resto.
+  const customRows = useLiveQuery(() => db.customShopping.orderBy('name').toArray(), [], []);
+  const customs = customRows ?? [];
+  const [newItem, setNewItem] = useState('');
+  const addCustom = async () => {
+    const added = await addCustomItem(customRows ?? [], newItem);
+    if (added) setNewItem('');
+  };
 
   // Scelta della quantità comprata (formati pacco) per gli ingredienti tracciati.
   const [buying, setBuying] = useState<ShoppingItem | null>(null);
@@ -58,6 +102,11 @@ export function Shopping({
       if (todo.length === 0) continue;
       lines.push('', CATEGORY_LABEL[g.category].toUpperCase());
       for (const it of todo) lines.push(`- ${it.ingredient.name} — ${formatQty(it.qtyToBuy)} ${it.unit}`);
+    }
+    const customTodo = customs.filter((c) => !c.bought);
+    if (customTodo.length > 0) {
+      lines.push('', 'ALTRO');
+      for (const c of customTodo) lines.push(`- ${c.name}`);
     }
     const text = lines.join('\n');
     try {
@@ -103,12 +152,15 @@ export function Shopping({
     setBuying(null);
   };
 
-  // Sposta i "comprati" in dispensa (sommando le quantità) e pulisce i flag di spesa.
+  // Sposta i "comprati" in dispensa (sommando le quantità) e pulisce i flag di
+  // spesa; le voci libere comprate escono dalla lista (sono cose fatte).
   const addBoughtToPantry = async () => {
     const rows = (boughtRows ?? []).filter((s) => s.bought);
-    if (rows.length === 0) return;
+    const customBought = customs.filter((c) => c.bought && c.id != null);
+    if (rows.length === 0 && customBought.length === 0) return;
     for (const r of rows) await addPurchaseToPantry(r.ingredientId, r.qty);
     await db.shopping.bulkDelete(rows.map((r) => r.ingredientId));
+    await db.customShopping.bulkDelete(customBought.map((c) => c.id as number));
   };
 
   const totalItems = groups.reduce((s, g) => s + g.items.length, 0);
@@ -138,10 +190,15 @@ export function Shopping({
         {totalItems > 0 && ` · ${boughtCount}/${totalItems} comprati`}
       </p>
 
-      {totalItems === 0 ? (
+      {paused ? (
+        <div className="banner info">
+          🏖️ <b>Modalità vacanza:</b> la spesa del piano è in pausa fino al {vacation?.to}.
+          Le voci libere qui sotto restano disponibili.
+        </div>
+      ) : totalItems === 0 ? (
         <div className="empty">
           <ShoppingCart size={34} />
-          Niente da comprare: hai già tutto in dispensa!
+          Niente da comprare per il piano: hai già tutto in dispensa!
         </div>
       ) : (
         <>
@@ -195,25 +252,74 @@ export function Shopping({
             </Card>
           ))}
 
-          <button
-            className="btn block"
-            onClick={addBoughtToPantry}
-            disabled={boughtCount === 0}
-            style={{ marginBottom: 8 }}
-          >
-            <PackagePlus size={16} className="ic" /> Aggiungi i comprati alla dispensa ({boughtCount})
-          </button>
-          <button
-            className="btn secondary block"
-            onClick={shareList}
-            disabled={boughtCount === totalItems}
-            style={{ marginBottom: 8 }}
-          >
-            <Share2 size={16} className="ic" /> Condividi / copia la lista
-          </button>
-          {shareMsg && <p className="small muted center">{shareMsg}</p>}
         </>
       )}
+
+      <Card title="Altro (voci libere)" icon={<Plus />}>
+        <p className="small muted" style={{ marginTop: -4 }}>
+          Cose fuori dal piano alimentare (detersivo, sacchetti gelo…): restano in lista
+          finché non le elimini e finiscono anche nella lista condivisa.
+        </p>
+        <div className="row" style={{ marginBottom: customs.length > 0 ? 10 : 0 }}>
+          <div className="field grow" style={{ marginBottom: 0 }}>
+            <label htmlFor="custom-item">Aggiungi voce</label>
+            <input
+              id="custom-item"
+              type="text"
+              value={newItem}
+              placeholder="es. Carta da cucina"
+              onChange={(e) => setNewItem(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addCustom();
+              }}
+            />
+          </div>
+          <button className="btn" onClick={addCustom} disabled={!newItem.trim()} style={{ flex: '0 0 auto' }}>
+            <Plus size={16} className="ic" /> Aggiungi
+          </button>
+        </div>
+        {customs.length > 0 && (
+          <ul className="clean">
+            {customs.map((c) => (
+              <li key={c.id} style={{ display: 'flex', alignItems: 'stretch', gap: 6 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <CheckRow
+                    checked={c.bought}
+                    title={c.name}
+                    onToggle={() => c.id != null && toggleCustom(c.id, !c.bought)}
+                  />
+                </div>
+                <button
+                  className="icon-btn"
+                  style={{ alignSelf: 'center', width: 36, height: 36 }}
+                  aria-label={`Elimina ${c.name}`}
+                  onClick={() => c.id != null && removeCustom(c.id)}
+                >
+                  <Trash2 size={15} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <button
+        className="btn block"
+        onClick={addBoughtToPantry}
+        disabled={boughtCount === 0 && customs.every((c) => !c.bought)}
+        style={{ marginBottom: 8 }}
+      >
+        <PackagePlus size={16} className="ic" /> Aggiungi i comprati alla dispensa ({boughtCount + customs.filter((c) => c.bought).length})
+      </button>
+      <button
+        className="btn secondary block"
+        onClick={shareList}
+        disabled={boughtCount === totalItems && customs.every((c) => c.bought)}
+        style={{ marginBottom: 8 }}
+      >
+        <Share2 size={16} className="ic" /> Condividi / copia la lista
+      </button>
+      {shareMsg && <p className="small muted center">{shareMsg}</p>}
 
       {buying && (
         <Modal title={`Quanto ne compri? · ${buying.ingredient.name}`} onClose={() => setBuying(null)}>

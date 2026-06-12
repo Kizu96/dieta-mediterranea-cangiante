@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Briefcase, ChefHat, CookingPot } from 'lucide-react';
+import { Briefcase, ChefHat, CookingPot, Heart } from 'lucide-react';
 import type { Recipe } from '../data/types';
 import { techniquesForIngredients } from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
 import { scaleQty, scaleRound } from '../lib/intensity';
 import { CookMode } from './CookMode';
 import { QtyBar } from './QtyBar';
+import { useFavorites, toggleFavorite } from './useFavorites';
 import { usePantryLevels } from './usePantry';
 import { EQUIPMENT_LABEL, SLOT_LABEL, SEASON_LABEL, formatQty } from './labels';
 
@@ -18,8 +19,20 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
   // Barra di quantità per gli ingredienti di cui la dispensa tiene il conto.
   const levels = usePantryLevels();
   const [cooking, setCooking] = useState(false);
+  // Preferita (cuore): nello "scambia pasto" le preferite salgono in cima.
+  const favorites = useFavorites();
+  const isFav = favorites.has(recipe.id);
   return (
     <div>
+      <button
+        className={isFav ? 'btn terracotta block' : 'btn ghost block'}
+        style={{ marginBottom: 10, minHeight: 40 }}
+        onClick={() => toggleFavorite(recipe.id, isFav)}
+        aria-pressed={isFav}
+      >
+        <Heart size={16} className="ic" fill={isFav ? 'currentColor' : 'none'} />{' '}
+        {isFav ? 'Preferita — la trovi in cima allo scambio' : 'Segna come preferita'}
+      </button>
       <div className="pill-row" style={{ marginBottom: 10 }}>
         {recipe.slot.map((s) => (
           <span className="pill terracotta" key={s}>

@@ -24,7 +24,11 @@ export interface AdherenceStats {
 const recipeName = (id: string | undefined): string =>
   (id && recipes.find((r) => r.id === id)?.name) || 'Ricetta rimossa';
 
-export function adherenceStats(rows: MealStatus[], todayISO: string): AdherenceStats {
+export function adherenceStats(
+  rows: MealStatus[],
+  todayISO: string,
+  isVacation?: (iso: string) => boolean,
+): AdherenceStats {
   let eaten = 0;
   let half = 0;
   let skipped = 0;
@@ -52,11 +56,16 @@ export function adherenceStats(rows: MealStatus[], todayISO: string): AdherenceS
 
   // Streak: si parte da oggi (o da ieri, se oggi non hai ancora segnato nulla)
   // e si scende finché ogni giorno ha ≥1 pasto mangiato e zero saltati.
+  // I giorni di VACANZA non rompono la striscia (e non la allungano).
   let streak = 0;
   const d = new Date(todayISO + 'T00:00:00');
-  if (!byDay.has(todayISO)) d.setDate(d.getDate() - 1);
-  for (;;) {
+  if (!byDay.has(todayISO) && !isVacation?.(todayISO)) d.setDate(d.getDate() - 1);
+  for (let guard = 0; guard < 366; guard++) {
     const iso = toISODate(d);
+    if (isVacation?.(iso)) {
+      d.setDate(d.getDate() - 1);
+      continue;
+    }
     const day = byDay.get(iso);
     if (!day || !day.some((s) => s.status === 'eaten') || day.some((s) => s.status === 'skipped'))
       break;
