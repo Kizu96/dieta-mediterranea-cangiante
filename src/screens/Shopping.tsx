@@ -46,6 +46,31 @@ export function Shopping({
   // Scelta della quantità comprata (formati pacco) per gli ingredienti tracciati.
   const [buying, setBuying] = useState<ShoppingItem | null>(null);
   const [buyQty, setBuyQty] = useState('');
+  const [shareMsg, setShareMsg] = useState('');
+
+  // Esporta la lista (voci non ancora comprate) come testo: condivisione di
+  // sistema sul telefono, appunti sul PC.
+  const shareList = async () => {
+    const lines: string[] = [`🛒 Lista spesa · ${mode === 'domani' ? 'domani' : `${days} giorni`}`];
+    for (const g of groups) {
+      const todo = g.items.filter((it) => !boughtMap.has(it.ingredient.id));
+      if (todo.length === 0) continue;
+      lines.push('', CATEGORY_LABEL[g.category].toUpperCase());
+      for (const it of todo) lines.push(`- ${it.ingredient.name} — ${formatQty(it.qtyToBuy)} ${it.unit}`);
+    }
+    const text = lines.join('\n');
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setShareMsg('Lista copiata negli appunti ✅');
+      setTimeout(() => setShareMsg(''), 4000);
+    } catch {
+      // condivisione annullata dall'utente: nessun errore da mostrare
+    }
+  };
 
   const markBought = useCallback(async (ingredientId: string, qty?: number) => {
     await db.shopping.put({ ingredientId, bought: true, qty, updatedAt: Date.now() });
@@ -177,6 +202,15 @@ export function Shopping({
           >
             ➕ Aggiungi i comprati alla dispensa ({boughtCount})
           </button>
+          <button
+            className="btn secondary block"
+            onClick={shareList}
+            disabled={boughtCount === totalItems}
+            style={{ marginBottom: 8 }}
+          >
+            📤 Condividi / copia la lista
+          </button>
+          {shareMsg && <p className="small muted center">{shareMsg}</p>}
         </>
       )}
 

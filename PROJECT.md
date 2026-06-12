@@ -209,6 +209,32 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (3ª ondata): scadenze frigo, modalità cucina, germogli, aderenza
+- **Avvisi scadenza frigo** (`src/lib/freshness.ts`): `PantryItem.freshSince` (timestamp,
+  opzionale) viene impostato quando un DEPERIBILE entra in dispensa (acquisto in
+  `addPurchaseToPantry` o spunta manuale in `setPantryHave`); deperibile = lo storage
+  dell'ingrediente dichiara giorni di frigo (regex su "Frigo 1-2 gg"; uova "Frigo" senza numero
+  = escluse). Quando i giorni sono raggiunti → banner in Oggi «cucinalo oggi o congelalo» con
+  bottone «Gestito» (= `dismissFreshness`, azzera solo il timer).
+- **Modalità cucina** (`src/components/CookMode.tsx`, bottone nel dettaglio ricetta): overlay
+  a tutto schermo (z-index 1000, sopra i Modal), schermata ingredienti → un passo alla volta a
+  caratteri grandi, **timer** auto-rilevato dai minuti nel testo del passo (resta attivo
+  cambiando passo; bip WebAudio + vibrazione), **Wake Lock** con riacquisizione su
+  visibilitychange.
+- **Tracker germogli (DB v4):** store `sprouts` (`++id, startedAt`; `harvestedAt` opzionale;
+  in backup/sync, merge key `startedAt`). `src/lib/sprouts.ts`: giorno 0 = ammollo, raccolto
+  tipico giorno 5, istruzione per giorno (`sproutInstruction`). Card in Oggi
+  (`SproutsCard.tsx`): avvia barattolo / barra avanzamento / istruzione del giorno / Raccolti
+  (frigo 5-7 gg, avviso «avvia il prossimo» dal 4° giorno post-raccolto).
+- **Aderenza al piano** (`src/lib/adherence.ts`, card in Peso): ultimi 28 giorni di
+  `mealStatus` → % aderenza (mangiati + metà/2 sui segnati), conteggi, streak (giorni
+  consecutivi con ≥1 mangiato e 0 saltati), **ricette saltate ≥2 volte** (top 3) con invito a
+  scambiarle.
+- **Promemoria misura completa** (Peso): banner se l'ultima registrazione con grasso
+  viscerale ha più di 30 giorni (o non esiste). Il form StarFit completo esisteva già.
+- **Esporta lista spesa** (Spesa): «Condividi / copia la lista» — testo raggruppato per
+  reparto delle sole voci non comprate; `navigator.share` sul telefono, appunti sul PC.
+
 - **Prep day (DB v3):** store `prepLog` `[date+slot]` (sincronizzato in backup/gist). Sezione dedicata «🍱 Prep day» nel menu (9ª voce, schermata `src/screens/Prep.tsx`): i 5 pranzi da ufficio della settimana target (weekend → settimana
   prossima; feriale → corrente). Layout stile «Oggi» (richiesta utente 2026-06-12): UNICA
   spunta = il toggle «prep day fatto»; niente spunte per pranzo. Ogni giorno Lun–Ven è una

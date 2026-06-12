@@ -8,6 +8,7 @@ import {
   type PrepLog,
   type Setting,
   type ShoppingCheck,
+  type SproutBatch,
   type WeightEntry,
   type WorkoutLog,
 } from '../db/db';
@@ -23,11 +24,12 @@ export interface BackupData {
   mealStatus?: MealStatus[];
   mealOverride?: MealOverride[];
   prepLog?: PrepLog[];
+  sprouts?: SproutBatch[];
   settings?: Setting[]; // opzionale: la sincronizzazione cloud NON include le impostazioni
 }
 
 export async function exportData(): Promise<BackupData> {
-  const [pantry, shopping, weights, essentials, workouts, mealStatus, mealOverride, prepLog, settings] =
+  const [pantry, shopping, weights, essentials, workouts, mealStatus, mealOverride, prepLog, sprouts, settings] =
     await Promise.all([
       db.pantry.toArray(),
       db.shopping.toArray(),
@@ -37,6 +39,7 @@ export async function exportData(): Promise<BackupData> {
       db.mealStatus.toArray(),
       db.mealOverride.toArray(),
       db.prepLog.toArray(),
+      db.sprouts.toArray(),
       db.settings.toArray(),
     ]);
   return {
@@ -50,6 +53,7 @@ export async function exportData(): Promise<BackupData> {
     mealStatus,
     mealOverride,
     prepLog,
+    sprouts,
     settings,
   };
 }
@@ -107,6 +111,7 @@ export function mergeBackup(a: Partial<BackupData>, b: Partial<BackupData>): Bac
     mealStatus: mergeTable(a.mealStatus, b.mealStatus, (x) => `${x.date}|${x.slot}`),
     mealOverride: mergeTable(a.mealOverride, b.mealOverride, (x) => `${x.date}|${x.slot}`),
     prepLog: mergeTable(a.prepLog, b.prepLog, (x) => `${x.date}|${x.slot}`),
+    sprouts: mergeTable(a.sprouts, b.sprouts, (x) => x.startedAt, true),
     ...(settings ? { settings } : {}),
   };
 }
@@ -121,7 +126,7 @@ export function canonicalString(d: Partial<BackupData>): string {
 export async function importData(data: Partial<BackupData>): Promise<void> {
   await db.transaction(
     'rw',
-    [db.pantry, db.shopping, db.weights, db.essentials, db.workouts, db.mealStatus, db.mealOverride, db.prepLog, db.settings],
+    [db.pantry, db.shopping, db.weights, db.essentials, db.workouts, db.mealStatus, db.mealOverride, db.prepLog, db.sprouts, db.settings],
     async () => {
       if (Array.isArray(data.pantry)) {
         await db.pantry.clear();
@@ -154,6 +159,10 @@ export async function importData(data: Partial<BackupData>): Promise<void> {
       if (Array.isArray(data.prepLog)) {
         await db.prepLog.clear();
         await db.prepLog.bulkPut(data.prepLog);
+      }
+      if (Array.isArray(data.sprouts)) {
+        await db.sprouts.clear();
+        await db.sprouts.bulkPut(data.sprouts);
       }
       if (Array.isArray(data.settings)) {
         await db.settings.clear();

@@ -1,7 +1,8 @@
 import { lazy, Suspense, useMemo, useState, type KeyboardEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getSetting, setSetting, type WeightEntry } from '../db/db';
-import { toISODate } from '../lib/planning';
+import { addDays, toISODate } from '../lib/planning';
+import { adherenceStats } from '../lib/adherence';
 import { bmi, bmiClass, DEFAULT_PROFILE, weeklyLoss, weeksToTarget } from '../lib/nutrition';
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
@@ -85,6 +86,26 @@ export function Weight() {
   const perWeek = weeklyLoss(500);
   const weeks = weeksToTarget(current, profile?.targetKg ?? DEFAULT_PROFILE.targetKg, perWeek);
 
+  // Promemoria misura completa: l'ultima registrazione con grasso viscerale
+  // risale a più di 30 giorni fa (o non c'è mai stata).
+  const lastFullDate = useMemo(() => {
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (list[i].visceralFat != null) return list[i].date;
+    }
+    return null;
+  }, [list]);
+  const fullMeasureDue =
+    lastFullDate == null || lastFullDate <= toISODate(addDays(new Date(), -30));
+
+  // Aderenza al piano: stati pasto degli ultimi 28 giorni.
+  const since = toISODate(addDays(new Date(), -28));
+  const statusRows = useLiveQuery(
+    () => db.mealStatus.where('date').aboveOrEqual(since).toArray(),
+    [since],
+    [],
+  );
+  const adherence = useMemo(() => adherenceStats(statusRows ?? [], today), [statusRows, today]);
+
   const m = METRICS[metric];
   const chartData = useMemo(() => {
     const val = METRICS[metric].value;
@@ -148,6 +169,17 @@ export function Weight() {
       {msg && (
         <div className="banner info" style={{ marginBottom: 14 }}>
           {msg}
+        </div>
+      )}
+      {fullMeasureDue && (
+        <div className="banner info" style={{ marginBottom: 14 }}>
+          📏 {lastFullDate == null ? (
+            <>Non hai ancora registrato una <b>misura completa</b> (StarFit):</>
+          ) : (
+            <>È passato più di un mese dall'ultima <b>misura completa</b> ({lastFullDate}):</>
+          )}{' '}
+          sali sulla bilancia smart al mattino a digiuno e copia qui grasso viscerale, massa
+          grassa e muscolare. È il viscerale il numero da guardare, non il peso.
         </div>
       )}
       <div className="dash-grid">
@@ -301,6 +333,52 @@ export function Weight() {
           <Suspense fallback={<p className="muted small">Carico il grafico…</p>}>
             <WeightChart data={chartData} target={chartTarget} color={m.color} unit={m.unit} />
           </Suspense>
+        )}
+      </Card>
+
+      <Card title="Aderenza al piano · ultime 4 settimane" icon="🎯">
+        {adherence.eaten + adherence.half + adherence.skipped === 0 ? (
+          <p className="muted small">
+            Segna i pasti come Mangiato/Metà/Saltato (in Oggi o in Piano → Giorno) e qui vedrai
+            quanto stai seguendo il piano.
+          </p>
+        ) : (
+          <>
+            <div className="stat-grid">
+              <div className="stat">
+                <div className="stat-num">{adherence.pct}%</div>
+                <div className="stat-label">Aderenza</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num">{adherence.eaten}</div>
+                <div className="stat-label">Mangiati</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num">{adherence.skipped}</div>
+                <div className="stat-label">Saltati</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num">{adherence.streak}</div>
+                <div className="stat-label">Giorni di fila 🔥</div>
+              </div>
+            </div>
+            {adherence.mostSkipped.length > 0 && (
+              <>
+                <p className="small" style={{ marginTop: 10, marginBottom: 4 }}>
+                  <b>Ricette che salti più spesso</b> — la dieta che funziona è quella che
+                  segui: scambiale con qualcosa che mangi volentieri (⇄ in Oggi):
+                </p>
+                <ul className="clean">
+                  {adherence.mostSkipped.map((r) => (
+                    <li key={r.name} className="meal-row small">
+                      <span className="grow">{r.name}</span>
+                      <span className="nowrap muted">saltata {r.times}×</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
         )}
       </Card>
 

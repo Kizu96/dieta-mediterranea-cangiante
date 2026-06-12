@@ -8,12 +8,14 @@ import { currentSeasonByDate } from '../lib/season';
 import { addDays, buildOverrideMap, getRecipesForDate, recipesForSlot, toISODate } from '../lib/planning';
 import { missingForDate, surplusIngredients } from '../lib/shopping';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
+import { dismissFreshness, freshnessAlerts } from '../lib/freshness';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { MealStatusButtons } from '../components/MealStatusButtons';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { ExerciseDetail } from '../components/ExerciseDetail';
+import { SproutsCard } from '../components/SproutsCard';
 import { WeeklySummary } from '../components/WeeklySummary';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
@@ -53,6 +55,10 @@ export function Today({
   const qtyMap = usePantryQty();
   const { factor } = useIntensity();
   const missing = missingForDate(haveSet, tomorrow, season, includeExtra, overrides, qtyMap, factor);
+
+  // Deperibili che hanno raggiunto i giorni di frigo dichiarati → "cucinalo o congelalo".
+  const pantryRows = useLiveQuery(() => db.pantry.toArray(), [], []);
+  const freshAlerts = useMemo(() => freshnessAlerts(pantryRows ?? []), [pantryRows]);
 
   // Ingredienti "abbondanti" (più di quanto serve al piano dei prossimi 7 giorni):
   // nello scambio pasto le ricette che li usano salgono in cima.
@@ -216,6 +222,32 @@ export function Today({
         </div>
       )}
 
+      {freshAlerts.length > 0 && (
+        <div className="banner warn">
+          <b>⏰ In frigo da troppo — cucinali oggi o congelali:</b>
+          <ul className="clean" style={{ marginTop: 8 }}>
+            {freshAlerts.map((a) => (
+              <li key={a.ingredient.id} className="meal-row">
+                <span className="grow small">
+                  <b>{a.ingredient.name}</b> · in frigo da {a.daysIn}{' '}
+                  {a.daysIn === 1 ? 'giorno' : 'giorni'} (tiene {a.maxDays})
+                </span>
+                <button
+                  className="btn ghost"
+                  style={{ minHeight: 34, padding: '0 10px', fontSize: '0.82rem' }}
+                  onClick={() => dismissFreshness(a.ingredient.id)}
+                >
+                  ✓ Gestito
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="small muted" style={{ margin: '6px 0 0' }}>
+            «Gestito» = cucinato, congelato o buttato: spegne l'avviso.
+          </p>
+        </div>
+      )}
+
       {missing.length > 0 && (
         <div className="banner warn">
           <b>🛒 Compra per domani:</b>{' '}
@@ -364,6 +396,8 @@ export function Today({
           ))}
         </ul>
       </Card>
+
+      <SproutsCard />
 
       <Card title="Allenamento di oggi" icon="🏃">
         {todayWorkout ? (

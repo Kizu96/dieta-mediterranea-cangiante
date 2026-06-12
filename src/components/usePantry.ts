@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
+import { freshSinceFor } from '../lib/freshness';
 
 /**
  * Insieme reattivo degli ingredientId presenti in dispensa (have === true).
@@ -41,6 +42,13 @@ export function usePantryLevels(): Map<string, { qty: number; full: number }> {
 
 // Il toggle manuale azzera anche la quantità tracciata: se spunti/togli a mano
 // stai dicendo all'app che il conteggio non è più affidabile → si riparte da ✓/✗.
+// Spuntare un deperibile avvia anche il timer di freschezza ("cucinalo o congelalo").
 export async function setPantryHave(ingredientId: string, have: boolean): Promise<void> {
-  await db.pantry.put({ ingredientId, have, updatedAt: Date.now() });
+  const fresh = have ? freshSinceFor(ingredientId) : undefined;
+  await db.pantry.put({
+    ingredientId,
+    have,
+    ...(fresh != null ? { freshSince: fresh } : {}),
+    updatedAt: Date.now(),
+  });
 }

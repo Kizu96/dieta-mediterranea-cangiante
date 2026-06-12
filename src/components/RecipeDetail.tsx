@@ -3,6 +3,7 @@ import type { Recipe } from '../data/types';
 import { techniquesForIngredients } from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
 import { scaleQty, scaleRound } from '../lib/intensity';
+import { CookMode } from './CookMode';
 import { QtyBar } from './QtyBar';
 import { usePantryLevels } from './usePantry';
 import { EQUIPMENT_LABEL, SLOT_LABEL, SEASON_LABEL, formatQty } from './labels';
@@ -15,6 +16,7 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
   const [showCutting, setShowCutting] = useState(false);
   // Barra di quantità per gli ingredienti di cui la dispensa tiene il conto.
   const levels = usePantryLevels();
+  const [cooking, setCooking] = useState(false);
   return (
     <div>
       <div className="pill-row" style={{ marginBottom: 10 }}>
@@ -115,11 +117,15 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
       )}
 
       <h3 className="section-label">Preparazione</h3>
+      <button className="btn block" style={{ marginBottom: 10 }} onClick={() => setCooking(true)}>
+        👨‍🍳 Modalità cucina (passi grandi + timer)
+      </button>
       <ol className="steps" style={{ marginBottom: 14 }}>
         {recipe.steps.map((s, i) => (
           <li key={i}>{s}</li>
         ))}
       </ol>
+      {cooking && <CookMode recipe={recipe} factor={factor} onClose={() => setCooking(false)} />}
 
       {recipe.office && (
         <div className="banner info" style={{ marginTop: 4 }}>

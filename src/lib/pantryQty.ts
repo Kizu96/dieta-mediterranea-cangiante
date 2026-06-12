@@ -9,6 +9,7 @@
 import type { Ingredient, MealSlot, Recipe } from '../data/types';
 import { ingredients } from '../data/ingredients';
 import { db, type MealStatusValue } from '../db/db';
+import { freshSinceFor } from './freshness';
 import { scaleQty } from './intensity';
 
 const ingredientMap = new Map<string, Ingredient>(ingredients.map((i) => [i.id, i]));
@@ -116,6 +117,8 @@ export async function setPantryQty(ingredientId: string, qty: number | null): Pr
 export async function addPurchaseToPantry(ingredientId: string, qty?: number): Promise<void> {
   const ing = ingredientMap.get(ingredientId);
   const row = await db.pantry.get(ingredientId);
+  // Acquisto di un deperibile = entra in frigo ora: parte il timer "cucinalo o congelalo".
+  const fresh = freshSinceFor(ingredientId);
   if (qty != null && qty > 0 && ing && isQtyTracked(ing)) {
     const newQty = round2((row?.qty ?? 0) + qty);
     await db.pantry.put({
@@ -124,6 +127,7 @@ export async function addPurchaseToPantry(ingredientId: string, qty?: number): P
       qty: newQty,
       // Acquisto = rifornimento: il livello raggiunto è il nuovo "pieno".
       qtyFull: newQty,
+      ...(fresh != null ? { freshSince: fresh } : {}),
       updatedAt: Date.now(),
     });
   } else {
@@ -131,6 +135,7 @@ export async function addPurchaseToPantry(ingredientId: string, qty?: number): P
       ingredientId,
       have: true,
       ...(row?.qty != null ? { qty: row.qty, qtyFull: Math.max(row.qtyFull ?? row.qty, row.qty) } : {}),
+      ...(fresh != null ? { freshSince: fresh } : {}),
       updatedAt: Date.now(),
     });
   }

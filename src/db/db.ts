@@ -13,6 +13,10 @@ export interface PantryItem {
   // Livello "pieno" di riferimento per la barra di quantità: la quantità
   // raggiunta dopo l'ultimo acquisto/rifornimento. La barra mostra qty/qtyFull.
   qtyFull?: number;
+  // Quando un ingrediente DEPERIBILE (storage con giorni di frigo dichiarati) è
+  // stato messo in frigo (acquisto/spunta manuale): alimenta gli avvisi
+  // "cucinalo o congelalo" in Oggi. undefined = non deperibile o avviso gestito.
+  freshSince?: number;
   updatedAt: number;
 }
 
@@ -94,6 +98,16 @@ export interface PrepLog {
   updatedAt?: number; // per la fusione in sincronizzazione
 }
 
+// Barattolo di germogli di broccoli (mason jar): un record per "infornata".
+// `startedAt` = giorno dell'ammollo (giorno 0); `harvestedAt` = raccolto e in
+// frigo (il barattolo attivo è quello senza harvestedAt).
+export interface SproutBatch {
+  id?: number;
+  startedAt: string; // ISO yyyy-mm-dd
+  harvestedAt?: string; // ISO yyyy-mm-dd
+  updatedAt?: number; // per la fusione in sincronizzazione
+}
+
 export class DietDB extends Dexie {
   pantry!: Table<PantryItem, string>;
   shopping!: Table<ShoppingCheck, string>;
@@ -104,6 +118,7 @@ export class DietDB extends Dexie {
   mealStatus!: Table<MealStatus, [string, string]>;
   mealOverride!: Table<MealOverride, [string, string]>;
   prepLog!: Table<PrepLog, [string, string]>;
+  sprouts!: Table<SproutBatch, number>;
 
   constructor() {
     super('dietaMediterraneaCangiante');
@@ -124,6 +139,10 @@ export class DietDB extends Dexie {
     // v3: prep day — pranzi della settimana preparati in batch la domenica.
     this.version(3).stores({
       prepLog: '[date+slot], date',
+    });
+    // v4: tracker dei germogli di broccoli (barattoli avviati/raccolti).
+    this.version(4).stores({
+      sprouts: '++id, startedAt',
     });
   }
 }
