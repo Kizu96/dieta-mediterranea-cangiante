@@ -25,14 +25,14 @@ const DEFAULT_PROFILE_OBJ: Profile = {
 
 type Metric = 'peso' | 'viscerale' | 'grasso' | 'vita' | 'whr';
 const METRICS: Record<Metric, { label: string; unit: string; color: string; value: (w: WeightEntry) => number | undefined }> = {
-  peso: { label: 'Peso', unit: 'kg', color: '#5f7436', value: (w) => w.kg },
-  viscerale: { label: 'Viscerale', unit: '', color: '#c2613c', value: (w) => w.visceralFat },
-  grasso: { label: 'Grasso %', unit: '%', color: '#b04a31', value: (w) => w.bodyFatPct },
-  vita: { label: 'Vita', unit: 'cm', color: '#41522a', value: (w) => w.waistCm },
+  peso: { label: 'Peso', unit: 'kg', color: '#2f9389', value: (w) => w.kg },
+  viscerale: { label: 'Viscerale', unit: '', color: '#a9745b', value: (w) => w.visceralFat },
+  grasso: { label: 'Grasso %', unit: '%', color: '#c25b46', value: (w) => w.bodyFatPct },
+  vita: { label: 'Vita', unit: 'cm', color: '#1f7269', value: (w) => w.waistCm },
   whr: {
     label: 'Vita/Fianchi',
     unit: '',
-    color: '#7c7160',
+    color: '#6f655c',
     value: (w) =>
       w.waistCm != null && w.hipsCm != null ? Math.round((w.waistCm / w.hipsCm) * 100) / 100 : undefined,
   },

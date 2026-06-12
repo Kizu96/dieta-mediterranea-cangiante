@@ -33,8 +33,8 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: '/dieta-mediterranea-cangiante/',
         scope: '/dieta-mediterranea-cangiante/',
-        theme_color: '#41522a',
-        background_color: '#f6efe2',
+        theme_color: '#2f9389',
+        background_color: '#eef6f4',
         categories: ['health', 'lifestyle', 'food'],
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

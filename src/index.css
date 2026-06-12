@@ -3,22 +3,21 @@
    Palette mediterranea: verde oliva, terracotta, crema.
    ========================================================================= */
 :root {
-  /* Palette "mediterraneo editoriale": carta calda baciata dal sole, verde
-     oliva profondo, terracotta. I nomi delle variabili restano invariati
-     per compatibilità con gli stili inline dei componenti. */
-  --olive: #5f7436; /* verde oliva (primario) */
-  --olive-dark: #41522a; /* oliva profonda (header, sidebar, titoli) */
-  --olive-light: #dde4b9; /* foglia chiara (pill, evidenze) */
-  --terracotta: #c2613c; /* terracotta (accento) */
-  --terracotta-dark: #97492b; /* coccio scuro */
-  --cream: #f6efe2; /* sfondo: carta da pane / sabbia */
-  --cream-2: #ece1ca; /* sabbia più scura */
-  --ink: #322b21; /* testo: bruno inchiostro */
-  --ink-soft: #7c7160;
-  --card: #fffcf4; /* bianco caldo */
-  --line: #e4d8bf; /* bordo sabbia */
-  --danger: #b04a31;
-  --ok: #5f7436;
+  /* Palette pastello: turchese (primario), menta (accenti), cioccolato
+     (secondario) — quella storica dell'app, l'utente la preferisce. */
+  --olive: #2f9389; /* turchese */
+  --olive-dark: #1f7269; /* teal scuro (sidebar, titoli) */
+  --olive-light: #93dcd2; /* menta */
+  --terracotta: #a9745b; /* cioccolato */
+  --terracotta-dark: #855840; /* cioccolato scuro */
+  --cream: #eef6f4; /* sfondo: bianco-menta */
+  --cream-2: #d9ece7; /* menta tenue */
+  --ink: #3b322c; /* testo: cioccolato scuro */
+  --ink-soft: #6f655c;
+  --card: #ffffff;
+  --line: #cfe6e0; /* bordo menta */
+  --danger: #c25b46;
+  --ok: #2f9389;
 
   --radius: 16px;
   --radius-sm: 10px;
@@ -61,30 +60,13 @@ body {
   overscroll-behavior: none;
   overflow-x: hidden;
 }
-/* Grana di carta sull'intera app: dà materia al fondo senza pesare (SVG inline). */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 #root {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   max-width: 640px;
   margin: 0 auto;
   min-height: 100dvh;
-  /* Aloni caldi di luce: sole (terracotta) in alto, ulivo (verde) a sinistra. */
-  background:
-    radial-gradient(1100px 520px at 88% -8%, rgba(194, 97, 60, 0.07), transparent 60%),
-    radial-gradient(900px 600px at -12% 32%, rgba(95, 116, 54, 0.08), transparent 55%),
-    var(--cream);
+  background: var(--cream);
   overflow-x: hidden;
 }
 
@@ -141,8 +123,6 @@ textarea {
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--shadow);
-  /* Filo di terracotta: la firma editoriale dell'app. */
-  border-bottom: 3px solid var(--terracotta);
 }
 .app-header h1 {
   font-weight: 560;
@@ -511,8 +491,8 @@ textarea:focus {
   color: #7a4a33;
 }
 .banner.info {
-  background: #eaecd4;
-  border-color: #c8cd96;
+  background: #ddf0ec;
+  border-color: #a6d8cf;
   color: var(--olive-dark);
 }
 /* Liste e bottoni DENTRO i banner: bordi/colori armonizzati col fondo
@@ -684,10 +664,10 @@ ol.steps li {
 .section-label {
   font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.6px;
   font-weight: 700;
   font-family: var(--font-body);
-  color: var(--terracotta-dark);
+  color: var(--olive-dark);
   margin: 6px 2px 6px;
 }
 
@@ -777,8 +757,6 @@ ol.steps li {
     font-size: 1.1rem;
     padding: 6px 10px 14px;
     letter-spacing: 0.3px;
-    border-bottom: 2px solid var(--terracotta);
-    margin-bottom: 10px;
   }
   .bottom-nav button {
     flex-direction: row;
