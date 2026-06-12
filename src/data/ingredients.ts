@@ -71,8 +71,8 @@ export const ingredients: Ingredient[] = [
 
   // ----- PROTEINE (carne/uova) ----------------------------------------------
   { id: 'uova', name: 'Uova (medie, fresche)', category: 'proteine', unit: 'pz', storage: 'Frigo', shelfLife: '3-4 settimane', staple: true },
-  { id: 'petto-pollo', name: 'Petto di pollo (fresco)', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; porzionare e congelare', shelfLife: '3-4 mesi in freezer' },
-  { id: 'fesa-tacchino', name: 'Fesa di tacchino fresca (fettine, da cuocere)', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; porzionare e congelare', shelfLife: '3-4 mesi in freezer' },
+  { id: 'petto-pollo', name: 'Petto di pollo (fresco)', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; appena comprato dividilo in porzioni singole da ~150 g (un sacchetto gelo a porzione, schiacciato piatto) e congela: scongeli solo quella che ti serve', shelfLife: '3-4 mesi in freezer' },
+  { id: 'fesa-tacchino', name: 'Fesa di tacchino fresca (fettine, da cuocere)', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; appena comprata dividi le fettine in porzioni singole da ~150 g (un sacchetto gelo a porzione, schiacciato piatto) e congela: scongeli solo quella che ti serve', shelfLife: '3-4 mesi in freezer' },
 
   // ----- PESCE ---------------------------------------------------------------
   { id: 'tonno-naturale', name: 'Tonno al naturale (scatoletta)', category: 'pesce', unit: 'g', storage: 'Dispensa; aperto in frigo 1-2 gg', shelfLife: '2-3 anni', staple: true },

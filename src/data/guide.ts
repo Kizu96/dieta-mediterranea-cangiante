@@ -119,7 +119,13 @@ export const guideSections: GuideSection[] = [
     body: `Vivere da soli significa comprare poco, sprecare poco e avere sempre pronto qualcosa di sano. Ecco come organizzarsi per **categoria**.
 
 ## La regola d'oro: porzionare e congelare
-Compra le confezioni "famiglia" quando convengono, ma **dividi subito in monoporzioni** prima di riporle. Una volta scongelata, una porzione singola si consuma senza sprechi.
+Compra le confezioni "famiglia" quando convengono, ma **dividi subito in monoporzioni** prima di riporle. "Porzionare" significa questo, in pratica (esempio col petto di pollo da 600 g):
+1. Appena torni dalla spesa, apri la confezione e taglia la carne in **porzioni da ~150 g** (una porzione = un pasto tuo; ti aiuti con la bilancia da cucina le prime volte, poi vai a occhio).
+2. Metti **ogni porzione nel suo sacchetto gelo** (o avvolta in pellicola), **schiacciata piatta**: i pacchetti piatti congelano e scongelano molto più in fretta e occupano meno spazio.
+3. Scrivi su ogni sacchetto **cosa è + la data** (pennarello o etichetta).
+4. In freezer subito. Quando ti serve, **scongeli solo un sacchetto** (in frigo dalla sera prima): il resto resta congelato e non sprechi nulla.
+
+Perché si fa: un blocco unico da 600 g andrebbe scongelato tutto insieme, e la carne **scongelata da cruda non si può ricongelare** — saresti costretto a cucinarla tutta entro 1-2 giorni.
 
 ## Dispensa (lunga durata) — i tuoi "staple"
 Tieni sempre questi: **olio EVO, legumi in barattolo** (ceci, cannellini, lenticchie), **tonno e sgombro in scatola**, **avena, riso integrale, farro, orzo, pasta integrale, quinoa**, **frutta secca e semi**, **cioccolato 85%, cacao amaro, tè verde**, spezie. Con questi prepari una cena completa anche col frigo vuoto.
