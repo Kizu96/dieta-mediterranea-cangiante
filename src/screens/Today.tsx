@@ -8,6 +8,7 @@ import {
   ChefHat,
   Dumbbell,
   ListChecks,
+  MonitorSmartphone,
   MoonStar,
   Package,
   Play,
@@ -40,12 +41,31 @@ import { ExerciseDetail } from '../components/ExerciseDetail';
 import { SproutsCard } from '../components/SproutsCard';
 import { WeeklySummary } from '../components/WeeklySummary';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
+import { useInstallPrompt } from '../components/useInstallPrompt';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
 import { hasExerciseVideo } from '../lib/exerciseVideo';
 import { SLOT_LABEL, formatLongDate, mondayIndex } from '../components/labels';
 import type { Recipe, WorkoutExercise } from '../data/types';
+
+// Banner "installa l'app": compare solo quando il browser dice che la PWA è
+// installabile e non sta già girando come app (finestra standalone).
+function InstallBanner() {
+  const { canInstall, install } = useInstallPrompt();
+  if (!canInstall) return null;
+  return (
+    <div className="banner info">
+      <MonitorSmartphone size={15} className="ic" /> <b>Usala come app:</b> installala sul
+      dispositivo — icona sulla home, schermo intero senza barra del browser, funziona offline.
+      <div style={{ marginTop: 10 }}>
+        <button className="btn" onClick={install}>
+          Installa l'app
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function Today({
   season,
@@ -243,6 +263,8 @@ export function Today({
           </button>
         </div>
       </Card>
+
+      <InstallBanner />
 
       {mondayIndex(today) === 6 && (
         <div className="banner info">
