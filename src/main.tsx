@@ -1,6 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
+// Font self-hosted (precache del service worker → funzionano anche offline):
+// Fraunces = titoli editoriali, Karla = testo. Niente CDN esterni.
+import '@fontsource-variable/fraunces/index.css'
+import '@fontsource-variable/karla/index.css'
 import './index.css'
 import App from './App.tsx'
 
