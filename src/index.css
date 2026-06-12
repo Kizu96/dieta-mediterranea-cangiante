@@ -154,9 +154,11 @@ textarea {
   margin: 0 auto;
   max-width: 640px;
   display: grid;
-  /* Una colonna per voce, qualunque sia il numero di tab (oggi sono 9). */
+  /* Una colonna per voce, qualunque sia il numero di tab (oggi sono 9).
+     minmax(0,1fr): le colonne possono scendere sotto il min-content delle
+     etichette, che si troncano con l'ellissi invece di far sbordare la barra. */
   grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-auto-columns: minmax(0, 1fr);
   background: var(--card);
   border-top: 1px solid var(--line);
   padding-bottom: var(--safe-bottom);
@@ -186,6 +188,7 @@ textarea {
   transition: background 0.15s;
 }
 .bottom-nav button .nav-label {
+  min-width: 0;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -722,6 +725,8 @@ ol.steps li {
     width: var(--sidebar-w);
     max-width: none;
     margin: 0;
+    /* Annulla il flow a colonne della nav mobile: qui le voci vanno in VERTICALE */
+    grid-auto-flow: row;
     grid-template-columns: 1fr;
     grid-auto-rows: max-content;
     align-content: start;
