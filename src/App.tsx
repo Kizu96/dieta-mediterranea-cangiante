@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { CloudAlert, Settings as SettingsIcon } from 'lucide-react';
+import { CloudAlert, Moon, Settings as SettingsIcon, Sun } from 'lucide-react';
 import type { Season } from './data/types';
 import { getSetting, setSetting } from './db/db';
 import { currentSeasonByDate } from './lib/season';
@@ -12,7 +12,7 @@ import { getNotifPrefs, scheduleAll } from './lib/notifications';
 import { requestPersistentStorage } from './lib/storage';
 import { getSyncStatus, SYNC_EVENT, syncInBackground } from './lib/sync';
 import { db } from './db/db';
-import { resolveTheme, THEME_COLOR, useThemePref } from './components/useTheme';
+import { THEME_COLOR, useThemePref } from './components/useTheme';
 import { BottomNav, type ViewKey } from './components/BottomNav';
 import { Today } from './screens/Today';
 
@@ -74,21 +74,14 @@ function App() {
     requestPersistentStorage();
   }, []);
 
-  // Tema chiaro/scuro: applica data-theme e aggiorna il colore della barra di
-  // stato; in "auto" segue il sistema anche se cambia mentre l'app è aperta.
-  const { pref: themePref } = useThemePref();
+  // Tema chiaro/scuro (toggle nella topbar): applica data-theme e aggiorna il
+  // colore della barra di stato.
+  const { pref: themePref, setPref: setThemePref } = useThemePref();
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => {
-      const theme = resolveTheme(themePref, mq.matches);
-      document.documentElement.dataset.theme = theme;
-      document
-        .querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', THEME_COLOR[theme]);
-    };
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
+    document.documentElement.dataset.theme = themePref === 'scuro' ? 'dark' : 'light';
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', THEME_COLOR[themePref]);
   }, [themePref]);
 
   // Indicatore di sync fallita nell'header: si aggiorna a ogni sync (evento).
@@ -162,6 +155,14 @@ function App() {
       <header className="app-header">
         <h1>{TITLES[view]}</h1>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            className="header-btn"
+            onClick={() => setThemePref(themePref === 'scuro' ? 'chiaro' : 'scuro')}
+            aria-label={themePref === 'scuro' ? 'Passa al tema chiaro' : 'Passa al tema scuro'}
+            title={themePref === 'scuro' ? 'Tema chiaro' : 'Tema scuro'}
+          >
+            {themePref === 'scuro' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
           {syncFailed && (
             <button
               className="header-btn"

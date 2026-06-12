@@ -1,30 +1,26 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getSetting, setSetting } from '../db/db';
 
-// Tema dell'app: Auto (segue il sistema) / Chiaro / Scuro.
-// Impostazione per-dispositivo (come stagione e intensità: NON sincronizzata).
-export type ThemePref = 'auto' | 'chiaro' | 'scuro';
+// Tema dell'app: toggle Giorno/Notte nella topbar (niente "auto": l'utente
+// preferisce il controllo diretto). Impostazione per-dispositivo (come stagione
+// e intensità: NON sincronizzata).
+export type ThemePref = 'chiaro' | 'scuro';
 export const THEME_SETTING_KEY = 'themePref';
 
 export function useThemePref(): { pref: ThemePref; setPref: (t: ThemePref) => Promise<void> } {
-  const pref = useLiveQuery(
-    () => getSetting<ThemePref>(THEME_SETTING_KEY, 'auto'),
+  const raw = useLiveQuery(
+    () => getSetting<string>(THEME_SETTING_KEY, 'chiaro'),
     [],
-    'auto' as ThemePref,
+    'chiaro',
   );
-  return { pref: pref ?? 'auto', setPref: (t) => setSetting(THEME_SETTING_KEY, t) };
-}
-
-/** Tema effettivo da applicare ('light' | 'dark') data la preferenza. */
-export function resolveTheme(pref: ThemePref, systemDark: boolean): 'light' | 'dark' {
-  if (pref === 'scuro') return 'dark';
-  if (pref === 'chiaro') return 'light';
-  return systemDark ? 'dark' : 'light';
+  // I dispositivi che avevano il vecchio valore 'auto' ripartono dal chiaro.
+  const pref: ThemePref = raw === 'scuro' ? 'scuro' : 'chiaro';
+  return { pref, setPref: (t) => setSetting(THEME_SETTING_KEY, t) };
 }
 
 // Colore della barra di stato (meta theme-color) per tema: chiaro = turchese
 // dell'header, scuro = teal notte dell'header scuro.
-export const THEME_COLOR: Record<'light' | 'dark', string> = {
-  light: '#2f9389',
-  dark: '#12332f',
+export const THEME_COLOR: Record<ThemePref, string> = {
+  chiaro: '#2f9389',
+  scuro: '#12332f',
 };

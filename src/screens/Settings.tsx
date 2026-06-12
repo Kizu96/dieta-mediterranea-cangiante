@@ -23,7 +23,6 @@ import { isStoragePersisted } from '../lib/storage';
 import { currentSeasonByDate } from '../lib/season';
 import { Modal } from '../components/Modal';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
-import { useThemePref, type ThemePref } from '../components/useTheme';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { INTENSITY_DESC } from '../lib/intensity';
@@ -55,7 +54,6 @@ export function Settings({
 }) {
   const haveSet = useHaveSet();
   const qtyMap = usePantryQty();
-  const { pref: themePref, setPref: setThemePref } = useThemePref();
   const { intensity, factor, setIntensity } = useIntensity();
   const { includeExtra, setIncludeExtra } = useExtraRecipes();
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
@@ -206,23 +204,6 @@ export function Settings({
 
   return (
     <Modal title="Impostazioni" onClose={onClose}>
-      {/* Tema */}
-      <h3 className="section-label">Tema</h3>
-      <p className="small muted" style={{ marginTop: -4 }}>
-        «Auto» segue il tema del sistema (comodo la sera).
-      </p>
-      <div className="segmented">
-        {(['auto', 'chiaro', 'scuro'] as ThemePref[]).map((t) => (
-          <button
-            key={t}
-            className={themePref === t ? 'active' : ''}
-            onClick={() => setThemePref(t)}
-          >
-            {t === 'auto' ? 'Auto' : t === 'chiaro' ? 'Chiaro' : 'Scuro'}
-          </button>
-        ))}
-      </div>
-
       {/* Stagione */}
       <h3 className="section-label">Stagione del menù</h3>
       <p className="small muted" style={{ marginTop: -4 }}>
