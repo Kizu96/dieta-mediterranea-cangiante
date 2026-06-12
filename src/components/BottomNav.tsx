@@ -50,7 +50,7 @@ export function BottomNav({
           <span className="nav-icon" aria-hidden="true">
             {it.icon}
           </span>
-          {it.label}
+          <span className="nav-label">{it.label}</span>
         </button>
       ))}
     </nav>

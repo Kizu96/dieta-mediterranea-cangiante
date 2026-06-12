@@ -112,6 +112,8 @@ export function CookMode({
   const mm = Math.floor(remaining / 60000);
   const ss = Math.floor((remaining % 60000) / 1000);
 
+  const progressPct = step >= 0 ? Math.round(((step + 1) / steps.length) * 100) : 0;
+
   return (
     <div
       style={{
@@ -121,23 +123,37 @@ export function CookMode({
         background: 'var(--cream, #faf6ef)',
         display: 'flex',
         flexDirection: 'column',
-        padding: 16,
-        overflowY: 'auto',
+        maxWidth: 640,
+        margin: '0 auto',
       }}
       role="dialog"
       aria-label={`Modalità cucina: ${recipe.name}`}
     >
-      <div className="flex-between" style={{ marginBottom: 8 }}>
-        <b style={{ fontSize: '0.95rem' }}>👨‍🍳 {recipe.name}</b>
-        <button className="btn ghost" style={{ minHeight: 40 }} onClick={onClose}>
+      <div
+        className="flex-between"
+        style={{ padding: '12px 16px 8px', flex: '0 0 auto' }}
+      >
+        <b style={{ fontSize: '0.95rem', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          👨‍🍳 {recipe.name}
+        </b>
+        <button className="btn ghost" style={{ minHeight: 40, flex: '0 0 auto' }} onClick={onClose}>
           ✕ Esci
         </button>
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{ height: 5, background: 'var(--line)', margin: '0 16px 10px', borderRadius: 3, overflow: 'hidden', flex: '0 0 auto' }}
+      >
+        <div
+          style={{ height: '100%', width: `${progressPct}%`, background: 'var(--olive)', transition: 'width .25s', borderRadius: 3 }}
+        />
       </div>
 
       {(timerEnd != null || timerDone) && (
         <div
           className={timerDone ? 'banner warn' : 'banner info'}
-          style={{ marginBottom: 10 }}
+          style={{ margin: '0 16px 10px', flex: '0 0 auto' }}
           onClick={() => timerDone && setTimerDone(false)}
         >
           {timerDone ? (
@@ -160,7 +176,7 @@ export function CookMode({
         </div>
       )}
 
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
         {step === -1 ? (
           <>
             <p className="small muted">Prima di iniziare, metti tutto sul piano di lavoro:</p>
@@ -180,10 +196,12 @@ export function CookMode({
           </>
         ) : (
           <>
-            <p className="small muted" style={{ marginBottom: 6 }}>
+            <span className="pill olive" style={{ marginBottom: 10 }}>
               Passo {step + 1} di {steps.length}
+            </span>
+            <p style={{ fontSize: '1.35rem', lineHeight: 1.5, fontWeight: 500, marginTop: 10 }}>
+              {steps[step]}
             </p>
-            <p style={{ fontSize: '1.35rem', lineHeight: 1.5, fontWeight: 500 }}>{steps[step]}</p>
             {stepMinutes != null && (
               <button
                 className="btn block"
@@ -198,7 +216,17 @@ export function CookMode({
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 10, paddingTop: 12 }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          flex: '0 0 auto',
+          padding: '12px 16px calc(14px + var(--safe-bottom, 0px))',
+          background: 'var(--card)',
+          borderTop: '1px solid var(--line)',
+          boxShadow: '0 -2px 10px rgba(60, 50, 30, 0.08)',
+        }}
+      >
         <button
           className="btn secondary"
           style={{ flex: 1, minHeight: 52, fontSize: '1.05rem' }}

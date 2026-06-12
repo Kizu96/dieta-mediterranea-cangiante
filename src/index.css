@@ -111,7 +111,7 @@ textarea {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--olive);
+  background: linear-gradient(135deg, var(--olive-dark), var(--olive));
   color: var(--cream);
   padding: 14px 16px;
   display: flex;
@@ -154,7 +154,9 @@ textarea {
   margin: 0 auto;
   max-width: 640px;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  /* Una colonna per voce, qualunque sia il numero di tab (oggi sono 9). */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   background: var(--card);
   border-top: 1px solid var(--line);
   padding-bottom: var(--safe-bottom);
@@ -163,7 +165,8 @@ textarea {
 .bottom-nav button {
   background: none;
   border: none;
-  padding: 6px 2px;
+  padding: 6px 1px;
+  min-width: 0; /* permette l'ellissi delle etichette su schermi stretti */
   min-height: var(--tap);
   display: flex;
   flex-direction: column;
@@ -171,18 +174,29 @@ textarea {
   justify-content: center;
   gap: 2px;
   color: var(--ink-soft);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   line-height: 1.1;
+  transition: color 0.15s;
 }
 .bottom-nav button .nav-icon {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 3px 9px;
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+.bottom-nav button .nav-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .bottom-nav button.active {
   color: var(--olive-dark);
   font-weight: 700;
 }
 .bottom-nav button.active .nav-icon {
-  transform: translateY(-1px);
+  background: var(--olive-light);
 }
 
 /* ---- Cards ---- */
@@ -234,8 +248,20 @@ textarea {
   font-weight: 600;
   font-size: 0.95rem;
 }
+.btn {
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
 .btn:active {
   transform: translateY(1px);
+}
+.btn.ghost:active,
+.btn.secondary:active {
+  background: var(--cream-2);
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--olive);
+  outline-offset: 2px;
 }
 .btn.block {
   width: 100%;
@@ -370,6 +396,13 @@ textarea:focus {
 .check-row:last-child {
   border-bottom: none;
 }
+.check-row {
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+.check-row:active {
+  background: var(--cream-2);
+}
 .check-box {
   flex: 0 0 26px;
   width: 26px;
@@ -424,7 +457,7 @@ textarea:focus {
   border-bottom: none;
 }
 .slot-tag {
-  flex: 0 0 86px;
+  flex: 0 0 74px;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -438,6 +471,7 @@ textarea:focus {
   padding: 14px;
   margin-bottom: 14px;
   border: 1px solid;
+  border-left-width: 5px;
 }
 .banner.warn {
   background: #f3e7df;
@@ -448,6 +482,25 @@ textarea:focus {
   background: #ddf0ec;
   border-color: #a6d8cf;
   color: var(--olive-dark);
+}
+/* Liste e bottoni DENTRO i banner: bordi/colori armonizzati col fondo
+   (le righe usano altrimenti il bordo menta delle card, che qui stona). */
+.banner .meal-row {
+  border-color: rgba(0, 0, 0, 0.08);
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+.banner .btn.ghost {
+  border-color: rgba(0, 0, 0, 0.22);
+  color: inherit;
+  background: rgba(255, 255, 255, 0.55);
+}
+.banner .muted {
+  color: inherit;
+  opacity: 0.75;
+}
+.banner .btn:not(.ghost):not(.terracotta) {
+  background: var(--olive-dark);
 }
 
 /* ---- Stat grid ---- */
@@ -504,8 +557,18 @@ textarea:focus {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   border-radius: 20px 20px 0 0;
-  padding: 18px 16px calc(20px + var(--safe-bottom));
+  padding: 12px 16px calc(20px + var(--safe-bottom));
   animation: slideUp 0.18s ease-out;
+}
+/* Maniglia del bottom-sheet (affordance "si trascina/chiude") */
+.modal::before {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+  margin: 0 auto 12px;
 }
 
 /* Video YouTube incorporato (16:9 responsive) */
@@ -691,6 +754,11 @@ ol.steps li {
   }
   .bottom-nav button .nav-icon {
     font-size: 1.25rem;
+    padding: 0;
+    background: none;
+  }
+  .bottom-nav button.active .nav-icon {
+    background: none;
   }
   .bottom-nav button:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -727,6 +795,10 @@ ol.steps li {
     max-height: 86dvh;
     border-radius: 20px;
     margin: 0 16px;
+    padding-top: 18px;
+  }
+  .modal::before {
+    display: none; /* la maniglia ha senso solo sul bottom-sheet mobile */
   }
 
   /* Dashboard a 2 colonne (Oggi, Peso) su desktop */
