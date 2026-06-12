@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { TrendingDown } from 'lucide-react';
 import { db } from '../db/db';
 import { Card } from './Card';
 import { addDays, toISODate } from '../lib/planning';
@@ -25,7 +26,7 @@ export function WeeklySummary() {
     d == null ? 'var(--ink-soft)' : d < 0 ? 'var(--ok)' : d > 0 ? 'var(--danger)' : 'var(--ink-soft)';
 
   return (
-    <Card title="Progressi · ultimi 7 giorni" icon="📅">
+    <Card title="Progressi · ultimi 7 giorni" icon={<TrendingDown />}>
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <div className="stat">
           <div className="stat-num" style={{ color: color(dKg) }}>

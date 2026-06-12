@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { ChefHat, Package, Timer } from 'lucide-react';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
@@ -59,7 +60,7 @@ export function Prep({ season }: { season: Season }) {
 
   return (
     <div>
-      <Card title={`Settimana del ${formatShortDate(monday)}`} icon="🍱">
+      <Card title={`Settimana del ${formatShortDate(monday)}`} icon={<ChefHat />}>
         <p className="small muted" style={{ marginTop: -4 }}>
           La domenica prepari in una sola sessione i 5 pranzi da ufficio Lun–Ven. Qui sotto
           trovi ogni ricetta già aperta nel dettaglio, con il verdetto frigo/freezer per ogni
@@ -75,7 +76,7 @@ export function Prep({ season }: { season: Season }) {
         </ul>
       </Card>
 
-      <Card title="Come organizzare la sessione" icon="⏱️">
+      <Card title="Come organizzare la sessione" icon={<Timer />}>
         <ol className="steps">
           <li>Metti a cuocere per primi i cereali (farro/orzo/riso reggono bene 3 giorni in frigo): pentole separate o in sequenza.</li>
           <li>Mentre i cereali cuociono, cuoci le proteine in padella o friggitrice (pollo, salmone…), una alla volta.</li>
@@ -110,7 +111,7 @@ export function Prep({ season }: { season: Season }) {
                 `${DAY_LABEL[i]} ${formatShortDate(l.date)}`
               )
             }
-            icon="🥡"
+            icon={<Package />}
             action={
               l.meal && (
                 <button

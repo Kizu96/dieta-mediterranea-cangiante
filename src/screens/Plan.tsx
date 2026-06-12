@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { CalendarDays } from 'lucide-react';
 import type { MealSlot, Recipe, Season } from '../data/types';
 import { db, type MealStatusValue } from '../db/db';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
@@ -280,7 +281,7 @@ function MonthView({ start, season }: { start: Date; season: Season }) {
   const monthName = formatLongDate(first).split(' ').slice(1, 3).join(' ');
 
   return (
-    <Card title={`Panoramica · ${monthName}`} icon="🗓️">
+    <Card title={`Panoramica · ${monthName}`} icon={<CalendarDays />}>
       <p className="small muted" style={{ marginTop: -4 }}>
         🔥 = giorno attivo (tapis roulant, più carboidrati).
       </p>

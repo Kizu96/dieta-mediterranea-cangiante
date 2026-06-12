@@ -190,7 +190,8 @@ textarea {
   transition: color 0.15s;
 }
 .bottom-nav button .nav-icon {
-  font-size: 1.15rem;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
   padding: 3px 9px;
   border-radius: 999px;
@@ -233,6 +234,17 @@ textarea {
 .card-title h2,
 .card-title h3 {
   margin: 0;
+}
+/* Icona lucide accanto al titolo card: monocromatica sul primario. */
+.card-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--olive);
+  flex: 0 0 auto;
+}
+.card-icon svg {
+  width: 19px;
+  height: 19px;
 }
 
 .muted {
@@ -770,7 +782,6 @@ ol.steps li {
     font-weight: 600;
   }
   .bottom-nav button .nav-icon {
-    font-size: 1.25rem;
     padding: 0;
     background: none;
   }

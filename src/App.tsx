@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Settings as SettingsIcon } from 'lucide-react';
 import type { Season } from './data/types';
 import { getSetting, setSetting } from './db/db';
 import { currentSeasonByDate } from './lib/season';
@@ -117,9 +118,9 @@ function App() {
   return (
     <>
       <header className="app-header">
-        <h1>🫒 {TITLES[view]}</h1>
+        <h1>{TITLES[view]}</h1>
         <button className="header-btn" onClick={() => setShowSettings(true)} aria-label="Impostazioni">
-          ⚙️
+          <SettingsIcon size={20} />
         </button>
       </header>
 

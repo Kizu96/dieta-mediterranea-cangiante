@@ -8,7 +8,7 @@ export function Card({
   flush,
 }: {
   title?: ReactNode;
-  icon?: string;
+  icon?: ReactNode; // icona lucide (o emoji legacy) accanto al titolo
   action?: ReactNode;
   children: ReactNode;
   flush?: boolean;
@@ -18,7 +18,11 @@ export function Card({
       {(title || action) && (
         <div className="card-title flex-between" style={flush ? { padding: '14px 14px 0' } : undefined}>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {icon && <span aria-hidden="true">{icon}</span>}
+            {icon && (
+              <span className="card-icon" aria-hidden="true">
+                {icon}
+              </span>
+            )}
             {title}
           </h2>
           {action}

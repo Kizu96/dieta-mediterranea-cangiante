@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import type { Equipment, MealSlot, Recipe, Season } from '../data/types';
 import { recipes } from '../data/recipes';
 import { makeableRecipes } from '../lib/shopping';
@@ -50,7 +51,7 @@ export function Recipes({ season }: { season: Season }) {
         />
       </div>
 
-      <Card title="Filtri" icon="🔧">
+      <Card title="Filtri" icon={<SlidersHorizontal />}>
         <div className="row" style={{ marginBottom: 10 }}>
           <div className="field" style={{ marginBottom: 0 }}>
             <label>Pasto</label>

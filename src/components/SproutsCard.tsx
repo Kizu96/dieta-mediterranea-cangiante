@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Sprout } from 'lucide-react';
 import { db } from '../db/db';
 import {
   cancelBatch,
@@ -33,7 +34,7 @@ export function SproutsCard() {
   return (
     <Card
       title="Germogli di broccoli"
-      icon="🌱"
+      icon={<Sprout />}
       action={active && <span className="pill olive">giorno {day}/{SPROUT_READY_DAY}</span>}
     >
       {active ? (

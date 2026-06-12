@@ -1,5 +1,6 @@
 import { lazy, Suspense, useMemo, useState, type KeyboardEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { ChartLine, Gauge, NotebookText, Scale, Target } from 'lucide-react';
 import { db, getSetting, setSetting, type WeightEntry } from '../db/db';
 import { addDays, toISODate } from '../lib/planning';
 import { adherenceStats } from '../lib/adherence';
@@ -183,7 +184,7 @@ export function Weight() {
         </div>
       )}
       <div className="dash-grid">
-        <Card title="Registra misure" icon="⚖️">
+        <Card title="Registra misure" icon={<Scale />}>
           <p className="small muted" style={{ marginTop: -4 }}>
             Copia i valori che leggi su <b>StarFit</b>. Il segnaposto mostra l’ultimo dato: lascia
             vuoto ciò che non vuoi aggiornare. Puoi anche registrare una misura di giorni fa
@@ -250,7 +251,7 @@ export function Weight() {
 
         <Card
           title="Indicatori"
-          icon="📊"
+          icon={<Gauge />}
           action={
             <button className="btn ghost" style={{ minHeight: 36 }} onClick={() => setEditProfile(true)}>
               ✎ Profilo
@@ -319,7 +320,7 @@ export function Weight() {
         </Card>
       </div>
 
-      <Card title="Andamento" icon="📈">
+      <Card title="Andamento" icon={<ChartLine />}>
         <div className="segmented">
           {(Object.keys(METRICS) as Metric[]).map((k) => (
             <button key={k} className={metric === k ? 'active' : ''} onClick={() => setMetric(k)}>
@@ -336,7 +337,7 @@ export function Weight() {
         )}
       </Card>
 
-      <Card title="Aderenza al piano · ultime 4 settimane" icon="🎯">
+      <Card title="Aderenza al piano · ultime 4 settimane" icon={<Target />}>
         {adherence.eaten + adherence.half + adherence.skipped === 0 ? (
           <p className="muted small">
             Segna i pasti come Mangiato/Metà/Saltato (in Oggi o in Piano → Giorno) e qui vedrai
@@ -382,7 +383,7 @@ export function Weight() {
         )}
       </Card>
 
-      <Card title="Storico" icon="🗒️">
+      <Card title="Storico" icon={<NotebookText />}>
         {list.length === 0 ? (
           <p className="muted small">Nessuna registrazione.</p>
         ) : (

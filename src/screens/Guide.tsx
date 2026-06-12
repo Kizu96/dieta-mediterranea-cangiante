@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BookOpen } from 'lucide-react';
 import { guideSections } from '../data/guide';
 import { Card } from '../components/Card';
 import { Markdown } from '../components/Markdown';
@@ -9,7 +10,7 @@ export function Guide() {
 
   return (
     <div>
-      <Card title="Guida" icon="📖">
+      <Card title="Guida" icon={<BookOpen />}>
         <p className="small muted" style={{ marginTop: -4 }}>
           Tutto ciò che serve: germogli, fermentati, conservazione, scienza e fonti.
         </p>

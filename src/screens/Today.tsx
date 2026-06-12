@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Dumbbell, ListChecks, MoonStar, Scale, UtensilsCrossed } from 'lucide-react';
 import { db, type MealStatusValue } from '../db/db';
 import type { MealSlot, Season } from '../data/types';
 import { dailyEssentials } from '../data/dailyEssentials';
@@ -334,7 +335,7 @@ export function Today({
       <WeeklySummary />
 
       <div className="dash-grid">
-      <Card title="Pasti di oggi" icon="🍽️" action={<span className="pill olive">{plannedScaled} kcal</span>}>
+      <Card title="Pasti di oggi" icon={<UtensilsCrossed />} action={<span className="pill olive">{plannedScaled} kcal</span>}>
         {meals.length === 0 ? (
           <p className="muted small">Nessun pasto pianificato per oggi.</p>
         ) : (
@@ -397,7 +398,7 @@ export function Today({
 
       <Card
         title="Pasti di domani"
-        icon="🌙"
+        icon={<MoonStar />}
         action={
           <button
             onClick={() => setShowTomorrow((v) => !v)}
@@ -450,7 +451,7 @@ export function Today({
         )}
       </Card>
 
-      <Card title="Pilastri quotidiani" icon="✅">
+      <Card title="Pilastri quotidiani" icon={<ListChecks />}>
         <p className="small muted" style={{ marginTop: -4 }}>
           Cibi-chiave anti-grasso viscerale da assumere <b>ogni giorno</b>. Molti sono già
           inclusi nei pasti qui sopra: spunta qui per essere sicuro di non saltarli.
@@ -470,7 +471,7 @@ export function Today({
 
       <SproutsCard />
 
-      <Card title="Allenamento di oggi" icon="🏃">
+      <Card title="Allenamento di oggi" icon={<Dumbbell />}>
         {todayWorkout ? (
           <>
             <div className="flex-between">
@@ -516,7 +517,7 @@ export function Today({
         )}
       </Card>
 
-      <Card title="Pesata rapida" icon="⚖️">
+      <Card title="Pesata rapida" icon={<Scale />}>
         <div className="row">
           <div className="field grow" style={{ marginBottom: 0 }}>
             <label htmlFor="kg-oggi">Peso di oggi (kg)</label>
