@@ -9,6 +9,16 @@ export type QtyMap = Map<string, number>;
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
+// Tolleranza sul fabbisogno: coperto se manca meno del 10% O meno di 15 g/ml
+// (per i pezzi: meno di 1). Evita assurdità tipo "compra 8 g di rucola" quando
+// ne hai 70 e le porzioni ×1,3 ne chiedono 78: una porzione il 10% più piccola
+// non cambia nulla, un viaggio al supermercato sì.
+const QTY_TOLERANCE = 0.1;
+const coveredBy = (have: number, need: number, unit: string): boolean => {
+  const graceAbs = unit === 'pz' ? 0.99 : 15;
+  return need - have <= Math.max(need * QTY_TOLERANCE, graceAbs);
+};
+
 const ingredientMap = new Map<string, Ingredient>(ingredients.map((i) => [i.id, i]));
 
 export function ingredientById(id: string): Ingredient | undefined {
@@ -100,7 +110,7 @@ export function buildShoppingList(
     const qtyHave = n.unit === n.ingredient.unit ? qtyMap?.get(id) : undefined;
     if (qtyHave != null) {
       const qtyToBuy = round1(neededReal - qtyHave);
-      if (qtyToBuy <= 0) continue;
+      if (coveredBy(qtyHave, neededReal, n.unit)) continue;
       items.push({ ...n, qty: neededReal, qtyHave, qtyToBuy });
     } else {
       if (haveSet.has(id)) continue;
@@ -166,8 +176,9 @@ export function missingForDate(
   for (const { ing, qty, sameUnit } of needed.values()) {
     const qtyHave = sameUnit ? qtyMap?.get(ing.id) : undefined;
     if (qtyHave != null) {
-      // Tracciato a quantità: manca se la dispensa non copre il fabbisogno reale.
-      if (qtyHave < scaleQty(qty, factor)) missing.push(ing);
+      // Tracciato a quantità: manca se la dispensa non copre il fabbisogno
+      // reale (stessa tolleranza della lista spesa: 10% o 15 g/ml).
+      if (!coveredBy(qtyHave, scaleQty(qty, factor), ing.unit)) missing.push(ing);
     } else if (!haveSet.has(ing.id)) {
       // Binario: manca tutto ciò che non è segnato come presente in dispensa,
       // staple inclusi: l'app non può sapere se li hai davvero in casa.
