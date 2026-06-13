@@ -59,7 +59,7 @@ export function Settings({
   const [vacFrom, setVacFrom] = useState('');
   const [vacTo, setVacTo] = useState('');
   const { intensity, factor, setIntensity } = useIntensity();
-  const { includeExtra, setIncludeExtra } = useExtraRecipes();
+  const { includeExtra } = useExtraRecipes();
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
   const [perm, setPerm] = useState<NotificationPermission>(permissionStatus());
   const [testMsg, setTestMsg] = useState('');
@@ -252,32 +252,6 @@ export function Settings({
       </div>
       <p className="small muted" style={{ marginTop: 6 }}>
         {INTENSITY_DESC[intensity]}
-      </p>
-
-      {/* Ricette extra (prodotti speciali + frullatore) */}
-      <h3 className="section-label">Ricette con prodotti speciali</h3>
-      <div className="card" style={{ padding: 12 }}>
-        <div className="flex-between">
-          <div className="grow">
-            <b>Includi ricette extra</b>
-            <div className="small muted">
-              Frullato verde (frullatore), matcha, germogli da coltivare e tahin: richiedono
-              prodotti che spesso si comprano online.
-            </div>
-          </div>
-          <button
-            className={includeExtra ? 'btn' : 'btn ghost'}
-            style={{ minHeight: 38, padding: '0 14px' }}
-            onClick={() => setIncludeExtra(!includeExtra)}
-          >
-            {includeExtra ? 'On' : 'Off'}
-          </button>
-        </div>
-      </div>
-      <p className="small muted" style={{ marginTop: 6 }}>
-        {includeExtra
-          ? 'Attive: piano, «compra per domani» e lista della spesa includono frullato verde, matcha, germogli e tahin.'
-          : 'Disattivate: il piano usa solo ingredienti da supermercato (niente frullatore né prodotti da ordinare). Comodo finché non li hai comprati.'}
       </p>
 
       {/* Vacanza */}

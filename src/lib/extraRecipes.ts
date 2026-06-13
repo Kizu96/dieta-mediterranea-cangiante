@@ -10,10 +10,9 @@
 
 export const EXTRA_RECIPES_SETTING_KEY = 'includeExtraRecipes';
 
-// Default: DISATTIVATO → modalità "solo supermercato", nessun prodotto da ordinare
-// online e nessun frullatore richiesto. Si può attivare in Impostazioni quando si
-// hanno germogli/spirulina/matcha/tahin + frullatore.
-export const EXTRA_RECIPES_DEFAULT = false;
+// L'utente ha frullatore e prodotti speciali: le ricette extra sono SEMPRE
+// incluse (nessun toggle). La costante resta solo per chiarezza/retrocompat.
+export const EXTRA_RECIPES_DEFAULT = true;
 
 // Ingredienti "extra" rimossi come guarnizione quando la modalità è disattivata.
 // (germogli = richiedono semi + barattolo di germogliazione; tahin = crema di sesamo)

@@ -14,6 +14,8 @@
 // allenamenti). NON le impostazioni (stagione, intensità, orari notifiche):
 // quelle restano per-dispositivo apposta.
 // ===========================================================================
+import type { Table } from 'dexie';
+import { db } from '../db/db';
 import {
   exportData,
   importData,
@@ -146,6 +148,60 @@ let inFlight: Promise<SyncResult> | null = null;
 // (indicatore nell'header, Impostazioni) si aggiorna senza fare polling.
 export const SYNC_EVENT = 'dieta-sync-done';
 
+// --- Auto-sync: la sincro "c'è sempre" ------------------------------------
+// Ogni scrittura sui dati interattivi (peso/misure, dispensa, consumi, spesa,
+// pasti, prep, germogli, preferiti…) programma un push di sfondo con debounce,
+// invece di affidarsi solo all'apertura/ritorno in primo piano dell'app.
+const AUTOSYNC_DELAY = 2500;
+let suppressAutoSync = false; // true durante l'import: non reagire alle NOSTRE scritture
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let resyncRequested = false; // una modifica è arrivata mentre una sync era in corso
+let autoSyncInstalled = false;
+
+/** Programma una sincronizzazione di sfondo dopo una modifica ai dati (debounce). */
+export function requestSync(delayMs = AUTOSYNC_DELAY): void {
+  if (!isSyncEnabled() || suppressAutoSync) return;
+  if (inFlight) {
+    // C'è già una sync in corso: rifalla appena finisce, così cattura i dati nuovi.
+    resyncRequested = true;
+    return;
+  }
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    debounceTimer = null;
+    void syncInBackground();
+  }, delayMs);
+}
+
+/**
+ * Aggancia gli hook Dexie a tutte le tabelle sincronizzate: qualunque
+ * creazione/modifica/eliminazione programma un push. Idempotente; chiamala una
+ * volta all'avvio. (Le impostazioni restano per-dispositivo, quindi escluse.)
+ */
+export function startAutoSync(): void {
+  if (autoSyncInstalled) return;
+  autoSyncInstalled = true;
+  const tables = [
+    db.pantry,
+    db.shopping,
+    db.weights,
+    db.essentials,
+    db.workouts,
+    db.mealStatus,
+    db.mealOverride,
+    db.prepLog,
+    db.sprouts,
+    db.customShopping,
+    db.favorites,
+  ] as Table[];
+  const onChange = () => requestSync();
+  for (const t of tables) {
+    t.hook('creating', onChange);
+    t.hook('updating', onChange);
+    t.hook('deleting', onChange);
+  }
+}
+
 async function doSync(): Promise<SyncResult> {
   const token = get(LS.token);
   if (!token) throw new Error('Token mancante.');
@@ -177,7 +233,14 @@ async function doSync(): Promise<SyncResult> {
     const mergedC = canonicalString(merged);
 
     if (mergedC !== canonicalString(local)) {
-      await importData(merged); // merged.settings assente ⇒ le impostazioni restano intatte
+      // L'import scrive sulle tabelle e farebbe scattare gli hook auto-sync:
+      // li silenziamo, è la sincro stessa a scrivere, non l'utente.
+      suppressAutoSync = true;
+      try {
+        await importData(merged); // merged.settings assente ⇒ le impostazioni restano intatte
+      } finally {
+        suppressAutoSync = false;
+      }
       pulled = true;
     }
     if (!remote || mergedC !== canonicalString(remote)) {
@@ -202,6 +265,11 @@ export function syncNow(): Promise<SyncResult> {
     .finally(() => {
       inFlight = null;
       window.dispatchEvent(new CustomEvent(SYNC_EVENT));
+      // Se nel frattempo sono arrivate altre modifiche, rifai un giro a breve.
+      if (resyncRequested) {
+        resyncRequested = false;
+        requestSync(800);
+      }
     }) as Promise<SyncResult>;
   return inFlight;
 }

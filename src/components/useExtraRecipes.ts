@@ -1,17 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks';
-import { getSetting, setSetting } from '../db/db';
-import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from '../lib/extraRecipes';
-
-/** Modalità "ricette extra" (reattiva): include o esclude le ricette che
- *  richiedono prodotti specialistici e il frullatore, + setter. */
+/** Modalità "ricette extra". L'utente ha il frullatore e i prodotti speciali,
+ *  quindi le ricette extra (frullato verde, matcha, germogli, tahin) sono
+ *  SEMPRE incluse: si scambiano a mano dal piano quando manca un ingrediente.
+ *  Niente più toggle — `includeExtra` è sempre `true`. */
 export function useExtraRecipes() {
-  const includeExtra = (useLiveQuery(
-    () => getSetting<boolean>(EXTRA_RECIPES_SETTING_KEY, EXTRA_RECIPES_DEFAULT),
-    [],
-    EXTRA_RECIPES_DEFAULT,
-  ) ?? EXTRA_RECIPES_DEFAULT) as boolean;
-  return {
-    includeExtra,
-    setIncludeExtra: (v: boolean) => setSetting(EXTRA_RECIPES_SETTING_KEY, v),
-  };
+  return { includeExtra: true as const };
 }

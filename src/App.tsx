@@ -6,12 +6,11 @@ import { getSetting, setSetting } from './db/db';
 import { currentSeasonByDate } from './lib/season';
 import { addDays, buildOverrideMap, toISODate } from './lib/planning';
 import { missingForDate } from './lib/shopping';
-import { EXTRA_RECIPES_DEFAULT, EXTRA_RECIPES_SETTING_KEY } from './lib/extraRecipes';
 import { INTENSITY_FACTOR, INTENSITY_SETTING_KEY, type Intensity } from './lib/intensity';
 import { getNotifPrefs, scheduleAll } from './lib/notifications';
 import { getVacation, isVacationDay } from './lib/vacation';
 import { requestPersistentStorage } from './lib/storage';
-import { getSyncStatus, SYNC_EVENT, syncInBackground } from './lib/sync';
+import { getSyncStatus, startAutoSync, SYNC_EVENT, syncInBackground } from './lib/sync';
 import { db } from './db/db';
 import { THEME_COLOR, useThemePref } from './components/useTheme';
 import { BottomNav, type ViewKey } from './components/BottomNav';
@@ -97,10 +96,11 @@ function App() {
     return () => window.removeEventListener(SYNC_EVENT, refresh);
   }, []);
 
-  // Sincronizzazione cloud (se attiva): all'avvio e ogni volta che l'app torna
-  // in primo piano. Quando l'app passa in background fa un ultimo push, così
-  // l'altro dispositivo ritrova subito i dati aggiornati.
+  // Sincronizzazione cloud (se attiva): all'avvio, a ogni modifica dei dati
+  // (startAutoSync) e ogni volta che l'app torna in primo piano o passa in
+  // background — così l'altro dispositivo ritrova subito i dati aggiornati.
   useEffect(() => {
+    startAutoSync(); // ogni modifica ai dati programma un push (debounce)
     syncInBackground();
     const onVisibility = () => {
       if (document.visibilityState === 'visible' || document.visibilityState === 'hidden') {
@@ -128,10 +128,6 @@ function App() {
           const qtyMap = new Map(
             items.filter((p) => p.qty != null).map((p) => [p.ingredientId, p.qty as number]),
           );
-          const includeExtra = await getSetting<boolean>(
-            EXTRA_RECIPES_SETTING_KEY,
-            EXTRA_RECIPES_DEFAULT,
-          );
           const intensity = await getSetting<Intensity>(INTENSITY_SETTING_KEY, 'moderata');
           const overrides = buildOverrideMap(await db.mealOverride.toArray());
           return (
@@ -139,7 +135,7 @@ function App() {
               haveSet,
               addDays(new Date(), 1),
               season,
-              includeExtra,
+              true, // ricette extra sempre incluse
               overrides,
               qtyMap,
               INTENSITY_FACTOR[intensity],

@@ -79,13 +79,23 @@ function mergeTable<T extends { id?: number; updatedAt?: number }>(
   b: T[] | undefined,
   key: (x: T) => string,
   stripId = false,
+  // Opzionale: come fondere due record con la STESSA chiave. Default = tieni il
+  // più recente intero. I pesi usano un combinatore per-campo (vedi combineWeight).
+  combine?: (newer: T, older: T) => T,
 ): T[] {
   const map = new Map<string, T>();
   const consider = (x: T) => {
     const k = key(x);
     const prev = map.get(k);
+    if (!prev) {
+      map.set(k, x);
+      return;
+    }
     // `>` (non `>=`) ⇒ a parità di updatedAt vince il primo inserito (cioè `a`).
-    if (!prev || (x.updatedAt ?? 0) > (prev.updatedAt ?? 0)) map.set(k, x);
+    const xNewer = (x.updatedAt ?? 0) > (prev.updatedAt ?? 0);
+    const newer = xNewer ? x : prev;
+    const older = xNewer ? prev : x;
+    map.set(k, combine ? combine(newer, older) : newer);
   };
   (a ?? []).forEach(consider);
   (b ?? []).forEach(consider);
@@ -97,6 +107,22 @@ function mergeTable<T extends { id?: number; updatedAt?: number }>(
       return copy;
     });
   return out.sort((x, y) => key(x).localeCompare(key(y)));
+}
+
+// Fusione di due misure dello STESSO giorno: tieni il record più recente, ma
+// non perdere i campi misurati solo nell'altro (es. il telefono registra la
+// misura completa StarFit col grasso viscerale, il PC poi corregge solo i kg:
+// senza questo, il viscerale andrebbe perso). I non-null del più recente vincono.
+function combineWeight(newer: WeightEntry, older: WeightEntry): WeightEntry {
+  const out: WeightEntry = { ...newer };
+  if (out.kg == null) out.kg = older.kg;
+  if (out.visceralFat == null) out.visceralFat = older.visceralFat;
+  if (out.bodyFatPct == null) out.bodyFatPct = older.bodyFatPct;
+  if (out.muscleKg == null) out.muscleKg = older.muscleKg;
+  if (out.waistCm == null) out.waistCm = older.waistCm;
+  if (out.hipsCm == null) out.hipsCm = older.hipsCm;
+  if (out.note == null && older.note != null) out.note = older.note;
+  return out;
 }
 
 export function mergeBackup(a: Partial<BackupData>, b: Partial<BackupData>): BackupData {
@@ -113,7 +139,7 @@ export function mergeBackup(a: Partial<BackupData>, b: Partial<BackupData>): Bac
     exportedAt: new Date().toISOString(),
     pantry: mergeTable(a.pantry, b.pantry, (x) => x.ingredientId),
     shopping: mergeTable(a.shopping, b.shopping, (x) => x.ingredientId),
-    weights: mergeTable(a.weights, b.weights, (x) => x.date, true),
+    weights: mergeTable(a.weights, b.weights, (x) => x.date, true, combineWeight),
     essentials: mergeTable(a.essentials, b.essentials, (x) => `${x.date}|${x.essentialId}`, true),
     workouts: mergeTable(a.workouts, b.workouts, (x) => `${x.date}|${x.title}`, true),
     mealStatus: mergeTable(a.mealStatus, b.mealStatus, (x) => `${x.date}|${x.slot}`),

@@ -209,6 +209,24 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (7ª ondata): ricette extra sempre attive + sincro affidabile
+- **Ricette extra sempre incluse** (l'utente ha comprato il frullatore): tolto il toggle da
+  Impostazioni; `useExtraRecipes()` ora ritorna sempre `includeExtra: true` (ignora anche un
+  vecchio "Off" salvato). `EXTRA_RECIPES_DEFAULT=true`. `App` passa `true` allo scheduler. La
+  logica di fallback in `planning.ts`/`extraRecipes.ts` resta (innocua, mai più attivata). Vedi
+  [[plan-is-sacred]]: si scambia a mano dal piano quando manca un prodotto.
+- **Sincro a ogni modifica** (`sync.ts` `startAutoSync()`): hook Dexie su TUTTE le tabelle dati
+  (pantry, shopping, weights, essentials, workouts, mealStatus, mealOverride, prepLog, sprouts,
+  customShopping, favorites) → ogni scrittura programma un push di sfondo con debounce 2,5 s
+  (`requestSync`), non più solo all'apertura/visibilitychange. Coalescing: se una sync è in corso
+  e arrivano modifiche, ne rifà una al termine (`resyncRequested`). `suppressAutoSync` mette a
+  tacere gli hook durante l'`importData` (è la sincro stessa a scrivere, non l'utente) → niente loop.
+  Avviato da `App` nello useEffect della sincro. Le impostazioni restano per-dispositivo (invariato).
+- **Merge pesi a livello di campo** (`backup.ts` `combineWeight`): `mergeTable` accetta un
+  combinatore opzionale; per i pesi, fondendo due misure dello STESSO giorno si tiene il record
+  più recente ma si ereditano i campi misurati solo nell'altro (es. telefono = misura completa
+  StarFit con viscerale, PC poi corregge solo i kg → il viscerale non si perde più).
+
 ### Migliorie giugno 2026 (6ª ondata): voci libere, cucinalo-oggi, preferiti, heatmap, vacanza
 - **DB v6→v5**: store `customShopping` (`++id, name`) e `favorites` (`recipeId`), entrambi in
   backup/sync (merge: nome lowercase / recipeId).
