@@ -23,8 +23,15 @@ import type { MealSlot, Season } from '../data/types';
 import { dailyEssentials } from '../data/dailyEssentials';
 import { workoutWeeks } from '../data/workoutPlan';
 import { currentSeasonByDate } from '../lib/season';
-import { addDays, buildOverrideMap, getRecipesForDate, recipesForSlot, toISODate } from '../lib/planning';
+import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
 import { missingForDate, surplusIngredients } from '../lib/shopping';
+import {
+  mealsUsingIngredient,
+  perishUrgency,
+  rankReplacements,
+  usesExpiring,
+  usesSurplus,
+} from '../lib/swap';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
 import {
   dismissFreshness,
@@ -44,6 +51,9 @@ import { SproutsCard } from '../components/SproutsCard';
 import { WeeklySummary } from '../components/WeeklySummary';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useFavorites } from '../components/useFavorites';
+import { useMealSwap } from '../components/useMealSwap';
+import { SwapResultView } from '../components/SwapResultView';
+import { StockDot } from '../components/StockDot';
 import { useInstallPrompt } from '../components/useInstallPrompt';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
@@ -134,6 +144,15 @@ export function Today({
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [exDetail, setExDetail] = useState<WorkoutExercise | null>(null);
   const favorites = useFavorites();
+
+  // Urgenza deperibili («usa prima ciò che va a male») + scambio «non acquistabile».
+  const perish = useMemo(() => perishUrgency(pantryRows ?? []), [pantryRows]);
+  const naSwap = useMealSwap({
+    season,
+    includeExtra,
+    overrides,
+    ctx: { surplus, perish, haveSet, qtyMap, favorites },
+  });
   // I pasti di domani partono chiusi: si aprono solo al tocco, per non confonderli con oggi.
   const [showTomorrow, setShowTomorrow] = useState(false);
 
@@ -392,8 +411,29 @@ export function Today({
 
       {!onVacationTomorrow && missing.length > 0 && (
         <div className="banner warn">
-          <b><ShoppingCart size={15} className="ic" /> Compra per domani:</b>{' '}
-          {missing.map((m) => m.name).join(', ')}.
+          <b><ShoppingCart size={15} className="ic" /> Compra per domani.</b>
+          <p className="small" style={{ margin: '6px 0 0' }}>
+            Non lo trovi al supermercato? Toccalo e scambio il pasto di domani con una ricetta
+            che usa ciò che hai in abbondanza o sta per scadere.
+          </p>
+          <div className="chips">
+            {missing.map((m) => (
+              <button
+                key={m.id}
+                className="btn ghost"
+                style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem' }}
+                onClick={() =>
+                  naSwap.markUnavailable(
+                    m,
+                    mealsUsingIngredient(tomorrow, 1, season, includeExtra, overrides, m.id),
+                  )
+                }
+              >
+                <StockDot level={(qtyMap.get(m.id) ?? 0) > 0 ? 'low' : 'out'} /> {m.name}
+              </button>
+            ))}
+          </div>
+          <SwapResultView swap={naSwap} />
           <div style={{ marginTop: 10 }}>
             <button className="btn terracotta" onClick={onGoShopping}>
               Apri lista spesa
@@ -670,46 +710,44 @@ export function Today({
         <Modal title={`Scambia ${SLOT_LABEL[swap.slot]} di oggi`} onClose={() => setSwap(null)}>
           <p className="small muted" style={{ marginTop: -4 }}>
             Scegli cosa mangi davvero oggi al posto del pasto del piano. Vale <b>solo per oggi</b> e
-            aggiorna anche la lista della spesa. Le ricette «usa la dispensa» sfruttano
-            ingredienti che hai in abbondanza.
+            aggiorna anche la lista della spesa. In cima trovi le ricette che smaltiscono ciò che
+            sta per scadere («in scadenza») o che hai in abbondanza («usa la dispensa»).
           </p>
           <ul className="clean">
-            {recipesForSlot(swap.slot, season, includeExtra)
-              .map((r) => ({
-                recipe: r,
-                usesSurplus: r.ingredients.some((ri) => surplus.has(ri.ingredientId)),
-                isFav: favorites.has(r.id),
-              }))
-              // Preferite in cima, poi quelle che smaltiscono la dispensa.
-              .sort(
-                (a, b) =>
-                  Number(b.isFav) * 2 + Number(b.usesSurplus) - (Number(a.isFav) * 2 + Number(a.usesSurplus)),
-              )
-              .map(({ recipe: r, usesSurplus, isFav }) => (
-                <li
-                  key={r.id}
-                  className="meal-row"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    setOverride(swap.slot, r.id);
-                    setSwap(null);
-                  }}
-                >
-                  <span className="grow">
-                    {r.name}
-                    {r.id === swap.current && (
-                      <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
-                    )}
-                    {isFav && (
-                      <span className="pill terracotta" style={{ marginLeft: 6 }}>♥</span>
-                    )}
-                    {usesSurplus && r.id !== swap.current && (
-                      <span className="pill" style={{ marginLeft: 6 }}><Package size={12} className="ic" /> usa la dispensa</span>
-                    )}
-                  </span>
-                  <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>
-                </li>
-              ))}
+            {rankReplacements(swap.slot, season, includeExtra, {
+              surplus,
+              perish,
+              haveSet,
+              qtyMap,
+              favorites,
+            }).map((r) => (
+              <li
+                key={r.id}
+                className="meal-row"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  setOverride(swap.slot, r.id);
+                  setSwap(null);
+                }}
+              >
+                <span className="grow">
+                  {r.name}
+                  {r.id === swap.current && (
+                    <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
+                  )}
+                  {favorites.has(r.id) && (
+                    <span className="pill terracotta" style={{ marginLeft: 6 }}>♥</span>
+                  )}
+                  {usesExpiring(r, perish) && (
+                    <span className="pill" style={{ marginLeft: 6 }}><Snowflake size={12} className="ic" /> in scadenza</span>
+                  )}
+                  {usesSurplus(r, surplus) && r.id !== swap.current && (
+                    <span className="pill" style={{ marginLeft: 6 }}><Package size={12} className="ic" /> usa la dispensa</span>
+                  )}
+                </span>
+                <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>
+              </li>
+            ))}
           </ul>
           {overriddenToday.has(swap.slot) && (
             <button

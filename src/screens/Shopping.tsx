@@ -10,6 +10,7 @@ import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
 import { QtyBar } from '../components/QtyBar';
+import { StockDot } from '../components/StockDot';
 import { useHaveSet, usePantryQty, usePantryLevels } from '../components/usePantry';
 import { isVacationDay, useVacation } from '../lib/vacation';
 import { useIntensity } from '../components/useIntensity';
@@ -214,7 +215,12 @@ export function Shopping({
                     <CheckRow
                       key={it.ingredient.id}
                       checked={bought != null}
-                      title={it.ingredient.name}
+                      title={
+                        <>
+                          <StockDot level={it.qtyHave != null && it.qtyHave > 0 ? 'low' : 'out'} />
+                          {it.ingredient.name}
+                        </>
+                      }
                       detail={
                         <>
                           {it.qtyHave != null && it.qtyHave > 0 ? (

@@ -4,12 +4,17 @@ import { ChefHat, Package, ShoppingCart, Snowflake, Timer } from 'lucide-react';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
-import { missingForRange } from '../lib/shopping';
+import { missingForRange, surplusIngredients } from '../lib/shopping';
+import { mealsUsingIngredient, perishUrgency } from '../lib/swap';
 import { PREP_WEEK_SLOT, prepAdvice, setPrepWeek } from '../lib/prep';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { RecipeDetail } from '../components/RecipeDetail';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
+import { useFavorites } from '../components/useFavorites';
+import { useMealSwap } from '../components/useMealSwap';
+import { SwapResultView } from '../components/SwapResultView';
+import { StockDot } from '../components/StockDot';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
@@ -76,6 +81,22 @@ export function Prep({
     [haveSet, monday, season, includeExtra, overrides, qtyMap, factor],
   );
 
+  // Scambio «non acquistabile» dei pranzi: stessa logica di Oggi, finestra = i 5
+  // pranzi della settimana, ricetta scelta per smaltire deperibili/abbondanze.
+  const pantryRows = useLiveQuery(() => db.pantry.toArray(), [], []);
+  const favorites = useFavorites();
+  const surplus = useMemo(
+    () => surplusIngredients(qtyMap, monday, 5, season, includeExtra, overrides, factor),
+    [qtyMap, monday, season, includeExtra, overrides, factor],
+  );
+  const perish = useMemo(() => perishUrgency(pantryRows ?? []), [pantryRows]);
+  const naSwap = useMealSwap({
+    season,
+    includeExtra,
+    overrides,
+    ctx: { surplus, perish, haveSet, qtyMap, favorites },
+  });
+
   return (
     <div>
       <Card title={`Settimana del ${formatShortDate(monday)}`} icon={<ChefHat />}>
@@ -96,8 +117,29 @@ export function Prep({
 
       {prepMissing.length > 0 && (
         <div className="banner warn">
-          <b><ShoppingCart size={15} className="ic" /> Compra per il prep day:</b>{' '}
-          {prepMissing.map((m) => m.name).join(', ')}.
+          <b><ShoppingCart size={15} className="ic" /> Compra per il prep day.</b>
+          <p className="small" style={{ margin: '6px 0 0' }}>
+            Non lo trovi al supermercato? Toccalo e scambio il pranzo con una ricetta che usa ciò
+            che hai in abbondanza o sta per scadere.
+          </p>
+          <div className="chips">
+            {prepMissing.map((m) => (
+              <button
+                key={m.id}
+                className="btn ghost"
+                style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem' }}
+                onClick={() =>
+                  naSwap.markUnavailable(
+                    m,
+                    mealsUsingIngredient(monday, 5, season, includeExtra, overrides, m.id, 'pranzo'),
+                  )
+                }
+              >
+                <StockDot level={(qtyMap.get(m.id) ?? 0) > 0 ? 'low' : 'out'} /> {m.name}
+              </button>
+            ))}
+          </div>
+          <SwapResultView swap={naSwap} />
           <div style={{ marginTop: 10 }}>
             <button className="btn terracotta" onClick={onGoShopping}>
               Apri lista spesa

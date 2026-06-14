@@ -17,6 +17,7 @@
   --card: #ffffff;
   --line: #cfe6e0; /* bordo menta */
   --danger: #c25b46;
+  --amber: #d98a1f; /* «sta per finire»: ambra/arancio (solo stato scorta) */
   --ok: #2f9389;
 
   --radius: 16px;
@@ -60,6 +61,7 @@
   --card: #142624;
   --line: #24443f;
   --danger: #e08a72;
+  --amber: #e8a84d;
   --ok: #3aa99e;
   --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   color-scheme: dark;
@@ -599,6 +601,24 @@ textarea:focus {
 }
 .banner .btn:not(.ghost):not(.terracotta) {
   background: var(--olive-dark);
+}
+
+/* ---- Stato scorta (rosso = manca, ambra = sta per finire) ---- */
+.stock-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex: 0 0 auto;
+}
+/* Chip toccabili (ingredienti «non acquistabili» nei banner) */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 /* ---- Stat grid ---- */

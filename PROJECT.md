@@ -209,6 +209,27 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (9ª ondata): «non acquistabile» → scambio automatico + evidenziazione scorte
+- **Principio guida**: «usa prima ciò che va a male». Lo scambio pasto (automatico E manuale)
+  privilegia, in ordine: deperibili vicini/oltre i giorni di frigo (`perishUrgency`), poi
+  verdura/carne-pollo/pesce/**latticini** in abbondanza in dispensa, penalizzando gli ingredienti
+  mancanti; preferite solo come spareggio. Punteggio unico in `lib/swap.ts` (`scoreRecipe`,
+  `rankReplacements`).
+- **«Non acquistabile» (Oggi + Prep)**: nei banner mancanti gli ingredienti sono **chip toccabili**.
+  Tap = «non lo trovo al supermercato» → l'app scambia automaticamente i pasti della finestra che
+  lo usano (Oggi = domani; Prep = i 5 pranzi, solo slot pranzo) con la ricetta a punteggio più alto
+  che NON usa quell'ingrediente. Esito inline con **↩︎ Annulla** (ripristina, togliendo solo gli
+  override creati) e **↺ Un'altra** (prossima migliore). Hook condiviso `components/useMealSwap.ts`
+  + `components/SwapResultView.tsx` + `lib/swap.ts` (`mealsUsingIngredient`). Solo `mealOverride`,
+  già sincronizzato → nessuna tabella nuova, `mealPlan.ts` intatto.
+- **Pulsante «Scambia» (Oggi)**: ora ordina con lo stesso punteggio e mostra le pill **«🧊 in
+  scadenza»** (smaltisce un deperibile) e «usa la dispensa» (surplus).
+- **Evidenziazione scorte** (`lib/stock.ts` `stockStatus` + `components/StockDot.tsx`): pallino
+  🔴 rosso (`--danger`) = manca / non ne hai, 🟠 ambra (nuovo `--amber`) = ≤ 20% del pieno («sta
+  per finire», stessa soglia di QtyBar). Applicato in **Dispensa** (voci con quantità tracciata),
+  **Lista spesa** (rosso se non ne hai, ambra se ne hai poco) e **chip dei banner** Oggi/Prep.
+  Solo presentazione → zero impatto dati/sincro. Palette olive/terracotta invariata.
+
 ### Migliorie giugno 2026 (8ª ondata): «Compra per il prep day»
 - **Avviso spesa sul Prep day** (`Prep.tsx`): banner identico al «Compra per domani» di Oggi, ma
   mirato ai **soli 5 pranzi** della settimana del prep (slot `pranzo`, Lun–Ven). Elenca gli

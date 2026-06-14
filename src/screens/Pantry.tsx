@@ -12,6 +12,8 @@ import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { Modal } from '../components/Modal';
 import { QtyBar } from '../components/QtyBar';
+import { StockDot } from '../components/StockDot';
+import { stockStatus } from '../lib/stock';
 import { useHaveSet, usePantryQty, usePantryLevels, setPantryHave } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
@@ -133,6 +135,9 @@ export function Pantry({ season }: { season: Season }) {
                         checked={haveSet.has(ing.id)}
                         title={
                           <>
+                            {levels.has(ing.id) && (
+                              <StockDot level={stockStatus(ing.id, haveSet, qtyMap, levels)} />
+                            )}
                             {ing.name}{' '}
                             {ing.staple && (
                               <span className="pill" style={{ marginLeft: 4 }}><Star size={11} className="ic" /> base</span>
