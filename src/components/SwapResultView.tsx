@@ -20,7 +20,7 @@ export function SwapResultView({ swap }: { swap: ReturnType<typeof useMealSwap> 
   if (noAlt) {
     return (
       <p className="small" style={{ margin: '8px 0 0' }}>
-        Nessuna ricetta alternativa senza <b>{noAlt}</b> per i pasti in arrivo.
+        {noAlt}
       </p>
     );
   }
@@ -29,7 +29,11 @@ export function SwapResultView({ swap }: { swap: ReturnType<typeof useMealSwap> 
   return (
     <div style={{ marginTop: 10 }}>
       <p className="small" style={{ margin: 0 }}>
-        <b>{result.ingredientName}</b> non acquistabile → ho scambiato:
+        {result.mode === 'use' ? (
+          <>Per finire <b>{result.ingredientName}</b> ho messo nei prossimi giorni:</>
+        ) : (
+          <><b>{result.ingredientName}</b> non acquistabile → ho scambiato:</>
+        )}
       </p>
       <ul className="clean" style={{ margin: '4px 0 0' }}>
         {result.changes.map((c) => (

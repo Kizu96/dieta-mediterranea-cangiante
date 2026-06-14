@@ -10,10 +10,19 @@
 // ===========================================================================
 import type { Recipe, Season } from '../data/types';
 import { db } from '../db/db';
+import { recipes } from '../data/recipes';
+import { PREP_MENU } from '../data/prepMenu';
 import { addDays, getRecipesForDate, toISODate } from './planning';
 
 // Riga sentinella in prepLog che marca «prep day fatto» (date = lunedì della settimana).
 export const PREP_WEEK_SLOT = 'settimana';
+
+const recipeMap = new Map<string, Recipe>(recipes.map((r) => [r.id, r]));
+
+/** Le 5 ricette del menù prep (Lun→Ven), risolte dagli id di prepMenu.ts. */
+export function prepMenuRecipes(): Recipe[] {
+  return PREP_MENU.map((id) => recipeMap.get(id)).filter((r): r is Recipe => r != null);
+}
 
 export function isFreezable(storage: string): boolean {
   return /congel|freezer/i.test(storage);
@@ -25,18 +34,55 @@ export function fridgeDays(storage: string): number {
   return m ? parseInt(m[2] ?? m[1], 10) : 1;
 }
 
-// Robustezza per il prep: i surgelabili possono stare ovunque (→ fine settimana),
-// gli altri valgono quanto i loro giorni di frigo.
-const robustness = (r: Recipe): number => (isFreezable(r.storage) ? 99 : fridgeDays(r.storage));
+export type PrepKind = 'fridge' | 'freezer' | 'fresh';
+export interface PrepVerdict {
+  kind: PrepKind;
+  emoji: string;
+  label: string; // badge breve: FRIGO / FREEZER / FRESCO
+  detail: string; // cosa fare domenica per quel giorno
+}
 
 /**
- * Verdetto prep-day per un pranzo già assegnato al giorno `dayIdx`
- * (Lun=1 … Ven=5, giorni trascorsi dalla domenica di prep).
+ * Verdetto prep-day per il pranzo del giorno `dayIdx` (Lun=1 … Ven=5, giorni
+ * trascorsi dalla domenica di prep). Inizio settimana → dal frigo; più avanti i
+ * congelabili vanno surgelati; le insalate non congelabili si montano la sera prima.
  */
-export function prepAdvice(storage: string, dayIdx: number): string {
-  if (dayIdx <= fridgeDays(storage)) return '🧺 preparalo domenica → frigo';
-  if (isFreezable(storage)) return '🧊 congelalo domenica → frigo dalla sera prima';
-  return '🍳 componenti pronti domenica → assembla la sera prima (5-10 min)';
+export function prepVerdict(recipe: Recipe, dayIdx: number): PrepVerdict {
+  const fridge = fridgeDays(recipe.storage);
+  const freez = isFreezable(recipe.storage);
+  // Inizio settimana, entro i giorni di frigo dichiarati: dal frigo, niente freezer.
+  if (dayIdx <= Math.min(2, fridge)) {
+    return {
+      kind: 'fridge',
+      emoji: '🧺',
+      label: 'FRIGO',
+      detail: 'Cucinalo domenica e tienilo in frigo: pronto da portare.',
+    };
+  }
+  if (freez) {
+    return {
+      kind: 'freezer',
+      emoji: '🧊',
+      label: 'FREEZER',
+      detail:
+        'Cucinalo domenica e CONGELALO in monoporzione. Spostalo in frigo la sera prima; in ufficio scalda al microonde (850 W) 3-4 min, mescolando a metà.',
+    };
+  }
+  if (dayIdx <= fridge) {
+    return {
+      kind: 'fridge',
+      emoji: '🧺',
+      label: 'FRIGO',
+      detail: 'Cucinalo domenica e tienilo in frigo: pronto da portare.',
+    };
+  }
+  return {
+    kind: 'fresh',
+    emoji: '🥗',
+    label: 'FRESCO',
+    detail:
+      'Non si congela: domenica cuoci e congela la base (cereali/legumi), tieni le verdure crude a parte e monta il piatto la sera prima (5-10 min).',
+  };
 }
 
 export interface PrepAssignment {
@@ -46,10 +92,10 @@ export interface PrepAssignment {
 }
 
 /**
- * Riassegna i 5 pranzi feriali del piano BASE (senza override) alla settimana
- * che inizia da `monday`: ordinamento stabile per robustezza crescente, così la
- * shelf-life più corta finisce Lun e i surgelabili Gio-Ven. Stessi 5 pranzi,
- * stesse calorie settimanali: cambia solo il giorno.
+ * Assegna alla settimana che inizia da `monday` il MENÙ PREP dedicato (prepMenu.ts):
+ * Lun→Ven = i 5 pranzi pensati per durare la settimana (Lun-Mar frigo, Mer-Ven
+ * congelabili). `baseRecipeId` = pranzo del piano stagionale di quel giorno, così
+ * il toggle off rimuove solo gli override che corrispondono ancora al menù prep.
  */
 export function prepWeekArrangement(
   monday: Date,
@@ -57,18 +103,14 @@ export function prepWeekArrangement(
   includeExtra: boolean,
 ): PrepAssignment[] {
   const days = Array.from({ length: 5 }, (_, i) => addDays(monday, i));
-  const base: Recipe[] = [];
-  for (const d of days) {
-    const lunch = getRecipesForDate(d, season, includeExtra).find((m) => m.slot === 'pranzo');
-    if (!lunch) return []; // settimana senza pranzi completi: niente riordino
-    base.push(lunch.recipe);
-  }
-  const sorted = [...base].sort((a, b) => robustness(a) - robustness(b));
-  return days.map((d, i) => ({
-    date: toISODate(d),
-    recipeId: sorted[i].id,
-    baseRecipeId: base[i].id,
-  }));
+  return days.map((d, i) => {
+    const base = getRecipesForDate(d, season, includeExtra).find((m) => m.slot === 'pranzo');
+    return {
+      date: toISODate(d),
+      recipeId: PREP_MENU[i],
+      baseRecipeId: base?.recipe.id ?? PREP_MENU[i],
+    };
+  });
 }
 
 /**

@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { ChefHat, Package, ShoppingCart, Snowflake, Timer } from 'lucide-react';
-import type { Season } from '../data/types';
+import type { MealSlot, Recipe, Season } from '../data/types';
+import { PREP_MENU } from '../data/prepMenu';
 import { db } from '../db/db';
-import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
-import { missingForRange, surplusIngredients } from '../lib/shopping';
-import { mealsUsingIngredient, perishUrgency } from '../lib/swap';
-import { PREP_WEEK_SLOT, prepAdvice, setPrepWeek } from '../lib/prep';
+import { addDays, buildOverrideMap, toISODate } from '../lib/planning';
+import { missingForRecipeIds, surplusIngredients } from '../lib/shopping';
+import { perishUrgency } from '../lib/swap';
+import { PREP_WEEK_SLOT, prepMenuRecipes, prepVerdict, setPrepWeek, type PrepKind } from '../lib/prep';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { RecipeDetail } from '../components/RecipeDetail';
@@ -16,17 +17,21 @@ import { useMealSwap } from '../components/useMealSwap';
 import { SwapResultView } from '../components/SwapResultView';
 import { StockDot } from '../components/StockDot';
 import { useIntensity } from '../components/useIntensity';
-import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
 import { formatShortDate, mondayIndex } from '../components/labels';
 
 const DAY_LABEL = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven'];
 
-// Sezione Prep day: la domenica si preparano in una sola sessione i 5 pranzi da
-// ufficio Lun–Ven. Layout stile "Oggi": un'unica spunta (il toggle «prep day
-// fatto») e, per ogni giorno, la ricetta completa visualizzata in dettaglio
-// direttamente nella pagina — ingredienti, tagli, passi, conservazione — così
-// durante la sessione di cucina non serve aprire nulla.
+// Colore del badge verdetto: frigo = menta, freezer = teal forte, fresco = ambra.
+function verdictStyle(kind: PrepKind): CSSProperties {
+  if (kind === 'freezer') return { background: 'var(--olive-dark)', color: '#fff', borderColor: 'var(--olive-dark)' };
+  if (kind === 'fresh') return { background: 'var(--amber)', color: '#fff', borderColor: 'var(--amber)' };
+  return { background: 'var(--olive-light)', color: 'var(--olive-dark)' };
+}
+
+// Prep day: ha un MENÙ SUO (prepMenu.ts), pensato per durare la settimana —
+// Lun-Mar dal frigo, Mer-Ven dal freezer. La domenica si cucinano i 5 pranzi in
+// una sola sessione; ogni giorno mostra il verdetto (FRIGO/FREEZER) e cosa fare.
 export function Prep({
   season,
   onGoShopping,
@@ -35,28 +40,24 @@ export function Prep({
   onGoShopping: () => void;
 }) {
   const { factor } = useIntensity();
-  const { includeExtra } = useExtraRecipes();
   const haveSet = useHaveSet();
   const qtyMap = usePantryQty();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
 
   const today = useMemo(() => new Date(), []);
-  // Settimana target: nel weekend si prepara per la settimana che inizia domani/dopodomani;
-  // nei giorni feriali si vede lo stato della settimana in corso.
+  // Settimana target: nel weekend si prepara per la settimana che inizia; nei
+  // giorni feriali si vede lo stato della settimana in corso.
   const mi = mondayIndex(today);
   const monday = addDays(today, mi >= 5 ? 7 - mi : -mi);
   const days = useMemo(() => Array.from({ length: 5 }, (_, i) => addDays(monday, i)), [monday]);
 
-  // Toggle «prep day fatto» per la settimana target: attiva il riordino dei pranzi.
+  // Toggle «prep day fatto»: applica il menù prep ai 5 pranzi della settimana.
   const mondayISO = toISODate(monday);
   const rows = useLiveQuery(() => db.prepLog.toArray(), [], []);
-  const prepOn = (rows ?? []).some(
-    (r) => r.date === mondayISO && r.slot === PREP_WEEK_SLOT && r.done,
-  );
+  const prepOn = (rows ?? []).some((r) => r.date === mondayISO && r.slot === PREP_WEEK_SLOT && r.done);
 
-  // I dettagli partono tutti APERTI (è la pagina che si tiene davanti mentre si
-  // cucina); ogni giorno si può richiudere dal suo titolo.
+  // I dettagli partono APERTI (è la pagina che si tiene davanti mentre si cucina).
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
   const toggleDay = (i: number) =>
     setCollapsed((prev) => {
@@ -66,51 +67,50 @@ export function Prep({
       return next;
     });
 
-  const lunches = days.map((d) => {
-    const meal = getRecipesForDate(d, season, includeExtra, overrides).find(
-      (m) => m.slot === 'pranzo',
-    );
-    return { date: d, meal };
-  });
+  // I 5 pranzi del MENÙ PREP (fissi, non i pranzi del piano stagionale).
+  const prepRecipes = prepMenuRecipes();
+  const lunches = days.map((d, i) => ({ date: d, recipe: prepRecipes[i] as Recipe | undefined }));
 
-  // Cosa manca per cucinare i 5 pranzi della settimana (solo lo slot pranzo,
-  // confrontato con la dispensa). Stesso identico avviso del banner "Compra per
-  // domani" di Oggi, qui mirato alla sessione di prep.
+  // Cosa manca per cucinare il menù prep (vs dispensa).
   const prepMissing = useMemo(
-    () => missingForRange(haveSet, monday, 5, season, includeExtra, overrides, qtyMap, factor, 'pranzo'),
-    [haveSet, monday, season, includeExtra, overrides, qtyMap, factor],
+    () => missingForRecipeIds(haveSet, PREP_MENU, qtyMap, factor),
+    [haveSet, qtyMap, factor],
   );
 
-  // Scambio «non acquistabile» dei pranzi: stessa logica di Oggi, finestra = i 5
-  // pranzi della settimana, ricetta scelta per smaltire deperibili/abbondanze.
+  // Scambio «non acquistabile»: se manca un ingrediente, scambia il pranzo del
+  // menù che lo usa con un'alternativa (deperibili/abbondanze in cima).
   const pantryRows = useLiveQuery(() => db.pantry.toArray(), [], []);
   const favorites = useFavorites();
   const surplus = useMemo(
-    () => surplusIngredients(qtyMap, monday, 5, season, includeExtra, overrides, factor),
-    [qtyMap, monday, season, includeExtra, overrides, factor],
+    () => surplusIngredients(qtyMap, monday, 5, season, true, overrides, factor),
+    [qtyMap, monday, season, overrides, factor],
   );
   const perish = useMemo(() => perishUrgency(pantryRows ?? []), [pantryRows]);
   const naSwap = useMealSwap({
     season,
-    includeExtra,
+    includeExtra: true,
     overrides,
     ctx: { surplus, perish, haveSet, qtyMap, favorites },
   });
+  const affectedFor = (ingId: string) =>
+    lunches
+      .filter((l) => l.recipe?.ingredients.some((ri) => ri.ingredientId === ingId))
+      .map((l) => ({ dateISO: toISODate(l.date), slot: 'pranzo' as MealSlot, recipe: l.recipe as Recipe }));
 
   return (
     <div>
       <Card title={`Settimana del ${formatShortDate(monday)}`} icon={<ChefHat />}>
         <p className="small muted" style={{ marginTop: -4 }}>
-          La domenica prepari in una sola sessione i 5 pranzi da ufficio Lun–Ven. Qui sotto
-          trovi ogni ricetta già aperta nel dettaglio, con il verdetto frigo/freezer per ogni
-          giorno. Se manca qualcosa per i 5 pranzi te lo segnalo qui sotto, come fa «Oggi».
+          Il prep day ha il suo <b>menù dedicato</b>: 5 pranzi da ufficio pensati per durare tutta
+          la settimana. <b>Lun-Mar dal frigo</b>, <b>Mer-Ven dal freezer</b> (li cucini domenica e
+          li scaldi in ufficio). Ogni giorno qui sotto dice cosa fare.
         </p>
         <ul className="clean">
           <CheckRow
             checked={prepOn}
             title={<b>Ho fatto il prep day per questa settimana</b>}
-            detail="Attivo: i 5 pranzi vengono ridistribuiti tra i giorni — i più deperibili a inizio settimana, i surgelabili Gio-Ven. Spento: settimana normale del piano. Il piano base non viene mai modificato."
-            onToggle={() => setPrepWeek(monday, !prepOn, season, includeExtra)}
+            detail="Attivo: i 5 pranzi del menù prep prendono il posto dei pranzi della settimana (e la spesa si adegua). Spento: settimana normale del piano. Il piano base non viene mai modificato."
+            onToggle={() => setPrepWeek(monday, !prepOn, season, true)}
           />
         </ul>
       </Card>
@@ -119,8 +119,7 @@ export function Prep({
         <div className="banner warn">
           <b><ShoppingCart size={15} className="ic" /> Compra per il prep day.</b>
           <p className="small" style={{ margin: '6px 0 0' }}>
-            Non lo trovi al supermercato? Toccalo e scambio il pranzo con una ricetta che usa ciò
-            che hai in abbondanza o sta per scadere.
+            Non lo trovi al supermercato? Toccalo e scambio il pranzo che lo usa con un'alternativa.
           </p>
           <div className="chips">
             {prepMissing.map((m) => (
@@ -128,12 +127,7 @@ export function Prep({
                 key={m.id}
                 className="btn ghost"
                 style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem' }}
-                onClick={() =>
-                  naSwap.markUnavailable(
-                    m,
-                    mealsUsingIngredient(monday, 5, season, includeExtra, overrides, m.id, 'pranzo'),
-                  )
-                }
+                onClick={() => naSwap.markUnavailable(m, affectedFor(m.id))}
               >
                 <StockDot level={(qtyMap.get(m.id) ?? 0) > 0 ? 'low' : 'out'} /> {m.name}
               </button>
@@ -150,34 +144,32 @@ export function Prep({
 
       <Card title="Come organizzare la sessione" icon={<Timer />}>
         <ol className="steps">
-          <li>Metti a cuocere per primi i cereali (farro/orzo/riso reggono bene 3 giorni in frigo): pentole separate o in sequenza.</li>
-          <li>Mentre i cereali cuociono, cuoci le proteine in padella o friggitrice (pollo, salmone…), una alla volta.</li>
-          <li>Taglia le verdure crude (cetriolo, pomodorini…) e tienile in contenitori separati: le unisci la mattina stessa, così non rilasciano acqua.</li>
-          <li>Componi i 5 contenitori, lasciali raffreddare APERTI ~30 minuti, poi chiudi: Lun-Mer in frigo, Gio-Ven in freezer (se congelabili).</li>
-          <li>Etichetta ogni contenitore col giorno della settimana (basta un pezzo di nastro di carta e una penna).</li>
+          <li>Metti a cuocere per primi i cereali e i legumi (farro, orzo, lenticchie): pentole separate o in sequenza.</li>
+          <li>Mentre cuociono, prepara le proteine in padella o friggitrice (pollo, ecc.), una alla volta.</li>
+          <li>Componi i 5 contenitori. Le verdure crude (per le insalate di inizio settimana) tienile a parte e uniscile la mattina, così non rilasciano acqua.</li>
+          <li>Lascia raffreddare i contenitori APERTI ~30 minuti, poi chiudi: <b>Lun-Mar in frigo</b>, <b>Mer-Ven in freezer</b> (in monoporzione).</li>
+          <li>Etichetta ogni contenitore col giorno (basta nastro di carta e una penna).</li>
         </ol>
       </Card>
 
       <div className="banner info">
-        <Snowflake size={15} className="ic" /> <b>Sicurezza:</b> i pranzi cucinati durano in frigo <b>2-3 giorni</b>, quindi segui
-        il verdetto sotto al titolo di ogni giorno: 🧺 frigo da domenica · 🧊 congelato domenica
-        e passato in frigo la sera prima · 🍳 componenti (cereali cotti e congelati, scatolette)
-        assemblati la sera prima in 5-10 minuti. In inverno Gio-Ven sono zuppe e piatti cotti
-        che si congelano; in estate le insalate fredde non si congelano, per quelle vale il 🍳.
-        Raffredda i contenitori APERTI prima di chiuderli ed etichetta ogni porzione col giorno.
-        In ufficio scaldi al <b>microonde (850 W): 2-3 min</b>, mescolando a metà (le zuppe 3-4
-        min, coperte con un piattino).
+        <Snowflake size={15} className="ic" /> <b>Sicurezza:</b> i piatti cotti durano in frigo
+        <b> 2-3 giorni</b>, perciò il menù prep mette i piatti <b>congelabili</b> a fine settimana.
+        Segui il badge di ogni giorno: <b>🧺 FRIGO</b> = cotto domenica, tenuto in frigo · <b>🧊
+        FREEZER</b> = congelato domenica, spostato in frigo la sera prima. In ufficio scalda al
+        <b> microonde (850 W) 3-4 min</b>, mescolando a metà (le zuppe coperte con un piattino).
       </div>
 
       {lunches.map((l, i) => {
         const isOpen = !collapsed.has(i);
+        const verdict = l.recipe ? prepVerdict(l.recipe, i + 1) : null;
         return (
           <Card
             key={i}
             title={
-              l.meal ? (
+              l.recipe ? (
                 <span style={{ cursor: 'pointer' }} onClick={() => toggleDay(i)}>
-                  {DAY_LABEL[i]} {formatShortDate(l.date)} · {l.meal.recipe.name}
+                  {DAY_LABEL[i]} {formatShortDate(l.date)} · {l.recipe.name}
                 </span>
               ) : (
                 `${DAY_LABEL[i]} ${formatShortDate(l.date)}`
@@ -185,7 +177,8 @@ export function Prep({
             }
             icon={<Package />}
             action={
-              l.meal && (
+              l.recipe &&
+              verdict && (
                 <button
                   onClick={() => toggleDay(i)}
                   aria-expanded={isOpen}
@@ -193,7 +186,7 @@ export function Prep({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 6,
                     background: 'none',
                     border: 'none',
                     padding: 0,
@@ -202,7 +195,9 @@ export function Prep({
                     cursor: 'pointer',
                   }}
                 >
-                  <span className="pill olive">{scaleRound(l.meal.recipe.kcal, factor)} kcal</span>
+                  <span className="pill" style={verdictStyle(verdict.kind)}>
+                    {verdict.emoji} {verdict.label}
+                  </span>
                   <span aria-hidden="true" style={{ fontSize: '0.85rem', opacity: 0.7 }}>
                     {isOpen ? '▾' : '▸'}
                   </span>
@@ -210,14 +205,15 @@ export function Prep({
               )
             }
           >
-            {!l.meal ? (
-              <p className="muted small">Nessun pranzo pianificato.</p>
+            {!l.recipe || !verdict ? (
+              <p className="muted small">Nessun pranzo nel menù prep.</p>
             ) : (
               <>
                 <p className="small" style={{ marginTop: -4 }}>
-                  {prepAdvice(l.meal.recipe.storage, i + 1)}
+                  <b>{verdict.emoji} {verdict.label}</b> — {verdict.detail}{' '}
+                  <span className="muted">· {scaleRound(l.recipe.kcal, factor)} kcal</span>
                 </p>
-                {isOpen && <RecipeDetail recipe={l.meal.recipe} factor={factor} />}
+                {isOpen && <RecipeDetail recipe={l.recipe} factor={factor} />}
               </>
             )}
           </Card>

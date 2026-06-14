@@ -54,6 +54,9 @@ export function freshnessAlerts(rows: PantryItem[], now = Date.now()): Freshness
     if (!row.have || row.freshSince == null) continue;
     const ing = ingredientMap.get(row.ingredientId);
     if (!ing) continue;
+    // I barattoli/latticini aperti NON danno avviso: aprendoli l'app riempie già
+    // i prossimi giorni con ricette che li finiscono (vedi «finisci il prodotto»).
+    if (ing.openedDays != null) continue;
     const maxDays = fridgeLifeDays(ing);
     if (maxDays == null) continue;
     const daysIn = daysInFridge(row.freshSince, now);

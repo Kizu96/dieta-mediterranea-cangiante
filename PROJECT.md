@@ -209,6 +209,23 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (11ª ondata): prep day = menù dedicato + prodotto aperto che ADATTA il piano
+- **Il prep day ha un MENÙ SUO** (`src/data/prepMenu.ts`, `PREP_MENU`), non più i pranzi del piano
+  stagionale riordinati: 5 pranzi scelti per durare la settimana — **Lun-Mar dal frigo, Mer-Ven
+  congelabili** (cotti domenica, surgelati, scaldati in ufficio). Indipendente dalla stagione.
+  `prep.ts`: `prepWeekArrangement` mappa i 5 giorni a `PREP_MENU` (baseRecipeId = pranzo stagionale,
+  per il revert del toggle); `prepMenuRecipes()`; nuovo `prepVerdict(recipe, dayIdx)` →
+  `{kind: fridge|freezer|fresh, emoji, label, detail}`. La pagina Prep mostra il menù con **badge
+  🧺 FRIGO / 🧊 FREEZER** e cosa fare per ogni giorno; spesa prep da `missingForRecipeIds(PREP_MENU)`.
+  Toggle ON = il menù prep prende il posto dei 5 pranzi della settimana (via override). `mealPlan.ts` intatto.
+- **Prodotto aperto → l'app ADATTA il piano** (non più un promemoria): aprendo un barattolo/latticino
+  (`markOpened`) l'app riempie in automatico i prossimi giorni (entro la finestra `openedDays`) con
+  ricette che lo usano, per finirlo — `lib/swap.ts` `planFinishSwaps` + `rankReplacements({requireIngredientId})`,
+  hook `useMealSwap.finishProduct` (mode `use`), con **↩︎ Annulla / ↺ Un'altra**. Se è già nei pasti
+  in arrivo: «lo usi già, niente da cambiare». Tolto l'avviso rosso per gli aperti (`freshnessAlerts`
+  salta `openedDays`); resta solo l'adattamento + la priorità «usa prima ciò che va a male». Vedi
+  [[everything-connected]].
+
 ### Migliorie giugno 2026 (10ª ondata): barattoli/scatolette/latticini «una volta aperti»
 - **Convenzione dati (CONTRATTO)**: nuovo campo `Ingredient.openedDays` = giorni di tenuta in
   FRIGO **dopo l'apertura**. Va messo su OGNI barattolo/scatoletta e latticino fresco che, aperto,

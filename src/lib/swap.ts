@@ -81,7 +81,7 @@ export function rankReplacements(
   season: Season,
   includeExtra: boolean,
   ctx: SwapContext,
-  opts?: { avoidIngredientId?: string; excludeRecipeIds?: Set<string> },
+  opts?: { avoidIngredientId?: string; requireIngredientId?: string; excludeRecipeIds?: Set<string> },
 ): Recipe[] {
   return recipesForSlot(slot, season, includeExtra)
     .filter((r) => {
@@ -92,11 +92,70 @@ export function rankReplacements(
       ) {
         return false;
       }
+      if (
+        opts?.requireIngredientId &&
+        !r.ingredients.some((ri) => ri.ingredientId === opts.requireIngredientId)
+      ) {
+        return false;
+      }
       return true;
     })
     .map((r) => ({ r, s: scoreRecipe(r, ctx) }))
     .sort((a, b) => b.s - a.s || a.r.name.localeCompare(b.r.name))
     .map((x) => x.r);
+}
+
+export interface FinishPick {
+  dateISO: string;
+  slot: MealSlot;
+  prev: string | null; // override precedente di quel giorno/slot
+  recipe: Recipe;
+}
+
+// Ordine di preferenza dello slot da convertire per «finire il prodotto».
+const FINISH_SLOT_ORDER: MealSlot[] = ['pranzo', 'cena', 'spuntino', 'colazione'];
+
+/**
+ * Pasti dei prossimi `windowDays` giorni (da `start`+1) da convertire a ricette
+ * che USANO `ingredientId`, così da finire un prodotto aperto entro la sua finestra.
+ * Uno per giorno, salta i giorni che già lo usano; al massimo `maxMeals`.
+ */
+export function planFinishSwaps(
+  start: Date,
+  windowDays: number,
+  season: Season,
+  includeExtra: boolean,
+  overrides: OverrideMap | undefined,
+  ingredientId: string,
+  ctx: SwapContext,
+  maxMeals: number,
+): { picks: FinishPick[]; alreadyUsed: boolean } {
+  const picks: FinishPick[] = [];
+  let alreadyUsed = false; // qualche giorno della finestra usa già il prodotto
+  for (let i = 1; i <= windowDays && picks.length < maxMeals; i++) {
+    const d = addDays(start, i);
+    const iso = toISODate(d);
+    const dayMeals = getRecipesForDate(d, season, includeExtra, overrides);
+    if (dayMeals.length === 0) continue;
+    // Giorno che già usa il prodotto: contribuisce a finirlo → niente scambio.
+    if (dayMeals.some((m) => m.recipe.ingredients.some((ri) => ri.ingredientId === ingredientId))) {
+      alreadyUsed = true;
+      continue;
+    }
+    for (const slot of FINISH_SLOT_ORDER) {
+      const cur = dayMeals.find((m) => m.slot === slot);
+      if (!cur) continue;
+      const cand = rankReplacements(slot, season, includeExtra, ctx, {
+        requireIngredientId: ingredientId,
+        excludeRecipeIds: new Set([cur.recipe.id]),
+      })[0];
+      if (cand) {
+        picks.push({ dateISO: iso, slot, prev: overrides?.get(`${iso}|${slot}`) ?? null, recipe: cand });
+        break;
+      }
+    }
+  }
+  return { picks, alreadyUsed };
 }
 
 export interface AffectedMeal {

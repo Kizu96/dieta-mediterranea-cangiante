@@ -198,6 +198,45 @@ export function missingForRange(
   return missing;
 }
 
+/** Ingredienti mancanti (vs dispensa) per una lista esplicita di ricette: usato
+ *  dal menù prep dedicato, che non dipende dal piano stagionale. */
+export function missingForRecipeIds(
+  haveSet: Set<string>,
+  recipeIds: string[],
+  qtyMap?: QtyMap,
+  factor = 1,
+): Ingredient[] {
+  const byId = new Map(recipes.map((r) => [r.id, r]));
+  const needed = new Map<string, { ing: Ingredient; qty: number; sameUnit: boolean }>();
+  for (const id of recipeIds) {
+    const recipe = byId.get(id);
+    if (!recipe) continue;
+    for (const ri of recipe.ingredients) {
+      const ing = ingredientMap.get(ri.ingredientId);
+      if (!ing) continue;
+      if (ri.note && /opzional/i.test(ri.note)) continue;
+      const prev = needed.get(ing.id);
+      const sameUnit = ri.unit === ing.unit;
+      if (prev) {
+        prev.qty += sameUnit ? ri.qty : 0;
+        prev.sameUnit = prev.sameUnit && sameUnit;
+      } else {
+        needed.set(ing.id, { ing, qty: sameUnit ? ri.qty : 0, sameUnit });
+      }
+    }
+  }
+  const missing: Ingredient[] = [];
+  for (const { ing, qty, sameUnit } of needed.values()) {
+    const qtyHave = sameUnit ? qtyMap?.get(ing.id) : undefined;
+    if (qtyHave != null) {
+      if (!coveredBy(qtyHave, scaleQty(qty, factor), ing.unit)) missing.push(ing);
+    } else if (!haveSet.has(ing.id)) {
+      missing.push(ing);
+    }
+  }
+  return missing;
+}
+
 /** Ingredienti mancanti per i pasti di una certa data (guida le notifiche "compra per domani"). */
 export function missingForDate(
   haveSet: Set<string>,
