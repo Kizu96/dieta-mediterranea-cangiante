@@ -24,7 +24,7 @@ import { dailyEssentials } from '../data/dailyEssentials';
 import { workoutWeeks } from '../data/workoutPlan';
 import { currentSeasonByDate } from '../lib/season';
 import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
-import { missingForDate, surplusIngredients } from '../lib/shopping';
+import { ingredientById, missingForDate, surplusIngredients } from '../lib/shopping';
 import {
   mealsUsingIngredient,
   perishUrgency,
@@ -34,11 +34,15 @@ import {
 } from '../lib/swap';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
 import {
+  daysInFridge,
   dismissFreshness,
   freshnessAlerts,
+  fridgeLifeDays,
   frozenNeeded,
   markFrozen,
+  markOpened,
   markThawedToFridge,
+  openedFridgeDays,
 } from '../lib/freshness';
 import { isVacationDay, useVacation } from '../lib/vacation';
 import { Card } from '../components/Card';
@@ -153,6 +157,35 @@ export function Today({
     overrides,
     ctx: { surplus, perish, haveSet, qtyMap, favorites },
   });
+
+  // Barattoli/latticini APRIBILI usati nei pasti di oggi e non ancora aperti:
+  // tap = «Ho aperto» → parte il timer «consuma entro N giorni».
+  const openedIds = new Set((pantryRows ?? []).filter((p) => p.freshSince != null).map((p) => p.ingredientId));
+  const openableToday: { ing: Ingredient; days: number }[] = [];
+  const seenOpenable = new Set<string>();
+  for (const m of meals) {
+    for (const ri of m.recipe.ingredients) {
+      if (seenOpenable.has(ri.ingredientId) || openedIds.has(ri.ingredientId)) continue;
+      const ing = ingredientById(ri.ingredientId);
+      const days = ing ? openedFridgeDays(ing) : null;
+      if (ing && days != null) {
+        seenOpenable.add(ri.ingredientId);
+        openableToday.push({ ing, days });
+      }
+    }
+  }
+  // Apribili GIÀ aperti e ancora buoni: «restano N giorni» (gli scaduti finiscono
+  // nel banner rosso «cucinalo o congelalo» qui sopra).
+  const openedActive: { ing: Ingredient; left: number }[] = [];
+  for (const p of pantryRows ?? []) {
+    if (!p.have || p.freshSince == null) continue;
+    const ing = ingredientById(p.ingredientId);
+    const max = ing ? fridgeLifeDays(ing) : null;
+    if (!ing || ing.openedDays == null || max == null) continue;
+    const left = max - daysInFridge(p.freshSince);
+    if (left > 0) openedActive.push({ ing, left });
+  }
+  openedActive.sort((a, b) => a.left - b.left);
   // I pasti di domani partono chiusi: si aprono solo al tocco, per non confonderli con oggi.
   const [showTomorrow, setShowTomorrow] = useState(false);
 
@@ -517,6 +550,39 @@ export function Today({
                 );
               })}
             </ul>
+            {(openableToday.length > 0 || openedActive.length > 0) && (
+              <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line)' }}>
+                {openableToday.length > 0 && (
+                  <>
+                    <p className="small muted" style={{ margin: '0 0 6px' }}>
+                      🥫 Apri un barattolo o una confezione per un pasto di oggi? Toccalo: parte il
+                      promemoria «consuma gli avanzi entro N giorni».
+                    </p>
+                    <div className="chips">
+                      {openableToday.map((o) => (
+                        <button
+                          key={o.ing.id}
+                          className="btn ghost"
+                          style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem' }}
+                          onClick={() => markOpened(o.ing.id)}
+                        >
+                          Ho aperto: {o.ing.name}
+                          <span className="muted" style={{ marginLeft: 4 }}>· {o.days} gg</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {openedActive.length > 0 && (
+                  <p className="small muted" style={{ margin: openableToday.length > 0 ? '8px 0 0' : 0 }}>
+                    🧊 Aperti, da consumare:{' '}
+                    {openedActive
+                      .map((o) => `${o.ing.name} (${o.left} ${o.left === 1 ? 'giorno' : 'giorni'})`)
+                      .join(' · ')}
+                  </p>
+                )}
+              </div>
+            )}
           </>
         )}
       </Card>

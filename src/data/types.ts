@@ -35,6 +35,13 @@ export interface Ingredient {
   // Formato confezione tipico (nell'unità dell'ingrediente): compare come
   // primo preset quando si compra o si imposta la quantità in dispensa.
   packSize?: number;
+  // Giorni di tenuta in FRIGO una volta APERTO/aperta la confezione. Va messo su
+  // OGNI barattolo/scatoletta (legumi, pelati, tonno…) e latticino fresco (feta,
+  // mozzarella, yogurt, ricotta, latte…) che, dopo l'apertura, va consumato entro
+  // N giorni. Il timer di freschezza parte SOLO con «Ho aperto» (non all'acquisto),
+  // alimenta gli avvisi in Oggi e la priorità «usa prima ciò che va a male».
+  // Convertire eventuali settimane in giorni (es. feta "1-2 settimane" → 7).
+  openedDays?: number;
   seasons?: Season[]; // se stagionale; assente = tutto l'anno
 }
 

@@ -209,6 +209,24 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (10ª ondata): barattoli/scatolette/latticini «una volta aperti»
+- **Convenzione dati (CONTRATTO)**: nuovo campo `Ingredient.openedDays` = giorni di tenuta in
+  FRIGO **dopo l'apertura**. Va messo su OGNI barattolo/scatoletta e latticino fresco che, aperto,
+  va consumato entro N giorni. Convertire settimane in giorni (feta "1-2 settimane" → 7). Popolati:
+  ceci/cannellini/borlotti/lenticchie lessate (2), pelati (3), tonno/sgombro/sardine (1), hummus (4),
+  salmone affumicato (2), yogurt greco/intero/skyr (4), ricotta (2), feta (7), mozzarella (1),
+  latte (4). I **futuri** ingredienti del genere DEVONO avere `openedDays`. Vedi [[opened-perishables]].
+- **Timer all'apertura, non all'acquisto** (`freshness.ts`): `freshSinceFor` NON avvia più il timer
+  quando un apribile entra in dispensa (niente falsi allarmi su confezioni chiuse). Parte solo con
+  **`markOpened`** (freshSince = adesso). Nuovi `openedFridgeDays` e `fridgeLifeDays`
+  (= `openedDays ?? perishableFridgeDays`); `freshnessAlerts` e `perishUrgency` ora usano `fridgeLifeDays`.
+- **Oggi, sul pasto**: chip **«Ho aperto: X · N gg»** per gli apribili dei pasti di oggi non ancora
+  aperti → avvia il timer. Riga **«🧊 Aperti, da consumare: X (N giorni)»** per quelli aperti e ancora
+  buoni; a scadenza passano nel banner rosso «cucinalo o congelalo». Entrano anche nella priorità
+  «usa prima ciò che va a male» dello scambio.
+- **Avanzi**: segnare un pasto «mangiato» non azzera più il timer degli apribili (`pantryQty.ts`):
+  l'avanzo nel barattolo aperto resta da consumare entro N giorni.
+
 ### Migliorie giugno 2026 (9ª ondata): «non acquistabile» → scambio automatico + evidenziazione scorte
 - **Principio guida**: «usa prima ciò che va a male». Lo scambio pasto (automatico E manuale)
   privilegia, in ordine: deperibili vicini/oltre i giorni di frigo (`perishUrgency`), poi

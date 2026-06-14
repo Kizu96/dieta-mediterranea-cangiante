@@ -14,7 +14,7 @@ import { ingredients } from '../data/ingredients';
 import type { PantryItem } from '../db/db';
 import { addDays, getRecipesForDate, recipesForSlot, toISODate, type OverrideMap } from './planning';
 import type { QtyMap } from './shopping';
-import { daysInFridge, perishableFridgeDays } from './freshness';
+import { daysInFridge, fridgeLifeDays } from './freshness';
 
 const ingredientMap = new Map<string, Ingredient>(ingredients.map((i) => [i.id, i]));
 
@@ -32,7 +32,7 @@ export function perishUrgency(rows: PantryItem[], now = Date.now()): Map<string,
     if (!row.have || row.freshSince == null) continue;
     const ing = ingredientMap.get(row.ingredientId);
     if (!ing) continue;
-    const maxDays = perishableFridgeDays(ing);
+    const maxDays = fridgeLifeDays(ing);
     if (maxDays == null || maxDays <= 0) continue;
     // +1: il giorno 0 conta già un po' (è entrato in frigo, va consumato).
     out.set(row.ingredientId, (daysInFridge(row.freshSince, now) + 1) / maxDays);

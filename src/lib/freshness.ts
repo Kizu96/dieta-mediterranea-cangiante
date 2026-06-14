@@ -23,6 +23,19 @@ export function perishableFridgeDays(ing: Ingredient): number | null {
   return m ? parseInt(m[2] ?? m[1], 10) : null;
 }
 
+/** Giorni di tenuta in frigo DOPO l'apertura (barattoli/scatolette, latticini
+ *  freschi): dal campo esplicito `openedDays`. null = non è un alimento «apribile». */
+export function openedFridgeDays(ing: Ingredient): number | null {
+  return ing.openedDays ?? null;
+}
+
+/** Giorni di tenuta in frigo una volta che l'ingrediente è «sul timer»: dopo
+ *  l'apertura se è un apribile (`openedDays`), altrimenti i giorni dichiarati
+ *  nello storage per i freschi che si contano dall'acquisto (es. pollo). */
+export function fridgeLifeDays(ing: Ingredient): number | null {
+  return ing.openedDays ?? perishableFridgeDays(ing);
+}
+
 /** Da quanti giorni (interi) l'ingrediente è in frigo. */
 export function daysInFridge(freshSince: number, now = Date.now()): number {
   return Math.floor((now - freshSince) / DAY_MS);
@@ -41,7 +54,7 @@ export function freshnessAlerts(rows: PantryItem[], now = Date.now()): Freshness
     if (!row.have || row.freshSince == null) continue;
     const ing = ingredientMap.get(row.ingredientId);
     if (!ing) continue;
-    const maxDays = perishableFridgeDays(ing);
+    const maxDays = fridgeLifeDays(ing);
     if (maxDays == null) continue;
     const daysIn = daysInFridge(row.freshSince, now);
     if (daysIn >= maxDays) out.push({ ingredient: ing, daysIn, maxDays });
@@ -94,5 +107,26 @@ export function frozenNeeded(rows: PantryItem[], neededIds: Set<string>): Ingred
 /** freshSince da impostare quando un ingrediente entra in dispensa (se deperibile). */
 export function freshSinceFor(ingredientId: string, now = Date.now()): number | undefined {
   const ing = ingredientMap.get(ingredientId);
-  return ing && perishableFridgeDays(ing) != null ? now : undefined;
+  if (!ing) return undefined;
+  // Barattoli/scatolette/latticini: il timer parte SOLO con «Ho aperto» (markOpened),
+  // non all'acquisto — altrimenti scatterebbe l'avviso su una confezione ancora chiusa.
+  if (ing.openedDays != null || /apert/i.test(ing.storage)) return undefined;
+  return perishableFridgeDays(ing) != null ? now : undefined;
+}
+
+/** «Ho aperto il barattolo/la confezione»: avvia il timer di freschezza (freshSince
+ *  = adesso) per gli alimenti con `openedDays`. Da qui partono gli avvisi «consuma
+ *  entro N giorni» in Oggi e la priorità «usa prima ciò che va a male». */
+export async function markOpened(ingredientId: string): Promise<void> {
+  const row = await db.pantry.get(ingredientId);
+  const now = Date.now();
+  await db.pantry.put({
+    ingredientId,
+    have: true,
+    ...(row?.qty != null
+      ? { qty: row.qty, qtyFull: Math.max(row.qtyFull ?? row.qty, row.qty) }
+      : {}),
+    freshSince: now,
+    updatedAt: now,
+  });
 }

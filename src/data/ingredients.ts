@@ -45,7 +45,7 @@ export const ingredients: Ingredient[] = [
   { id: 'peperoni', name: 'Peperoni (rossi o gialli)', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['estate'] },
   { id: 'pomodori', name: 'Pomodori ramati (da insalata)', category: 'verdura', unit: 'g', storage: 'Temperatura ambiente (in frigo solo se molto maturi)', shelfLife: '5-7 giorni', seasons: ['estate'] },
   { id: 'pomodorini', name: 'Pomodorini ciliegino', category: 'verdura', unit: 'g', storage: 'Temperatura ambiente o frigo', shelfLife: '1 settimana', seasons: ['estate'] },
-  { id: 'pomodori-pelati', name: 'Pomodori pelati (barattolo)', category: 'dispensa', unit: 'g', storage: 'Dispensa; aperti in frigo 3-4 gg', shelfLife: '2-3 anni', staple: true },
+  { id: 'pomodori-pelati', name: 'Pomodori pelati (barattolo)', category: 'dispensa', unit: 'g', storage: 'Dispensa; aperti in frigo 3-4 gg', shelfLife: '2-3 anni', openedDays: 3, staple: true },
   { id: 'cetriolo', name: 'Cetriolo', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['estate'] },
   { id: 'finocchio', name: 'Finocchio', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '1 settimana', seasons: ['inverno'] },
   { id: 'lattuga', name: 'Lattuga / insalata mista', category: 'verdura', unit: 'g', storage: 'Frigo nel cassetto verdure', shelfLife: '4-5 giorni' },
@@ -75,11 +75,11 @@ export const ingredients: Ingredient[] = [
   { id: 'fesa-tacchino', name: 'Fesa di tacchino fresca (fettine, da cuocere)', category: 'proteine', unit: 'g', storage: 'Frigo 1-2 gg; appena comprata dividi le fettine in porzioni singole da ~150 g (un sacchetto gelo a porzione, schiacciato piatto) e congela: scongeli solo quella che ti serve', shelfLife: '3-4 mesi in freezer' },
 
   // ----- PESCE ---------------------------------------------------------------
-  { id: 'tonno-naturale', name: 'Tonno al naturale (scatoletta)', category: 'pesce', unit: 'g', storage: 'Dispensa; aperto in frigo 1-2 gg', shelfLife: '2-3 anni', staple: true },
-  { id: 'sgombro-naturale', name: 'Sgombro al naturale (scatoletta)', category: 'pesce', unit: 'g', storage: 'Dispensa; aperto in frigo 1-2 gg', shelfLife: '2-3 anni', staple: true },
-  { id: 'sardine-olio', name: "Sardine sott'olio o al naturale (scatoletta)", category: 'pesce', unit: 'g', storage: 'Dispensa; aperte in frigo 1-2 gg', shelfLife: '2-3 anni', staple: true },
+  { id: 'tonno-naturale', name: 'Tonno al naturale (scatoletta)', category: 'pesce', unit: 'g', storage: 'Dispensa; aperto in frigo 1-2 gg', shelfLife: '2-3 anni', openedDays: 1, staple: true },
+  { id: 'sgombro-naturale', name: 'Sgombro al naturale (scatoletta)', category: 'pesce', unit: 'g', storage: 'Dispensa; aperto in frigo 1-2 gg', shelfLife: '2-3 anni', openedDays: 1, staple: true },
+  { id: 'sardine-olio', name: "Sardine sott'olio o al naturale (scatoletta)", category: 'pesce', unit: 'g', storage: 'Dispensa; aperte in frigo 1-2 gg', shelfLife: '2-3 anni', openedDays: 1, staple: true },
   { id: 'salmone-fresco', name: 'Filetto di salmone fresco', category: 'pesce', unit: 'g', storage: 'Frigo 1 giorno; oppure congelare', shelfLife: '2-3 mesi in freezer' },
-  { id: 'salmone-affumicato', name: 'Salmone affumicato', category: 'pesce', unit: 'g', storage: 'Frigo; una volta aperto 2-3 gg', shelfLife: '2-3 settimane chiuso' },
+  { id: 'salmone-affumicato', name: 'Salmone affumicato', category: 'pesce', unit: 'g', storage: 'Frigo; una volta aperto 2-3 gg', shelfLife: '2-3 settimane chiuso', openedDays: 2 },
   { id: 'gamberetti-surgelati', name: 'Gamberetti surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '6-12 mesi', staple: true },
   // Niente staple: si traccia a grammi (scatola tipica da 360 g) così la
   // dispensa scala e la spesa propone il formato giusto.
@@ -87,14 +87,14 @@ export const ingredients: Ingredient[] = [
   { id: 'platessa-surgelata', name: 'Filetti di platessa surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '6-12 mesi' },
 
   // ----- LATTICINI -----------------------------------------------------------
-  { id: 'yogurt-greco', name: 'Yogurt greco bianco 0-2%', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
-  { id: 'yogurt-intero', name: 'Yogurt bianco intero', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
-  { id: 'skyr', name: 'Skyr (yogurt islandese)', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)' },
-  { id: 'ricotta', name: 'Ricotta (vaccina)', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni (vedi data)' },
-  { id: 'feta', name: 'Feta', category: 'latticini', unit: 'g', storage: 'Frigo nella sua salamoia', shelfLife: '1-2 settimane aperta' },
+  { id: 'yogurt-greco', name: 'Yogurt greco bianco 0-2%', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)', openedDays: 4 },
+  { id: 'yogurt-intero', name: 'Yogurt bianco intero', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)', openedDays: 4 },
+  { id: 'skyr', name: 'Skyr (yogurt islandese)', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '2-3 settimane (vedi data)', openedDays: 4 },
+  { id: 'ricotta', name: 'Ricotta (vaccina)', category: 'latticini', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni (vedi data)', openedDays: 2 },
+  { id: 'feta', name: 'Feta', category: 'latticini', unit: 'g', storage: 'Frigo nella sua salamoia', shelfLife: '1-2 settimane aperta', openedDays: 7 },
   { id: 'parmigiano', name: 'Parmigiano Reggiano', category: 'latticini', unit: 'g', storage: 'Frigo avvolto in panno o pellicola', shelfLife: '1-2 mesi', staple: true },
-  { id: 'mozzarella', name: 'Mozzarella (fior di latte)', category: 'latticini', unit: 'g', storage: 'Frigo nel suo liquido', shelfLife: 'fino alla data, aperta 1-2 gg' },
-  { id: 'latte', name: 'Latte parzialmente scremato', category: 'latticini', unit: 'ml', storage: 'Frigo (UHT in dispensa fino apertura)', shelfLife: 'UHT mesi; fresco 4-6 gg' },
+  { id: 'mozzarella', name: 'Mozzarella (fior di latte)', category: 'latticini', unit: 'g', storage: 'Frigo nel suo liquido', shelfLife: 'fino alla data, aperta 1-2 gg', openedDays: 1 },
+  { id: 'latte', name: 'Latte parzialmente scremato', category: 'latticini', unit: 'ml', storage: 'Frigo (UHT in dispensa fino apertura)', shelfLife: 'UHT mesi; fresco 4-6 gg', openedDays: 4 },
 
   // ----- CEREALI -------------------------------------------------------------
   { id: 'avena', name: 'Fiocchi di avena', category: 'cereali', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '12 mesi', staple: true },
@@ -109,13 +109,13 @@ export const ingredients: Ingredient[] = [
   { id: 'gallette-riso', name: 'Gallette di riso/mais integrali', category: 'cereali', unit: 'pz', storage: 'Dispensa, confezione richiusa', shelfLife: '6-8 mesi', staple: true },
 
   // ----- LEGUMI --------------------------------------------------------------
-  { id: 'ceci-lessati', name: 'Ceci lessati (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperti in frigo 2-3 gg', shelfLife: '2-3 anni', staple: true },
-  { id: 'fagioli-cannellini', name: 'Fagioli cannellini lessati (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperti in frigo 2-3 gg', shelfLife: '2-3 anni', staple: true },
-  { id: 'fagioli-borlotti', name: 'Fagioli borlotti lessati (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperti in frigo 2-3 gg', shelfLife: '2-3 anni', staple: true },
+  { id: 'ceci-lessati', name: 'Ceci lessati (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperti in frigo 2-3 gg', shelfLife: '2-3 anni', openedDays: 2, staple: true },
+  { id: 'fagioli-cannellini', name: 'Fagioli cannellini lessati (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperti in frigo 2-3 gg', shelfLife: '2-3 anni', openedDays: 2, staple: true },
+  { id: 'fagioli-borlotti', name: 'Fagioli borlotti lessati (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperti in frigo 2-3 gg', shelfLife: '2-3 anni', openedDays: 2, staple: true },
   { id: 'lenticchie-secche', name: 'Lenticchie rosse decorticate', category: 'legumi', unit: 'g', storage: 'Barattolo ermetico in dispensa', shelfLife: '2-3 anni', staple: true },
-  { id: 'lenticchie-lessate', name: 'Lenticchie lessate (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperte in frigo 2-3 gg', shelfLife: '2-3 anni', staple: true },
+  { id: 'lenticchie-lessate', name: 'Lenticchie lessate (barattolo)', category: 'legumi', unit: 'g', storage: 'Dispensa; aperte in frigo 2-3 gg', shelfLife: '2-3 anni', openedDays: 2, staple: true },
   { id: 'edamame-surgelati', name: 'Edamame (fave di soia) surgelati', category: 'surgelati', unit: 'g', storage: 'Freezer', shelfLife: '12 mesi' },
-  { id: 'hummus', name: 'Hummus (pronto, vaschetta)', category: 'legumi', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni aperto (vedi data)' },
+  { id: 'hummus', name: 'Hummus (pronto, vaschetta)', category: 'legumi', unit: 'g', storage: 'Frigo', shelfLife: '4-5 giorni aperto (vedi data)', openedDays: 4 },
 
   // ----- FRUTTA SECCA --------------------------------------------------------
   { id: 'noci', name: 'Noci (gherigli)', category: 'fruttaSecca', unit: 'g', storage: 'Barattolo ermetico, fresco; o frigo per lunga durata', shelfLife: '6 mesi (frigo 12)', staple: true },

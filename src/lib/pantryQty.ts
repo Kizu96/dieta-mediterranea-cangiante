@@ -92,6 +92,9 @@ export async function setMealStatusWithPantry(
       for (const ri of recipe.ingredients) {
         const row = await db.pantry.get(ri.ingredientId);
         if (row && (row.freshSince != null || row.frozen)) {
+          // Barattoli/latticini aperti: il timer resta (gli avanzi nel contenitore
+          // aperto vanno consumati entro N giorni anche se hai mangiato una porzione).
+          if (ingredientMap.get(ri.ingredientId)?.openedDays != null) continue;
           const next = { ...row, updatedAt: Date.now() };
           delete next.freshSince;
           delete next.frozen;
