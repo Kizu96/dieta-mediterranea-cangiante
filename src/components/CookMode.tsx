@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlarmClock, Check, ChefHat, Play } from 'lucide-react';
 import type { Recipe } from '../data/types';
 import { ingredientById } from '../lib/shopping';
+import { stockStatus } from '../lib/stock';
 import { scaleQty } from '../lib/intensity';
+import { StockDot } from './StockDot';
+import { useHaveSet, usePantryLevels, usePantryQty } from './usePantry';
 import { formatQty } from './labels';
 
 // ===========================================================================
@@ -67,6 +70,10 @@ export function CookMode({
   const [now, setNow] = useState(() => Date.now());
   const nextId = useRef(1);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
+  // Stato scorta per la mise en place (rosso = manca, ambra = sta per finire).
+  const haveSet = useHaveSet();
+  const qtyMap = usePantryQty();
+  const levels = usePantryLevels();
 
   // Schermo sempre acceso finché la modalità cucina è aperta.
   useEffect(() => {
@@ -252,7 +259,12 @@ export function CookMode({
                 const ing = ingredientById(ri.ingredientId);
                 return (
                   <li key={i} className="meal-row" style={{ fontSize: '1.05rem' }}>
-                    <span className="grow">{ing ? ing.name : ri.ingredientId}</span>
+                    <span className="grow">
+                      {ing && !ing.staple && (
+                        <StockDot level={stockStatus(ri.ingredientId, haveSet, qtyMap, levels)} />
+                      )}
+                      {ing ? ing.name : ri.ingredientId}
+                    </span>
                     <span className="nowrap muted">
                       {formatQty(scaleQty(ri.qty, factor))} {ri.unit}
                     </span>

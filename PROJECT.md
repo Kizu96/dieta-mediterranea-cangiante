@@ -222,12 +222,14 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   override creati) e **↺ Un'altra** (prossima migliore). Hook condiviso `components/useMealSwap.ts`
   + `components/SwapResultView.tsx` + `lib/swap.ts` (`mealsUsingIngredient`). Solo `mealOverride`,
   già sincronizzato → nessuna tabella nuova, `mealPlan.ts` intatto.
-- **Pulsante «Scambia» (Oggi)**: ora ordina con lo stesso punteggio e mostra le pill **«🧊 in
+- **Pulsante «Scambia» (Oggi)**: ora ordina con lo stesso punteggio, mette in cima e marca con
+  **★ consigliato** la migliore alternativa diversa dal pasto attuale, e mostra le pill **«🧊 in
   scadenza»** (smaltisce un deperibile) e «usa la dispensa» (surplus).
 - **Evidenziazione scorte** (`lib/stock.ts` `stockStatus` + `components/StockDot.tsx`): pallino
   🔴 rosso (`--danger`) = manca / non ne hai, 🟠 ambra (nuovo `--amber`) = ≤ 20% del pieno («sta
-  per finire», stessa soglia di QtyBar). Applicato in **Dispensa** (voci con quantità tracciata),
-  **Lista spesa** (rosso se non ne hai, ambra se ne hai poco) e **chip dei banner** Oggi/Prep.
+  per finire», stessa soglia di QtyBar). Applicato in **Dispensa**, **Lista spesa** (rosso se non
+  ne hai, ambra se ne hai poco), **chip dei banner** Oggi/Prep, e nella **lista ingredienti** di
+  `RecipeDetail` + mise en place di `CookMode` (saltati gli staple, sempre assunti disponibili).
   Solo presentazione → zero impatto dati/sincro. Palette olive/terracotta invariata.
 
 ### Migliorie giugno 2026 (8ª ondata): «Compra per il prep day»

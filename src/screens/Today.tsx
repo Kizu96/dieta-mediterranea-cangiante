@@ -199,6 +199,20 @@ export function Today({
   const [swap, setSwap] = useState<{ slot: MealSlot; current: string } | null>(null);
   // "Trova ricetta" dall'avviso frigo: ingrediente da cucinare oggi.
   const [freshSwap, setFreshSwap] = useState<Ingredient | null>(null);
+
+  // Candidate per lo scambio, ordinate col punteggio «va a male prima + abbondanza».
+  // Il «consigliato» è la migliore alternativa diversa dal pasto attuale, messa in cima.
+  const swapRanked = swap
+    ? rankReplacements(swap.slot, season, includeExtra, { surplus, perish, haveSet, qtyMap, favorites })
+    : [];
+  const swapRecommendedId = swap ? swapRanked.find((r) => r.id !== swap.current)?.id : undefined;
+  const swapOrdered =
+    swapRecommendedId == null
+      ? swapRanked
+      : [
+          ...swapRanked.filter((r) => r.id === swapRecommendedId),
+          ...swapRanked.filter((r) => r.id !== swapRecommendedId),
+        ];
   const setOverride = useCallback(
     async (slot: MealSlot, recipeId: string) => {
       await db.mealOverride.put({ date: todayISO, slot, recipeId, updatedAt: Date.now() });
@@ -714,13 +728,7 @@ export function Today({
             sta per scadere («in scadenza») o che hai in abbondanza («usa la dispensa»).
           </p>
           <ul className="clean">
-            {rankReplacements(swap.slot, season, includeExtra, {
-              surplus,
-              perish,
-              haveSet,
-              qtyMap,
-              favorites,
-            }).map((r) => (
+            {swapOrdered.map((r) => (
               <li
                 key={r.id}
                 className="meal-row"
@@ -732,6 +740,14 @@ export function Today({
               >
                 <span className="grow">
                   {r.name}
+                  {r.id === swapRecommendedId && (
+                    <span
+                      className="pill"
+                      style={{ marginLeft: 6, background: 'var(--olive)', color: '#fff', borderColor: 'var(--olive)' }}
+                    >
+                      ★ consigliato
+                    </span>
+                  )}
                   {r.id === swap.current && (
                     <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
                   )}

@@ -3,11 +3,13 @@ import { Briefcase, ChefHat, CookingPot, Heart } from 'lucide-react';
 import type { Recipe } from '../data/types';
 import { techniquesForIngredients } from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
+import { stockStatus } from '../lib/stock';
 import { scaleQty, scaleRound } from '../lib/intensity';
 import { CookMode } from './CookMode';
 import { QtyBar } from './QtyBar';
+import { StockDot } from './StockDot';
 import { useFavorites, toggleFavorite } from './useFavorites';
-import { usePantryLevels } from './usePantry';
+import { useHaveSet, usePantryLevels, usePantryQty } from './usePantry';
 import { EQUIPMENT_LABEL, SLOT_LABEL, SEASON_LABEL, formatQty } from './labels';
 
 // Dettaglio ricetta: ingredienti (qty+unità), passi numerati, macro, conservazione, tips, attrezzatura.
@@ -16,8 +18,10 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
   // Schede "come si taglia" per le sole verdure di questa ricetta (chiuse di default).
   const cutting = techniquesForIngredients(recipe.ingredients.map((ri) => ri.ingredientId));
   const [showCutting, setShowCutting] = useState(false);
-  // Barra di quantità per gli ingredienti di cui la dispensa tiene il conto.
+  // Barra di quantità + stato scorta (rosso = manca, ambra = sta per finire).
   const levels = usePantryLevels();
+  const haveSet = useHaveSet();
+  const qtyMap = usePantryQty();
   const [cooking, setCooking] = useState(false);
   // Preferita (cuore): nello "scambia pasto" le preferite salgono in cima.
   const favorites = useFavorites();
@@ -86,7 +90,12 @@ export function RecipeDetail({ recipe, factor = 1 }: { recipe: Recipe; factor?: 
           return (
             <li key={i} className="meal-row" style={{ display: 'block' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span className="grow">{ing ? ing.name : ri.ingredientId}</span>
+                <span className="grow">
+                  {ing && !ing.staple && (
+                    <StockDot level={stockStatus(ri.ingredientId, haveSet, qtyMap, levels)} />
+                  )}
+                  {ing ? ing.name : ri.ingredientId}
+                </span>
                 <span className="nowrap muted">
                   {formatQty(scaleQty(ri.qty, factor))} {ri.unit}
                   {ri.note ? ` · ${ri.note}` : ''}
