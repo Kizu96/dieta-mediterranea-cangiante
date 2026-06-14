@@ -1,4 +1,4 @@
-import type { Category, Ingredient, Recipe, Season } from '../data/types';
+import type { Category, Ingredient, MealSlot, Recipe, Season } from '../data/types';
 import { ingredients } from '../data/ingredients';
 import { recipes } from '../data/recipes';
 import { addDays, getRecipesForDate, type OverrideMap } from './planning';
@@ -143,32 +143,42 @@ export function makeableRecipes(haveSet: Set<string>, season?: Season): Recipe[]
   });
 }
 
-/** Ingredienti mancanti per i pasti di una certa data (guida le notifiche "compra per domani"). */
-export function missingForDate(
+/**
+ * Ingredienti mancanti per i pasti di un intervallo di `days` giorni a partire da
+ * `start`. Con `slot` si limita a un singolo pasto (es. solo i pranzi → "spesa per
+ * il prep day"). Il fabbisogno è aggregato su tutto l'intervallo e confrontato una
+ * volta con la dispensa.
+ */
+export function missingForRange(
   haveSet: Set<string>,
-  date: Date,
+  start: Date,
+  days: number,
   season: Season,
   includeExtra = true,
   overrides?: OverrideMap,
   qtyMap?: QtyMap,
   factor = 1,
+  slot?: MealSlot,
 ): Ingredient[] {
-  const meals = getRecipesForDate(date, season, includeExtra, overrides);
-  // Fabbisogno aggregato del giorno (serve per confrontare con le quantità reali).
+  // Fabbisogno aggregato del periodo (serve per confrontare con le quantità reali).
   const needed = new Map<string, { ing: Ingredient; qty: number; sameUnit: boolean }>();
-  for (const { recipe } of meals) {
-    for (const ri of recipe.ingredients) {
-      const ing = ingredientMap.get(ri.ingredientId);
-      if (!ing) continue;
-      // Gli ingredienti opzionali non sono obbligatori da comprare.
-      if (ri.note && /opzional/i.test(ri.note)) continue;
-      const prev = needed.get(ing.id);
-      const sameUnit = ri.unit === ing.unit;
-      if (prev) {
-        prev.qty += sameUnit ? ri.qty : 0;
-        prev.sameUnit = prev.sameUnit && sameUnit;
-      } else {
-        needed.set(ing.id, { ing, qty: sameUnit ? ri.qty : 0, sameUnit });
+  for (let i = 0; i < days; i++) {
+    const meals = getRecipesForDate(addDays(start, i), season, includeExtra, overrides);
+    for (const m of meals) {
+      if (slot && m.slot !== slot) continue;
+      for (const ri of m.recipe.ingredients) {
+        const ing = ingredientMap.get(ri.ingredientId);
+        if (!ing) continue;
+        // Gli ingredienti opzionali non sono obbligatori da comprare.
+        if (ri.note && /opzional/i.test(ri.note)) continue;
+        const prev = needed.get(ing.id);
+        const sameUnit = ri.unit === ing.unit;
+        if (prev) {
+          prev.qty += sameUnit ? ri.qty : 0;
+          prev.sameUnit = prev.sameUnit && sameUnit;
+        } else {
+          needed.set(ing.id, { ing, qty: sameUnit ? ri.qty : 0, sameUnit });
+        }
       }
     }
   }
@@ -186,6 +196,19 @@ export function missingForDate(
     }
   }
   return missing;
+}
+
+/** Ingredienti mancanti per i pasti di una certa data (guida le notifiche "compra per domani"). */
+export function missingForDate(
+  haveSet: Set<string>,
+  date: Date,
+  season: Season,
+  includeExtra = true,
+  overrides?: OverrideMap,
+  qtyMap?: QtyMap,
+  factor = 1,
+): Ingredient[] {
+  return missingForRange(haveSet, date, 1, season, includeExtra, overrides, qtyMap, factor);
 }
 
 /**

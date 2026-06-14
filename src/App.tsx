@@ -194,7 +194,15 @@ function App() {
             />
           )}
           {view === 'piano' && <Plan season={season} />}
-          {view === 'prep' && <Prep season={season} />}
+          {view === 'prep' && (
+            <Prep
+              season={season}
+              onGoShopping={() => {
+                setSpesaDomani(false); // per il prep serve la lista completa, non solo domani
+                setView('spesa');
+              }}
+            />
+          )}
           {view === 'ricette' && <Recipes season={season} />}
           {view === 'dispensa' && <Pantry season={season} />}
           {view === 'spesa' && <Shopping season={season} focusTomorrow={spesaDomani} />}

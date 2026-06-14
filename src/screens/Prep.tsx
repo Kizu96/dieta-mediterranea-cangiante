@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ChefHat, Package, Snowflake, Timer } from 'lucide-react';
+import { ChefHat, Package, ShoppingCart, Snowflake, Timer } from 'lucide-react';
 import type { Season } from '../data/types';
 import { db } from '../db/db';
 import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
+import { missingForRange } from '../lib/shopping';
 import { PREP_WEEK_SLOT, prepAdvice, setPrepWeek } from '../lib/prep';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { RecipeDetail } from '../components/RecipeDetail';
+import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
@@ -20,9 +22,17 @@ const DAY_LABEL = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven'];
 // fatto») e, per ogni giorno, la ricetta completa visualizzata in dettaglio
 // direttamente nella pagina — ingredienti, tagli, passi, conservazione — così
 // durante la sessione di cucina non serve aprire nulla.
-export function Prep({ season }: { season: Season }) {
+export function Prep({
+  season,
+  onGoShopping,
+}: {
+  season: Season;
+  onGoShopping: () => void;
+}) {
   const { factor } = useIntensity();
   const { includeExtra } = useExtraRecipes();
+  const haveSet = useHaveSet();
+  const qtyMap = usePantryQty();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
 
@@ -58,13 +68,21 @@ export function Prep({ season }: { season: Season }) {
     return { date: d, meal };
   });
 
+  // Cosa manca per cucinare i 5 pranzi della settimana (solo lo slot pranzo,
+  // confrontato con la dispensa). Stesso identico avviso del banner "Compra per
+  // domani" di Oggi, qui mirato alla sessione di prep.
+  const prepMissing = useMemo(
+    () => missingForRange(haveSet, monday, 5, season, includeExtra, overrides, qtyMap, factor, 'pranzo'),
+    [haveSet, monday, season, includeExtra, overrides, qtyMap, factor],
+  );
+
   return (
     <div>
       <Card title={`Settimana del ${formatShortDate(monday)}`} icon={<ChefHat />}>
         <p className="small muted" style={{ marginTop: -4 }}>
           La domenica prepari in una sola sessione i 5 pranzi da ufficio Lun–Ven. Qui sotto
           trovi ogni ricetta già aperta nel dettaglio, con il verdetto frigo/freezer per ogni
-          giorno. Gli ingredienti sono già conteggiati nella Lista spesa (modalità 7 giorni).
+          giorno. Se manca qualcosa per i 5 pranzi te lo segnalo qui sotto, come fa «Oggi».
         </p>
         <ul className="clean">
           <CheckRow
@@ -75,6 +93,18 @@ export function Prep({ season }: { season: Season }) {
           />
         </ul>
       </Card>
+
+      {prepMissing.length > 0 && (
+        <div className="banner warn">
+          <b><ShoppingCart size={15} className="ic" /> Compra per il prep day:</b>{' '}
+          {prepMissing.map((m) => m.name).join(', ')}.
+          <div style={{ marginTop: 10 }}>
+            <button className="btn terracotta" onClick={onGoShopping}>
+              Apri lista spesa
+            </button>
+          </div>
+        </div>
+      )}
 
       <Card title="Come organizzare la sessione" icon={<Timer />}>
         <ol className="steps">

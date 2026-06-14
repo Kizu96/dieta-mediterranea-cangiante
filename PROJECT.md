@@ -209,6 +209,16 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (8ª ondata): «Compra per il prep day»
+- **Avviso spesa sul Prep day** (`Prep.tsx`): banner identico al «Compra per domani» di Oggi, ma
+  mirato ai **soli 5 pranzi** della settimana del prep (slot `pranzo`, Lun–Ven). Elenca gli
+  ingredienti mancanti vs dispensa e ha il bottone «Apri lista spesa». Compare solo se manca
+  qualcosa (come in Oggi). `App` passa `onGoShopping` a `Prep` (apre la Spesa, lista completa).
+- **`missingForRange`** (`shopping.ts`): generalizzazione di `missingForDate` su un intervallo di
+  giorni + filtro `slot` opzionale; il fabbisogno è aggregato sul periodo e confrontato una volta
+  con la dispensa (stessa tolleranza 10%/15 g). `missingForDate` ora delega a `missingForRange`
+  (singolo giorno, tutti gli slot) → un solo percorso di codice. Nessuna tabella nuova → sincro invariata.
+
 ### Migliorie giugno 2026 (7ª ondata): ricette extra sempre attive + sincro affidabile
 - **Ricette extra sempre incluse** (l'utente ha comprato il frullatore): tolto il toggle da
   Impostazioni; `useExtraRecipes()` ora ritorna sempre `includeExtra: true` (ignora anche un
