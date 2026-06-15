@@ -90,8 +90,14 @@ export function Pantry({ season }: { season: Season }) {
     }));
   }, [q]);
 
-  // Segna tutti gli staple come disponibili.
+  // Segna tutti gli staple come disponibili (con conferma: tocca molti ingredienti in un colpo).
   const markStaples = async () => {
+    if (
+      !confirm(
+        'Segnare TUTTI gli essenziali come disponibili in dispensa?\n\nSovrascrive lo stato attuale di tutti gli ingredienti base (li mette come «in casa»).',
+      )
+    )
+      return;
     const now = Date.now();
     await db.pantry.bulkPut(
       ingredients
