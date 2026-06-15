@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlarmClock, Check, ChefHat, Play } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlarmClock, Check, ChefHat, Play, Utensils } from 'lucide-react';
 import type { Recipe } from '../data/types';
+import { KNIFE_BASICS, techniquesForIngredients } from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
 import { stockStatus } from '../lib/stock';
 import { scaleQty } from '../lib/intensity';
@@ -128,18 +129,36 @@ export function CookMode({
     setTimers((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const steps = recipe.steps;
-  const stepMinutes = step >= 0 ? minutesInStep(steps[step]) : null;
-  const stepLabel = `Passo ${step + 1}`;
-  // Un timer per passo: se è già attivo per QUESTO passo, niente doppioni.
-  const stepTimerRunning = timers.some((t) => t.label === stepLabel && !t.done);
+  // Fasi della modalità cucina: prima la PREPARAZIONE (sicurezza col coltello +
+  // come tagliare ogni verdura della ricetta, presa dalla guida tagli), poi i
+  // passi di cottura veri e propri. Le ricette senza verdure da tagliare partono
+  // direttamente dai passi (nessuna fase di preparazione).
+  const phases = useMemo(() => {
+    const prep: { kind: 'prep'; title: string; text: string }[] = [];
+    const techniques = techniquesForIngredients(recipe.ingredients.map((ri) => ri.ingredientId));
+    if (techniques.length > 0) {
+      prep.push({ kind: 'prep', title: 'Coltello in sicurezza', text: KNIFE_BASICS });
+      for (const t of techniques) {
+        prep.push({ kind: 'prep', title: `Come tagliare: ${t.title}`, text: t.how });
+      }
+    }
+    const cook = recipe.steps.map((text, i) => ({ kind: 'cook' as const, n: i + 1, text }));
+    return [...prep, ...cook];
+  }, [recipe]);
+
+  const cookCount = recipe.steps.length;
+  const current = step >= 0 ? phases[step] : null;
+  const stepMinutes = current?.kind === 'cook' ? minutesInStep(current.text) : null;
+  const stepLabel = current?.kind === 'cook' ? `Passo ${current.n}` : '';
+  // Un timer per passo di cottura: se è già attivo per QUESTO passo, niente doppioni.
+  const stepTimerRunning = stepLabel !== '' && timers.some((t) => t.label === stepLabel && !t.done);
 
   const fmt = (ms: number) => {
     const s = Math.max(0, Math.ceil(ms / 1000));
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   };
 
-  const progressPct = step >= 0 ? Math.round(((step + 1) / steps.length) * 100) : 0;
+  const progressPct = step >= 0 ? Math.round(((step + 1) / phases.length) * 100) : 0;
 
   return (
     <div
@@ -273,13 +292,23 @@ export function CookMode({
               })}
             </ul>
           </>
+        ) : current?.kind === 'prep' ? (
+          <>
+            <span className="pill terracotta" style={{ marginBottom: 10 }}>
+              <Utensils size={13} className="ic" /> Preparazione
+            </span>
+            <h3 style={{ margin: '10px 0 0', fontSize: '1.15rem' }}>{current.title}</h3>
+            <p style={{ fontSize: '1.2rem', lineHeight: 1.6, fontWeight: 500, marginTop: 8 }}>
+              {current.text}
+            </p>
+          </>
         ) : (
           <>
             <span className="pill olive" style={{ marginBottom: 10 }}>
-              Passo {step + 1} di {steps.length}
+              Passo {current?.kind === 'cook' ? current.n : step + 1} di {cookCount}
             </span>
             <p style={{ fontSize: '1.35rem', lineHeight: 1.5, fontWeight: 500, marginTop: 10 }}>
-              {steps[step]}
+              {current?.text}
             </p>
             {stepMinutes != null && (
               <button
@@ -290,8 +319,8 @@ export function CookMode({
               >
                 <Play size={16} className="ic" />{' '}
                 {stepTimerRunning
-                  ? `Timer del passo ${step + 1} già attivo`
-                  : `Avvia timer ${stepMinutes} min (passo ${step + 1})`}
+                  ? `Timer del ${stepLabel.toLowerCase()} già attivo`
+                  : `Avvia timer ${stepMinutes} min (${stepLabel.toLowerCase()})`}
               </button>
             )}
           </>
@@ -317,7 +346,7 @@ export function CookMode({
         >
           ‹ Indietro
         </button>
-        {step < steps.length - 1 ? (
+        {step < phases.length - 1 ? (
           <button
             className="btn"
             style={{ flex: 2, minHeight: 52, fontSize: '1.05rem' }}

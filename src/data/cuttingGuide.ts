@@ -142,6 +142,70 @@ export const cuttingTechniques: CuttingTechnique[] = [
       'con 4 pezzi senza semi e il torsolo da buttare, senza scavare. Appoggia ogni pezzo sul ' +
       'lato piatto e taglia a fette o cubetti.',
   },
+  {
+    ingredientIds: ['cipollotto'],
+    title: 'Cipollotto',
+    how:
+      'Togli la radichetta e la prima guaina esterna se è rovinata; lava bene anche tra gli ' +
+      'strati. Si usa tutto, bianco e verde. Appoggialo disteso e affetta a rondelle sottili. ' +
+      'Tieni da parte la parte verde più tenera: aggiunta cruda a fine cottura resta fresca e ' +
+      'profumata, come una guarnizione.',
+  },
+  {
+    ingredientIds: ['melanzane'],
+    title: 'Melanzana',
+    how:
+      'Spunta le due estremità. La buccia si può tenere (aiuta il cubo a non sfaldarsi). Per i ' +
+      'cubi: taglia fette spesse ~2 cm, impilale a 2-3 per volta, falle a strisce e poi a cubi. ' +
+      'Se la ricetta lo chiede, dopo il taglio metti i cubi in uno scolapasta con un pizzico di ' +
+      'sale 10-15 minuti e tampona l\'acqua che esce: così assorbono meno olio e cuociono meglio.',
+  },
+  {
+    ingredientIds: ['cavolo-cappuccio', 'verza'],
+    title: 'Cavolo cappuccio e verza',
+    how:
+      'Togli le foglie esterne rovinate. Taglia la palla a metà passando per il centro, poi ' +
+      'ancora a metà: ottieni 4 spicchi. Da ogni spicchio taglia via in diagonale il torsolo ' +
+      'bianco duro alla base (un taglio a V). Appoggia lo spicchio sul lato piatto e affetta a ' +
+      'striscioline sottili (a nastro). Lava le striscioline in una ciotola d\'acqua e scolale.',
+  },
+  {
+    ingredientIds: ['patata-dolce'],
+    title: 'Patata dolce',
+    how:
+      'È dura e rotola, quindi attenzione. Lavala bene (la buccia si può tenere) e taglia prima ' +
+      'una fettina per il lungo, poi appoggiala su quel lato piatto. Taglia fette spesse ~2 cm, ' +
+      'impilale, fai le strisce e poi i cubi della misura della ricetta. Usa il coltello grande ' +
+      'e vai piano: sulle verdure dure la fretta è l\'unico vero pericolo.',
+  },
+  {
+    ingredientIds: ['zenzero'],
+    title: 'Zenzero',
+    how:
+      'Pela solo il pezzo che ti serve: raschia via la buccia sottile con il bordo di un ' +
+      'cucchiaino (entra negli incavi e spreca poco). Poi grattugialo con una grattugia fine ' +
+      'direttamente nel piatto, oppure affettalo sottile e tritalo. Il resto della radice si ' +
+      'conserva in freezer e si grattugia comodamente da congelato.',
+  },
+  {
+    ingredientIds: ['arancia', 'mandarino'],
+    title: 'Arancia a vivo (e mandarino)',
+    how:
+      'Per pelare "a vivo", senza pellicine: taglia una calotta sopra e una sotto, così sta ' +
+      'dritta sul tagliere. Segui la curva del frutto col coltello dall\'alto in basso e togli ' +
+      'buccia e pellicina bianca tutt\'intorno. Poi affetta a rondelle o a cubotti, raccogliendo ' +
+      'in una ciotola il succo che cola. Il mandarino di solito basta sbucciarlo a mano e ' +
+      'dividerlo a spicchi.',
+  },
+  {
+    ingredientIds: ['anguria', 'melone'],
+    title: 'Anguria e melone',
+    how:
+      'Taglia una fetta alle due estremità per avere due basi piatte. Mettilo in piedi e taglia ' +
+      'via la buccia dall\'alto verso il basso seguendo la curva. Il melone prima dividilo a ' +
+      'metà e leva i semi al centro con un cucchiaio. Poi taglia a fette e a cubi. Dall\'anguria ' +
+      'togli i semi neri man mano (quelli bianchi sono morbidi e restano).',
+  },
 ];
 
 /** Tecniche pertinenti per una lista di ingredienti (ordine stabile della guida). */
