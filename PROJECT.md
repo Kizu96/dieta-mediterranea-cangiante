@@ -224,8 +224,17 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   senza forno, dosate per 1, con kcal/macro, `office` dove trasportabili.
 - **Varietà «finisci il prodotto»:** `planFinishSwaps` ora deduplica le ricette tra i giorni della
   finestra (`usedRecipeIds`) → non ripropone lo stesso piatto. Vedi [[everything-connected]].
-- **Restano scoperti** (prossima ondata, frutta/fermentati per lo più consumati a sé): pera,
-  mandarino, pesca, anguria, melone, salmone affumicato, yogurt intero, mozzarella, hummus, crauti, kimchi.
+- **Seguito nella 13ª ondata.**
+
+### Migliorie giugno 2026 (13ª ondata): ricette per i freschi che l'utente mangia ma non coperti
+- L'utente conferma di mangiare pera, mandarino, anguria, melone, salmone affumicato, yogurt intero,
+  mozzarella, hummus, crauti, kimchi (**la pesca no**, non come frutto intero → lasciata scoperta).
+- **+8 ricette** (ora **60** totali): pane integrale con salmone affumicato/skyr/cetriolo; yogurt
+  intero con avena-pera-noci; insalata anguria-feta-cetriolo; melone e mozzarella con basilico;
+  insalata rucola-mandarino-noci; pane con hummus, verdure e germogli; riso saltato al kimchi con
+  uovo; bowl tiepida patata dolce-crauti-uovo. Coperti per la prima volta tutti i 10 ingredienti
+  sopra + semi di zucca. Stagioni coerenti (pera/mandarino inverno; anguria/melone estate).
+- Ora **l'unico fresco non-staple a 0 ricette è `pesca`** — voluto. Vedi [[recipe-coverage]].
 
 ### Migliorie giugno 2026 (11ª ondata): prep day = menù dedicato + prodotto aperto che ADATTA il piano
 - **Il prep day ha un MENÙ SUO** (`src/data/prepMenu.ts`, `PREP_MENU`), non più i pranzi del piano
