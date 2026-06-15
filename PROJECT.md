@@ -209,6 +209,24 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   ricetta: bottone «🔪 Come tagliare» con le sole verdure della ricetta.
 - **Giorni passati:** in Piano → Giorno si può segnare Mangiato/Metà/Saltato per oggi e i
   giorni precedenti (stessa logica dispensa); componente condiviso `MealStatusButtons`.
+### Migliorie giugno 2026 (12ª ondata): copertura ricette per gli ortaggi/freschi poco usati
+- **Problema (utente):** alcuni ingredienti acquistabili avevano 0-1 ricetta → comprando **sedano e
+  finocchio** non c'era nulla che li usasse davvero, e «finisci il prodotto aperto» riproponeva
+  sempre la stessa ricetta. Audit: su 111 ingredienti, **30 a 0 ricette, 27 a 1** (45 ricette totali).
+- **Niente scorciatoie:** scartata l'idea di «ingredienti intercambiabili» (cannellini al posto dei
+  ceci); il vero fix è **aggiungere e migliorare ricette reali**. Vedi [[recipe-coverage]].
+- **+7 ricette vere** in `recipes.ts` (ora **52**), con **finocchio e sedano da protagonisti** in
+  quantità che finiscono un bulbo/mazzo intero: insalata finocchio-arancia-tonno-cannellini;
+  finocchi brasati con uova; insalata sedano-mela-noci allo skyr; caponata melanzane+ceci;
+  riso saltato cavolo cappuccio+gamberetti; verza+borlotti in umido (congelabile); patata dolce+ceci
+  speziati in friggitrice. Coperti per la prima volta: melanzane, cavolo cappuccio, verza, patata
+  dolce, skyr, uvetta, semi di girasole; raddoppiati cannellini/borlotti/arancia. Tutte beginner-step,
+  senza forno, dosate per 1, con kcal/macro, `office` dove trasportabili.
+- **Varietà «finisci il prodotto»:** `planFinishSwaps` ora deduplica le ricette tra i giorni della
+  finestra (`usedRecipeIds`) → non ripropone lo stesso piatto. Vedi [[everything-connected]].
+- **Restano scoperti** (prossima ondata, frutta/fermentati per lo più consumati a sé): pera,
+  mandarino, pesca, anguria, melone, salmone affumicato, yogurt intero, mozzarella, hummus, crauti, kimchi.
+
 ### Migliorie giugno 2026 (11ª ondata): prep day = menù dedicato + prodotto aperto che ADATTA il piano
 - **Il prep day ha un MENÙ SUO** (`src/data/prepMenu.ts`, `PREP_MENU`), non più i pranzi del piano
   stagionale riordinati: 5 pranzi scelti per durare la settimana — **Lun-Mar dal frigo, Mer-Ven

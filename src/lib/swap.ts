@@ -132,6 +132,7 @@ export function planFinishSwaps(
 ): { picks: FinishPick[]; alreadyUsed: boolean } {
   const picks: FinishPick[] = [];
   let alreadyUsed = false; // qualche giorno della finestra usa già il prodotto
+  const usedRecipeIds = new Set<string>(); // varietà: non riproporre la stessa ricetta nei vari giorni
   for (let i = 1; i <= windowDays && picks.length < maxMeals; i++) {
     const d = addDays(start, i);
     const iso = toISODate(d);
@@ -147,9 +148,10 @@ export function planFinishSwaps(
       if (!cur) continue;
       const cand = rankReplacements(slot, season, includeExtra, ctx, {
         requireIngredientId: ingredientId,
-        excludeRecipeIds: new Set([cur.recipe.id]),
+        excludeRecipeIds: new Set([cur.recipe.id, ...usedRecipeIds]),
       })[0];
       if (cand) {
+        usedRecipeIds.add(cand.id);
         picks.push({ dateISO: iso, slot, prev: overrides?.get(`${iso}|${slot}`) ?? null, recipe: cand });
         break;
       }
