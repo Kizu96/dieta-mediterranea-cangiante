@@ -66,7 +66,7 @@ export const recipes: Recipe[] = [
       'Al mattino mescola di nuovo: dev’essere denso e cremoso. Completa con l’altra metà mela a cubetti e mangia freddo.',
     ],
     storage: 'Si conserva in frigo fino a 3 giorni: ottimo da preparare in batch la domenica.',
-    tags: ['fibre', 'polifenoli', 'anti-insulina'],
+    tags: ['fibre', 'polifenoli'],
   },
   {
     id: 'colazione-frittata-microonde',
@@ -701,7 +701,7 @@ export const recipes: Recipe[] = [
     ],
     storage: 'Consumare subito; il salmone avanzato si conserva in frigo 1 giorno.',
     tips: 'In estate puoi sostituire il broccolo con zucchine a rondelle (cuociono in 8 min).',
-    tags: ['omega3', 'proteine', 'anti-insulina'],
+    tags: ['omega3', 'proteine'],
   },
   {
     id: 'cena-merluzzo-pomodoro',
@@ -760,7 +760,7 @@ export const recipes: Recipe[] = [
       'Pronto quando il pollo è dorato fuori e bianco dentro: taglia il pezzo più grosso, non deve esserci parte rosa né liquido rosato. Se serve, prosegui 2-3 minuti.',
     ],
     storage: 'In frigo 2 giorni: ottimo da riscaldare o da mangiare freddo a pranzo.',
-    tags: ['proteine', 'anti-insulina'],
+    tags: ['proteine'],
   },
   {
     id: 'cena-frittata-zucchine',
@@ -940,7 +940,7 @@ export const recipes: Recipe[] = [
       'Diluisci il tahin con il succo di limone e 1-2 cucchiai d’acqua fino a una salsa fluida. Servi cavolfiore e uova con la salsina sopra.',
     ],
     storage: 'Il cavolfiore si conserva in frigo 2 giorni; le uova sode fino a 3 giorni.',
-    tags: ['proteine', 'fibre', 'anti-insulina'],
+    tags: ['proteine', 'fibre'],
   },
 
   // ===========================================================================
@@ -1326,7 +1326,7 @@ export const recipes: Recipe[] = [
       'Cuoci a fuoco medio-basso 3-4 minuti finché la base è soda; gira con l’aiuto di un piatto e cuoci l’altro lato 2-3 minuti.',
     ],
     storage: 'In frigo 1-2 giorni; buona anche fredda da portar via.',
-    tags: ['proteine', 'anti-insulina'],
+    tags: ['proteine'],
   },
   {
     id: 'spuntino-kefir-frutti-semi',
@@ -1423,7 +1423,7 @@ export const recipes: Recipe[] = [
       'Spegni, cospargi col parmigiano grattugiato e il prezzemolo (o i ciuffi del finocchio tritati): il calore scioglie il formaggio.',
     ],
     storage: 'Consumare subito. I finocchi brasati (senza uovo) si tengono in frigo 2 giorni e si riscaldano in padella.',
-    tags: ['anti-insulina', 'proteine'],
+    tags: ['proteine'],
   },
   {
     id: 'pranzo-sedano-mela-noci',
