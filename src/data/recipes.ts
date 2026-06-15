@@ -1628,7 +1628,7 @@ export const recipes: Recipe[] = [
       'Completa con pepe e una grattata di scorza di limone. Mangia subito perché il pane resti croccante.',
     ],
     storage: 'Da consumare al momento; il salmone affumicato aperto va tenuto in frigo e finito entro 2 giorni.',
-    tips: 'Il salmone affumicato è salato e «lavorato» (≈600-1200 mg di sodio per 100 g, contro ~75 del salmone fresco): ottimo ogni tanto per gli omega-3, ma non tutti i giorni. Nei giorni in cui lo usi, vai leggero col sale nel resto dei pasti.',
+    tips: 'Il salmone affumicato è pesce conservato sotto sale, molto più salato del fresco. L’OMS e le linee guida italiane consigliano max 5 g di sale (~2 g di sodio) al giorno, e il sodio «nascosto» nei cibi conservati pesa su cuore e reni: usalo ogni tanto per gli omega-3, non tutti i giorni, e quel giorno vai leggero col sale negli altri pasti.',
     tags: ['omega3', 'proteine'],
   },
   {
@@ -1688,7 +1688,8 @@ export const recipes: Recipe[] = [
       'Condisci con una spruzzata di limone e una macinata di pepe. Niente sale: la feta sala già. Servi fredda.',
     ],
     storage: 'Meglio appena fatta; in frigo regge qualche ora ma l’anguria rilascia acqua.',
-    tags: ['latticini', 'polifenoli'],
+    tips: 'Anguria fresca, dissetante e ipocalorica: l’indice glicemico è alto ma il carico glicemico resta basso (è quasi tutta acqua). Però ha meno polifenoli e fitocomposti protettivi di altra frutta — tienila come opzione occasionale e alternala con frutta più «protettiva» come uva nera, agrumi o mela.',
+    tags: ['latticini'],
   },
   {
     id: 'cena-melone-mozzarella',
@@ -1717,6 +1718,7 @@ export const recipes: Recipe[] = [
       'Servi con il pane integrale, anche tostato, per fare scarpetta.',
     ],
     storage: 'Da consumare subito: la mozzarella aperta va finita entro 1-2 giorni.',
+    tips: 'Come l’anguria, il melone è leggero e idratante ma povero di polifenoli rispetto ad altra frutta. La mozzarella porta grassi saturi: questa porzione (80 g) va bene ogni tanto, non tutti i giorni. Alterna con frutta più ricca di polifenoli e con proteine più magre.',
     tags: ['latticini', 'proteine'],
   },
   {
