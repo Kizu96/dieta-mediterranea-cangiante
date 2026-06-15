@@ -193,6 +193,7 @@ export function startAutoSync(): void {
     db.sprouts,
     db.customShopping,
     db.favorites,
+    db.mealSide,
   ] as Table[];
   const onChange = () => requestSync();
   for (const t of tables) {

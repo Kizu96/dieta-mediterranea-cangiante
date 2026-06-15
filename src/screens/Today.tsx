@@ -33,6 +33,7 @@ import {
   usesSurplus,
 } from '../lib/swap';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
+import { essentialCoverage, leafyFillSuggestion } from '../lib/essentialsCoverage';
 import {
   dismissFreshness,
   freshnessAlerts,
@@ -220,6 +221,30 @@ export function Today({
     },
     [todayISO],
   );
+
+  // --- Pilastri agganciati ai pasti: cosa coprono già i pasti di oggi, e
+  // "aggiunte" (mealSide) per integrare un pilastro mancante (verdura a foglia) ---
+  const sideRows = useLiveQuery(() => db.mealSide.where('date').equals(todayISO).toArray(), [todayISO], []);
+  const sides = useMemo(() => sideRows ?? [], [sideRows]);
+  const coverage = useMemo(() => essentialCoverage(meals, sides), [meals, sides]);
+  const leafyFill = useMemo(() => leafyFillSuggestion(season, meals), [season, meals]);
+
+  const addLeafySide = useCallback(async () => {
+    await db.mealSide.put({
+      date: todayISO,
+      ingredientId: leafyFill.ingredientId,
+      slot: leafyFill.slot,
+      qty: leafyFill.qty,
+      essentialId: 'verde-foglia',
+      updatedAt: Date.now(),
+    });
+  }, [todayISO, leafyFill]);
+
+  const removeLeafySide = useCallback(async () => {
+    for (const s of sides) {
+      if (s.essentialId === 'verde-foglia') await db.mealSide.delete([s.date, s.ingredientId]);
+    }
+  }, [sides]);
 
   // --- Scambia pasto: sostituzione del pasto del piano solo per oggi ---
   const [swap, setSwap] = useState<{ slot: MealSlot; current: string } | null>(null);
@@ -633,20 +658,75 @@ export function Today({
 
       <Card title="Pilastri quotidiani" icon={<ListChecks />}>
         <p className="small muted" style={{ marginTop: -4 }}>
-          Cibi-chiave anti-grasso viscerale da assumere <b>ogni giorno</b>. Molti sono già
-          inclusi nei pasti qui sopra: spunta qui per essere sicuro di non saltarli.
+          Cibi-chiave anti-grasso viscerale da assumere <b>ogni giorno</b>. Quelli già presenti
+          nei pasti di oggi sono segnati come <b>coperti</b>: ti resta da completare solo il resto.
         </p>
-        <ul className="clean">
-          {dailyEssentials.map((e) => (
-            <CheckRow
-              key={e.id}
-              checked={doneSet.has(e.id)}
-              title={e.name}
-              detail={e.detail}
-              onToggle={() => toggleEssential(e.id)}
-            />
-          ))}
-        </ul>
+        {(() => {
+          const covered = dailyEssentials.filter((e) => coverage.get(e.id)?.covered);
+          const todo = dailyEssentials.filter((e) => !coverage.get(e.id)?.covered);
+          const leafyCov = coverage.get('verde-foglia');
+          const leafyMissing = leafyCov && !leafyCov.covered;
+          const slotsLabel = (slots: MealSlot[]) => slots.map((s) => SLOT_LABEL[s]).join(' · ');
+          return (
+            <>
+              {covered.length > 0 && (
+                <>
+                  <p className="small" style={{ margin: '12px 0 2px', fontWeight: 700, color: 'var(--olive-dark)' }}>
+                    Già nei pasti di oggi
+                  </p>
+                  <ul className="clean">
+                    {covered.map((e) => {
+                      const c = coverage.get(e.id)!;
+                      const where = c.viaSide ? `Aggiunta · ${slotsLabel(c.slots)}` : slotsLabel(c.slots);
+                      return (
+                        <li key={e.id} className="meal-row" style={{ alignItems: 'flex-start' }}>
+                          <span className="check-box" aria-hidden="true" style={{ background: 'var(--olive)', marginTop: 2 }}>✓</span>
+                          <span className="grow" style={{ minWidth: 0 }}>
+                            <span style={{ fontWeight: 600 }}>{e.name}</span>
+                            <span className="small muted" style={{ display: 'block' }}>{where}</span>
+                          </span>
+                          {c.viaSide && (
+                            <button className="btn ghost" style={{ minHeight: 32, flex: '0 0 auto' }} onClick={removeLeafySide}>
+                              Annulla
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
+              )}
+
+              <p className="small" style={{ margin: '14px 0 2px', fontWeight: 700 }}>Da completare oggi</p>
+              {leafyMissing && (
+                <div className="banner warn" style={{ marginBottom: 8 }}>
+                  <b>Verdura a foglia:</b> oggi i pasti non la includono.
+                  <div className="small" style={{ margin: '4px 0 8px' }}>
+                    Aggiungine ~{leafyFill.qty} g di{' '}
+                    <b>{ingredientById(leafyFill.ingredientId)?.name ?? leafyFill.ingredientId}</b> al{' '}
+                    {SLOT_LABEL[leafyFill.slot]} (cruda, con un filo d’olio EVO).
+                  </div>
+                  <button className="btn" style={{ minHeight: 38 }} onClick={addLeafySide}>
+                    + Aggiungi al {SLOT_LABEL[leafyFill.slot]}
+                  </button>
+                </div>
+              )}
+              <ul className="clean">
+                {todo
+                  .filter((e) => e.id !== 'verde-foglia')
+                  .map((e) => (
+                    <CheckRow
+                      key={e.id}
+                      checked={doneSet.has(e.id)}
+                      title={e.name}
+                      detail={e.detail}
+                      onToggle={() => toggleEssential(e.id)}
+                    />
+                  ))}
+              </ul>
+            </>
+          );
+        })()}
       </Card>
 
       <SproutsCard />

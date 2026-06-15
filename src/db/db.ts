@@ -94,6 +94,18 @@ export interface MealOverride {
   updatedAt?: number; // per la fusione in sincronizzazione
 }
 
+// "Aggiunta" a un pasto del giorno per coprire un pilastro quotidiano che il
+// piano non includeva (es. una manciata di verdura a foglia). Collega lo stato
+// dei pilastri al piano vero e proprio (vedi everything-connected).
+export interface MealSide {
+  date: string; // ISO yyyy-mm-dd
+  ingredientId: string;
+  slot: MealSlot; // pasto a cui è aggiunta
+  qty: number; // quantità nell'unità dell'ingrediente (g)
+  essentialId?: string; // pilastro che soddisfa (es. 'verde-foglia')
+  updatedAt?: number; // per la fusione in sincronizzazione
+}
+
 // Prep day (domenica): segna quali pranzi della settimana lavorativa sono già
 // stati preparati in batch. `date` = il giorno PER CUI è il pranzo, non quello
 // in cui lo prepari. La riga con slot='settimana' (date = lunedì) è la
@@ -143,6 +155,7 @@ export class DietDB extends Dexie {
   sprouts!: Table<SproutBatch, number>;
   customShopping!: Table<CustomShoppingItem, number>;
   favorites!: Table<FavoriteRecipe, string>;
+  mealSide!: Table<MealSide, [string, string]>;
 
   constructor() {
     super('dietaMediterraneaCangiante');
@@ -172,6 +185,11 @@ export class DietDB extends Dexie {
     this.version(5).stores({
       customShopping: '++id, name',
       favorites: 'recipeId',
+    });
+    // v6: "aggiunte" ai pasti del giorno per coprire i pilastri mancanti
+    // (es. verdura a foglia). Chiave [date+ingredientId]; gli store restano invariati.
+    this.version(6).stores({
+      mealSide: '[date+ingredientId], date',
     });
   }
 }

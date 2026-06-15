@@ -226,6 +226,21 @@ ora sono **ricalcolati da tabella nutrizionale USDA/CREA** (`scripts/nutrition-d
   finestra (`usedRecipeIds`) → non ripropone lo stesso piatto. Vedi [[everything-connected]].
 - **Seguito nella 13ª ondata.**
 
+### Migliorie giugno 2026 (14ª ondata): pilastri quotidiani AGGANCIATI ai pasti
+- Problema (utente): i pilastri come checklist a sé sono "inutili" se la giornata non li integra
+  (es. verdura a foglia mai nei pasti di alcuni giorni; olio EVO scollegato anche se in realtà è
+  in tutte le ricette). Dati reali: olio EVO 14/14 giorni, verdura a foglia 9/14 (estate)/11/14 (inverno).
+- `lib/essentialsCoverage.ts`: `essentialCoverage(meals, sides)` calcola quali pilastri i pasti del
+  giorno (e le aggiunte) già coprono (olio-evo, verdura a foglia=LEAFY_GREENS, noci/mandorle, germogli,
+  uva, cioccolato, fermentati, tè verde; più la regola "proteine a ogni pasto"). `leafyFillSuggestion`
+  propone cosa/dove aggiungere se la verdura a foglia manca.
+- Oggi → card "Pilastri quotidiani" ristrutturata: gruppo **«Già nei pasti di oggi»** (✓ + in quali
+  pasti) e **«Da completare oggi»** (solo i veri extra, spunta manuale). Se la verdura a foglia manca,
+  banner con **[+ Aggiungi al pranzo]** che integra ~50 g di rucola/spinaci nel piano.
+- Nuova tabella Dexie **`mealSide`** (v6, chiave `[date+ingredientId]`): aggiunta di un ingrediente a
+  un pasto del giorno; sincronizzata (sync.ts) e nel backup (backup.ts). Vedi [[everything-connected]].
+- TODO possibili: riflettere l'aggiunta anche sulla card del pasto e nella lista spesa.
+
 ### Migliorie giugno 2026 (13ª ondata): ricette per i freschi che l'utente mangia ma non coperti
 - L'utente conferma di mangiare pera, mandarino, anguria, melone, salmone affumicato, yogurt intero,
   mozzarella, hummus, crauti, kimchi (**la pesca no**, non come frutto intero → lasciata scoperta).
