@@ -10,6 +10,16 @@ export interface CuttingTechnique {
   how: string; // testo semplice, stile principiante (usato anche nel PDF)
 }
 
+export const WASH_BASICS =
+  'Prima di tagliare qualsiasi cosa, lava la verdura e la frutta fresca: prima si lava, poi si ' +
+  'taglia (il coltello non deve portare lo sporco della buccia sulla polpa). Passa ogni pezzo ' +
+  'sotto acqua corrente fredda strofinando la buccia con le mani — vale anche per ciò che sbucci, ' +
+  'come agrumi e melone, se poi li tagli col coltello. La verdura a FOGLIA (spinaci, rucola, ' +
+  'lattuga, cavolo) va immersa in una ciotola d\'acqua fredda, mossa con le mani e scolata: ' +
+  'ripeti cambiando l\'acqua finché resta pulita, poi asciugala bene (canovaccio o centrifuga) ' +
+  'se finisce in insalata. UNICA eccezione: i funghi NON si immergono in acqua (si imbevono) — ' +
+  'si puliscono con un panno umido.';
+
 export const KNIFE_BASICS =
   'Tre regole che valgono per ogni taglio. 1) Tagliere fermo: metti un canovaccio umido ' +
   'sotto, così non scivola. 2) Coltello affilato: taglia con meno forza ed è PIÙ sicuro di ' +

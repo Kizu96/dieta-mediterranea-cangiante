@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlarmClock, Check, ChefHat, Play, Utensils } from 'lucide-react';
-import type { Recipe } from '../data/types';
-import { KNIFE_BASICS, techniquesForIngredients } from '../data/cuttingGuide';
+import type { Ingredient, Recipe } from '../data/types';
+import { KNIFE_BASICS, WASH_BASICS, techniquesForIngredients } from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
 import { stockStatus } from '../lib/stock';
 import { scaleQty } from '../lib/intensity';
@@ -129,12 +129,20 @@ export function CookMode({
     setTimers((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Fasi della modalità cucina: prima la PREPARAZIONE (sicurezza col coltello +
-  // come tagliare ogni verdura della ricetta, presa dalla guida tagli), poi i
-  // passi di cottura veri e propri. Le ricette senza verdure da tagliare partono
-  // direttamente dai passi (nessuna fase di preparazione).
+  // Fasi della modalità cucina: prima la PREPARAZIONE — nell'ordine giusto in cui
+  // si lavora davvero: 1) LAVA la verdura/frutta fresca, 2) sicurezza col coltello,
+  // 3) come tagliare ogni verdura della ricetta (dalla guida tagli) — poi i passi
+  // di cottura. Le ricette senza verdura/frutta fresca da preparare partono dritte
+  // dai passi (nessuna fase di preparazione).
   const phases = useMemo(() => {
     const prep: { kind: 'prep'; title: string; text: string }[] = [];
+    // Verdura e frutta fresca presenti nella ricetta: vanno lavate prima di tagliarle.
+    const washable = recipe.ingredients
+      .map((ri) => ingredientById(ri.ingredientId))
+      .filter((ing): ing is Ingredient => !!ing && (ing.category === 'verdura' || ing.category === 'frutta'));
+    if (washable.length > 0) {
+      prep.push({ kind: 'prep', title: 'Lava la verdura (prima di tagliare)', text: WASH_BASICS });
+    }
     const techniques = techniquesForIngredients(recipe.ingredients.map((ri) => ri.ingredientId));
     if (techniques.length > 0) {
       prep.push({ kind: 'prep', title: 'Coltello in sicurezza', text: KNIFE_BASICS });
