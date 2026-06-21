@@ -102,8 +102,8 @@ export function Prep({
       <Card title={`Settimana del ${formatShortDate(monday)}`} icon={<ChefHat />}>
         <p className="small muted" style={{ marginTop: -4 }}>
           Il prep day ha il suo <b>menù dedicato</b>: 5 pranzi da ufficio pensati per durare tutta
-          la settimana. <b>Lun-Mar dal frigo</b>, <b>Mer-Ven dal freezer</b> (li cucini domenica e
-          li scaldi in ufficio). Ogni giorno qui sotto dice cosa fare.
+          la settimana e, d'estate, da mangiare <b>freddi</b>. Li cucini domenica in un'unica
+          sessione; ogni giorno qui sotto trovi il badge (<b>FRIGO / FREEZER / FRESCO</b>) e cosa fare.
         </p>
         <ul className="clean">
           <CheckRow
@@ -154,10 +154,11 @@ export function Prep({
 
       <div className="banner info">
         <Snowflake size={15} className="ic" /> <b>Sicurezza:</b> i piatti cotti durano in frigo
-        <b> 2-3 giorni</b>, perciò il menù prep mette i piatti <b>congelabili</b> a fine settimana.
+        <b> 2-3 giorni</b>, perciò a fine settimana il menù prep congela il piatto o la sua base.
         Segui il badge di ogni giorno: <b>🧺 FRIGO</b> = cotto domenica, tenuto in frigo · <b>🧊
-        FREEZER</b> = congelato domenica, spostato in frigo la sera prima. In ufficio scalda al
-        <b> microonde (850 W) 3-4 min</b>, mescolando a metà (le zuppe coperte con un piattino).
+        FREEZER</b> = congelato domenica, in frigo la sera prima · <b>🥗 FRESCO</b> = base congelata,
+        verdure crude aggiunte la sera prima. D'estate questi pranzi si mangiano <b>freddi</b>; se
+        preferisci caldo, scalda al microonde (850 W) 2-3 min.
       </div>
 
       {lunches.map((l, i) => {
