@@ -48,14 +48,74 @@ const STATUS_FRACTION: Record<MealStatusValue, number> = {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
+ * Rimette in dispensa un consumo registrato in precedenza (storno ESATTO).
+ * Da chiamare dentro una transazione rw che include db.pantry.
+ */
+export async function restoreConsumption(
+  consumed?: { ingredientId: string; qty: number }[],
+): Promise<void> {
+  if (!consumed?.length) return;
+  for (const c of consumed) {
+    const row = await db.pantry.get(c.ingredientId);
+    if (row?.qty == null) continue; // quantità rimossa a mano nel frattempo
+    const qty = round2(row.qty + c.qty);
+    const qtyFull = Math.max(row.qtyFull ?? row.qty, qty);
+    await db.pantry.put({ ...row, qty, qtyFull, have: qty > 0, updatedAt: Date.now() });
+  }
+}
+
+/**
+ * Scala dalla dispensa gli ingredienti di una ricetta (× intensità × frazione) e
+ * azzera i flag freschezza/freezer degli ingredienti usati. Ritorna lo snapshot
+ * di ciò che è stato tolto davvero (per lo storno esatto). Da chiamare dentro una
+ * transazione rw che include db.pantry. `fraction` = 1 (intero) o 0.5 (metà).
+ * Scala solo gli ingredienti tracciati che hanno già una quantità (mai sotto zero).
+ */
+export async function applyConsumption(
+  recipe: Recipe,
+  factor: number,
+  fraction = 1,
+): Promise<{ ingredientId: string; qty: number }[]> {
+  if (fraction <= 0) return [];
+  // Hai cucinato/mangiato il pasto: gli avvisi "in frigo da troppo" e i flag
+  // freezer degli ingredienti usati non hanno più ragione di esistere.
+  for (const ri of recipe.ingredients) {
+    const row = await db.pantry.get(ri.ingredientId);
+    if (row && (row.freshSince != null || row.frozen)) {
+      // Barattoli/latticini aperti: il timer resta (gli avanzi nel contenitore
+      // aperto vanno consumati entro N giorni anche se ne hai usata una porzione).
+      if (ingredientMap.get(ri.ingredientId)?.openedDays != null) continue;
+      const next = { ...row, updatedAt: Date.now() };
+      delete next.freshSince;
+      delete next.frozen;
+      await db.pantry.put(next);
+    }
+  }
+  const consumed: { ingredientId: string; qty: number }[] = [];
+  for (const ri of recipe.ingredients) {
+    const ing = ingredientMap.get(ri.ingredientId);
+    if (!ing || !isQtyTracked(ing) || ri.unit !== ing.unit) continue;
+    const row = await db.pantry.get(ri.ingredientId);
+    if (row?.qty == null) continue; // dispensa non quantitativa per questo ingrediente
+    const take = Math.min(row.qty, scaleQty(ri.qty * fraction, factor));
+    if (take <= 0) continue;
+    const qty = round2(row.qty - take);
+    // Il consumo non tocca il riferimento "pieno": la barra scende.
+    const qtyFull = Math.max(row.qtyFull ?? row.qty, qty);
+    await db.pantry.put({ ...row, qty, qtyFull, have: qty > 0, updatedAt: Date.now() });
+    consumed.push({ ingredientId: ri.ingredientId, qty: take });
+  }
+  return consumed;
+}
+
+/**
  * Segna lo stato di un pasto e aggiorna la dispensa di conseguenza, in un'unica
  * transazione:
  * 1. storna SEMPRE il consumo registrato in precedenza (snapshot `consumed`);
  * 2. ri-tocco dello stato già attivo → il pasto torna "non segnato";
  * 3. applica il nuovo consumo: mangiato = dose intera × intensità, metà = 50%,
- *    saltato = 0. Scala solo gli ingredienti tracciati che hanno già una
- *    quantità in dispensa (mai sotto zero; lo snapshot ricorda quanto è stato
- *    tolto davvero, così lo storno è esatto).
+ *    saltato = 0. Eccezione: se quel pranzo era un prep già CONFERMATO la
+ *    dispensa è già stata scalata alla preparazione → niente doppio scalo.
  */
 export async function setMealStatusWithPantry(
   date: string,
@@ -65,58 +125,24 @@ export async function setMealStatusWithPantry(
   factor: number,
   offPlanKcal?: number,
 ): Promise<void> {
-  await db.transaction('rw', db.mealStatus, db.pantry, async () => {
+  await db.transaction('rw', db.mealStatus, db.pantry, db.prepLog, async () => {
     const key: [string, string] = [date, slot];
     const existing = await db.mealStatus.get(key);
-
-    if (existing?.consumed?.length) {
-      for (const c of existing.consumed) {
-        const row = await db.pantry.get(c.ingredientId);
-        if (row?.qty == null) continue; // quantità rimossa a mano nel frattempo
-        const qty = round2(row.qty + c.qty);
-        const qtyFull = Math.max(row.qtyFull ?? row.qty, qty);
-        await db.pantry.put({ ...row, qty, qtyFull, have: qty > 0, updatedAt: Date.now() });
-      }
-    }
+    await restoreConsumption(existing?.consumed);
 
     if (existing?.status === status) {
       await db.mealStatus.delete(key);
       return;
     }
 
+    // Anti doppio-scalo: se quel pranzo è un prep day già confermato, la dispensa
+    // è già stata scalata alla preparazione → qui registro solo lo stato.
+    const prep = slot === 'pranzo' ? await db.prepLog.get([date, 'pranzo']) : undefined;
+    const prepAlreadyConsumed = !!prep?.confirmed && prep.recipeId === recipe.id;
+
     const frac = STATUS_FRACTION[status];
-    const consumed: { ingredientId: string; qty: number }[] = [];
-    if (frac > 0) {
-      // Hai cucinato/mangiato il pasto: gli avvisi "in frigo da troppo" e i
-      // flag freezer degli ingredienti usati non hanno più ragione di esistere.
-      for (const ri of recipe.ingredients) {
-        const row = await db.pantry.get(ri.ingredientId);
-        if (row && (row.freshSince != null || row.frozen)) {
-          // Barattoli/latticini aperti: il timer resta (gli avanzi nel contenitore
-          // aperto vanno consumati entro N giorni anche se hai mangiato una porzione).
-          if (ingredientMap.get(ri.ingredientId)?.openedDays != null) continue;
-          const next = { ...row, updatedAt: Date.now() };
-          delete next.freshSince;
-          delete next.frozen;
-          await db.pantry.put(next);
-        }
-      }
-    }
-    if (frac > 0) {
-      for (const ri of recipe.ingredients) {
-        const ing = ingredientMap.get(ri.ingredientId);
-        if (!ing || !isQtyTracked(ing) || ri.unit !== ing.unit) continue;
-        const row = await db.pantry.get(ri.ingredientId);
-        if (row?.qty == null) continue; // dispensa non quantitativa per questo ingrediente
-        const take = Math.min(row.qty, scaleQty(ri.qty * frac, factor));
-        if (take <= 0) continue;
-        const qty = round2(row.qty - take);
-        // Il consumo non tocca il riferimento "pieno": la barra scende.
-        const qtyFull = Math.max(row.qtyFull ?? row.qty, qty);
-        await db.pantry.put({ ...row, qty, qtyFull, have: qty > 0, updatedAt: Date.now() });
-        consumed.push({ ingredientId: ri.ingredientId, qty: take });
-      }
-    }
+    const consumed = prepAlreadyConsumed ? [] : await applyConsumption(recipe, factor, frac);
+
     await db.mealStatus.put({
       date,
       slot,

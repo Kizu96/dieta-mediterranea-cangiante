@@ -114,7 +114,26 @@ export interface PrepLog {
   date: string; // ISO yyyy-mm-dd
   slot: MealSlot | 'settimana';
   done: boolean;
+  // Ricetta effettivamente preparata in quel giorno (lo slot prep al momento
+  // della spunta): serve per scalare la dispensa e sapere cosa hai cotto.
+  recipeId?: string;
+  // Snapshot del consumo scalato dalla dispensa alla CONFERMA (giorno dopo):
+  // permette lo storno esatto ed evita il doppio scalo quando segni «mangiato».
+  consumed?: { ingredientId: string; qty: number }[];
+  // true dopo la conferma del giorno dopo (dispensa scalata + slot ruotato).
+  // Finché è false/undefined la spunta è ancora annullabile (finestra di 1 notte).
+  confirmed?: boolean;
   updatedAt?: number; // per la fusione in sincronizzazione
+}
+
+// Stato ROTANTE del menù prep: una riga per ciascuno dei 5 posti (Lun..Ven),
+// con il piatto attualmente assegnato. Quando un pranzo viene confermato come
+// preparato, il suo posto avanza al prossimo piatto del pool (varietà). È dato
+// interattivo → si sincronizza e va nel backup (non è un'impostazione).
+export interface PrepSlot {
+  idx: number; // 0..4 = posizione Lun..Ven nel menù prep
+  recipeId: string; // piatto attualmente in questo posto
+  updatedAt: number; // per la fusione in sincronizzazione
 }
 
 // Voce LIBERA della lista spesa (detersivo, carta cucina…): non legata al
@@ -156,6 +175,7 @@ export class DietDB extends Dexie {
   customShopping!: Table<CustomShoppingItem, number>;
   favorites!: Table<FavoriteRecipe, string>;
   mealSide!: Table<MealSide, [string, string]>;
+  prepSlots!: Table<PrepSlot, number>;
 
   constructor() {
     super('dietaMediterraneaCangiante');
@@ -190,6 +210,11 @@ export class DietDB extends Dexie {
     // (es. verdura a foglia). Chiave [date+ingredientId]; gli store restano invariati.
     this.version(6).stores({
       mealSide: '[date+ingredientId], date',
+    });
+    // v7: stato rotante del menù prep (5 posti Lun..Ven, il piatto cambia quando
+    // un pranzo viene confermato come preparato). Chiave = idx; store esistenti invariati.
+    this.version(7).stores({
+      prepSlots: 'idx',
     });
   }
 }

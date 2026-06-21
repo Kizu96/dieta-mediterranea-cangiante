@@ -190,6 +190,7 @@ export function startAutoSync(): void {
     db.mealStatus,
     db.mealOverride,
     db.prepLog,
+    db.prepSlots,
     db.sprouts,
     db.customShopping,
     db.favorites,

@@ -7,7 +7,14 @@ import { db } from '../db/db';
 import { addDays, buildOverrideMap, toISODate } from '../lib/planning';
 import { missingForRecipeIds, surplusIngredients } from '../lib/shopping';
 import { perishUrgency } from '../lib/swap';
-import { PREP_WEEK_SLOT, prepMenuRecipes, prepVerdict, setPrepWeek, type PrepKind } from '../lib/prep';
+import {
+  isPrepEditable,
+  prepRecipeById,
+  prepVerdict,
+  setAllPrepMeals,
+  setPrepMeal,
+  type PrepKind,
+} from '../lib/prep';
 import { Card } from '../components/Card';
 import { CheckRow } from '../components/CheckRow';
 import { RecipeDetail } from '../components/RecipeDetail';
@@ -29,9 +36,9 @@ function verdictStyle(kind: PrepKind): CSSProperties {
   return { background: 'var(--olive-light)', color: 'var(--olive-dark)' };
 }
 
-// Prep day: ha un MENÙ SUO (prepMenu.ts), pensato per durare la settimana —
-// Lun-Mar dal frigo, Mer-Ven dal freezer. La domenica si cucinano i 5 pranzi in
-// una sola sessione; ogni giorno mostra il verdetto (FRIGO/FREEZER) e cosa fare.
+// Prep day: ha un MENÙ SUO ROTANTE. Spunti i pranzi che hai DAVVERO preparato;
+// il giorno dopo la dispensa si scala e i piatti preparati ruotano (varietà).
+// I non preparati restano in coda. Il piano base non viene mai modificato.
 export function Prep({
   season,
   onGoShopping,
@@ -46,16 +53,21 @@ export function Prep({
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
 
   const today = useMemo(() => new Date(), []);
+  const todayISO = toISODate(today);
   // Settimana target: nel weekend si prepara per la settimana che inizia; nei
   // giorni feriali si vede lo stato della settimana in corso.
   const mi = mondayIndex(today);
   const monday = addDays(today, mi >= 5 ? 7 - mi : -mi);
   const days = useMemo(() => Array.from({ length: 5 }, (_, i) => addDays(monday, i)), [monday]);
 
-  // Toggle «prep day fatto»: applica il menù prep ai 5 pranzi della settimana.
-  const mondayISO = toISODate(monday);
-  const rows = useLiveQuery(() => db.prepLog.toArray(), [], []);
-  const prepOn = (rows ?? []).some((r) => r.date === mondayISO && r.slot === PREP_WEEK_SLOT && r.done);
+  // Stato ROTANTE dei 5 posti + selezione per-pasto di ciò che hai preparato.
+  const slots = useLiveQuery(() => db.prepSlots.toArray(), [], []);
+  const slotMap = useMemo(() => new Map((slots ?? []).map((s) => [s.idx, s.recipeId])), [slots]);
+  const prepRows = useLiveQuery(() => db.prepLog.toArray(), [], []);
+  const prepByDate = useMemo(
+    () => new Map((prepRows ?? []).filter((r) => r.slot === 'pranzo').map((r) => [r.date, r])),
+    [prepRows],
+  );
 
   // I dettagli partono APERTI (è la pagina che si tiene davanti mentre si cucina).
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
@@ -67,14 +79,24 @@ export function Prep({
       return next;
     });
 
-  // I 5 pranzi del MENÙ PREP (fissi, non i pranzi del piano stagionale).
-  const prepRecipes = prepMenuRecipes();
-  const lunches = days.map((d, i) => ({ date: d, recipe: prepRecipes[i] as Recipe | undefined }));
+  // Per ogni giorno: la ricetta è quella PREPARATA (se l'hai spuntata) altrimenti
+  // il piatto attuale del posto (il candidato da preparare la prossima volta).
+  const lunches = days.map((d, i) => {
+    const iso = toISODate(d);
+    const row = prepByDate.get(iso);
+    const recipeId = row?.recipeId ?? slotMap.get(i) ?? PREP_MENU[i];
+    return { date: d, iso, idx: i, row, recipe: recipeId ? prepRecipeById(recipeId) : undefined };
+  });
+  const allPrepared = lunches.every((l) => l.row?.done);
 
-  // Cosa manca per cucinare il menù prep (vs dispensa).
+  // Ids del menù prep CORRENTE (i 5 candidati) per calcolare cosa manca in spesa.
+  const menuIds = useMemo(
+    () => Array.from({ length: 5 }, (_, i) => slotMap.get(i) ?? PREP_MENU[i]),
+    [slotMap],
+  );
   const prepMissing = useMemo(
-    () => missingForRecipeIds(haveSet, PREP_MENU, qtyMap, factor),
-    [haveSet, qtyMap, factor],
+    () => missingForRecipeIds(haveSet, menuIds, qtyMap, factor),
+    [haveSet, menuIds, qtyMap, factor],
   );
 
   // Scambio «non acquistabile»: se manca un ingrediente, scambia il pranzo del
@@ -95,24 +117,25 @@ export function Prep({
   const affectedFor = (ingId: string) =>
     lunches
       .filter((l) => l.recipe?.ingredients.some((ri) => ri.ingredientId === ingId))
-      .map((l) => ({ dateISO: toISODate(l.date), slot: 'pranzo' as MealSlot, recipe: l.recipe as Recipe }));
+      .map((l) => ({ dateISO: l.iso, slot: 'pranzo' as MealSlot, recipe: l.recipe as Recipe }));
 
   return (
     <div>
       <Card title={`Settimana del ${formatShortDate(monday)}`} icon={<ChefHat />}>
         <p className="small muted" style={{ marginTop: -4 }}>
-          Il prep day ha il suo <b>menù dedicato</b>: 5 pranzi da ufficio pensati per durare tutta
-          la settimana e, d'estate, da mangiare <b>freddi</b>. Li cucini domenica in un'unica
-          sessione; ogni giorno qui sotto trovi il badge (<b>FRIGO / FREEZER / FRESCO</b>) e cosa fare.
+          Il prep day ha il suo <b>menù dedicato e rotante</b>, da mangiare <b>freddi</b>. Spunti i
+          pranzi che hai <b>davvero preparato</b> (gli altri restano in coda); è annullabile fino a
+          domani. Il <b>giorno dopo</b> la dispensa si scala e i piatti preparati <b>ruotano</b> con
+          alternative nuove. Il piano base non viene mai toccato.
         </p>
-        <ul className="clean">
-          <CheckRow
-            checked={prepOn}
-            title={<b>Ho fatto il prep day per questa settimana</b>}
-            detail="Attivo: i 5 pranzi del menù prep prendono il posto dei pranzi della settimana (e la spesa si adegua). Spento: settimana normale del piano. Il piano base non viene mai modificato."
-            onToggle={() => setPrepWeek(monday, !prepOn, season, true)}
-          />
-        </ul>
+        <button
+          className="btn ghost block"
+          onClick={() => setAllPrepMeals(monday, season, true)}
+          disabled={allPrepared}
+          style={allPrepared ? { opacity: 0.5 } : undefined}
+        >
+          {allPrepared ? '✓ Tutti segnati come preparati' : 'Segna tutti come preparati'}
+        </button>
       </Card>
 
       {prepMissing.length > 0 && (
@@ -146,9 +169,10 @@ export function Prep({
         <ol className="steps">
           <li>Metti a cuocere per primi i cereali e i legumi (farro, orzo, lenticchie): pentole separate o in sequenza.</li>
           <li>Mentre cuociono, prepara le proteine in padella o friggitrice (pollo, ecc.), una alla volta.</li>
-          <li>Componi i 5 contenitori. Le verdure crude (per le insalate di inizio settimana) tienile a parte e uniscile la mattina, così non rilasciano acqua.</li>
-          <li>Lascia raffreddare i contenitori APERTI ~30 minuti, poi chiudi: <b>Lun-Mar in frigo</b>, <b>Mer-Ven in freezer</b> (in monoporzione).</li>
+          <li>Componi i contenitori. Le verdure crude (per le insalate di inizio settimana) tienile a parte e uniscile la mattina, così non rilasciano acqua.</li>
+          <li>Lascia raffreddare i contenitori APERTI ~30 minuti, poi chiudi: inizio settimana in frigo, fine settimana in freezer (in monoporzione).</li>
           <li>Etichetta ogni contenitore col giorno (basta nastro di carta e una penna).</li>
+          <li>Spunta qui sotto «L'ho preparato» sui pranzi che hai cucinato: domani la dispensa si aggiorna e quei piatti ruotano.</li>
         </ol>
       </Card>
 
@@ -164,6 +188,9 @@ export function Prep({
       {lunches.map((l, i) => {
         const isOpen = !collapsed.has(i);
         const verdict = l.recipe ? prepVerdict(l.recipe, i + 1) : null;
+        const confirmed = !!l.row?.confirmed;
+        const done = !!l.row?.done;
+        const editable = isPrepEditable(l.row, todayISO);
         return (
           <Card
             key={i}
@@ -214,6 +241,34 @@ export function Prep({
                   <b>{verdict.emoji} {verdict.label}</b> — {verdict.detail}{' '}
                   <span className="muted">· {scaleRound(l.recipe.kcal, factor)} kcal</span>
                 </p>
+                <ul className="clean">
+                  {confirmed ? (
+                    <li className="check-row checked" style={{ cursor: 'default' }}>
+                      <span className="check-box" aria-hidden="true">✓</span>
+                      <span className="check-main">
+                        <span className="check-title">Preparato</span>
+                        <span className="check-detail">
+                          Dispensa scalata · piatto ruotato per la prossima volta
+                        </span>
+                      </span>
+                    </li>
+                  ) : (
+                    <CheckRow
+                      checked={done}
+                      title="L'ho preparato"
+                      detail={
+                        done
+                          ? editable
+                            ? 'Annullabile fino a domani'
+                            : 'In conferma…'
+                          : 'Spunta solo i pranzi che cucini davvero'
+                      }
+                      onToggle={() => {
+                        if (editable) setPrepMeal(l.date, l.idx, !done, season, true);
+                      }}
+                    />
+                  )}
+                </ul>
                 {isOpen && <RecipeDetail recipe={l.recipe} factor={factor} />}
               </>
             )}

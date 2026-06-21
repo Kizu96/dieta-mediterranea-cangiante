@@ -9,6 +9,7 @@ import {
   type MealStatus,
   type PantryItem,
   type PrepLog,
+  type PrepSlot,
   type Setting,
   type ShoppingCheck,
   type SproutBatch,
@@ -27,6 +28,7 @@ export interface BackupData {
   mealStatus?: MealStatus[];
   mealOverride?: MealOverride[];
   prepLog?: PrepLog[];
+  prepSlots?: PrepSlot[];
   sprouts?: SproutBatch[];
   customShopping?: CustomShoppingItem[];
   favorites?: FavoriteRecipe[];
@@ -35,7 +37,7 @@ export interface BackupData {
 }
 
 export async function exportData(): Promise<BackupData> {
-  const [pantry, shopping, weights, essentials, workouts, mealStatus, mealOverride, prepLog, sprouts, customShopping, favorites, mealSide, settings] =
+  const [pantry, shopping, weights, essentials, workouts, mealStatus, mealOverride, prepLog, prepSlots, sprouts, customShopping, favorites, mealSide, settings] =
     await Promise.all([
       db.pantry.toArray(),
       db.shopping.toArray(),
@@ -45,6 +47,7 @@ export async function exportData(): Promise<BackupData> {
       db.mealStatus.toArray(),
       db.mealOverride.toArray(),
       db.prepLog.toArray(),
+      db.prepSlots.toArray(),
       db.sprouts.toArray(),
       db.customShopping.toArray(),
       db.favorites.toArray(),
@@ -62,6 +65,7 @@ export async function exportData(): Promise<BackupData> {
     mealStatus,
     mealOverride,
     prepLog,
+    prepSlots,
     sprouts,
     customShopping,
     favorites,
@@ -149,6 +153,7 @@ export function mergeBackup(a: Partial<BackupData>, b: Partial<BackupData>): Bac
     mealStatus: mergeTable(a.mealStatus, b.mealStatus, (x) => `${x.date}|${x.slot}`),
     mealOverride: mergeTable(a.mealOverride, b.mealOverride, (x) => `${x.date}|${x.slot}`),
     prepLog: mergeTable(a.prepLog, b.prepLog, (x) => `${x.date}|${x.slot}`),
+    prepSlots: mergeTable(a.prepSlots, b.prepSlots, (x) => String(x.idx)),
     sprouts: mergeTable(a.sprouts, b.sprouts, (x) => x.startedAt, true),
     customShopping: mergeTable(a.customShopping, b.customShopping, (x) => x.name.toLowerCase(), true),
     favorites: mergeTable(a.favorites, b.favorites, (x) => x.recipeId),
@@ -167,7 +172,7 @@ export function canonicalString(d: Partial<BackupData>): string {
 export async function importData(data: Partial<BackupData>): Promise<void> {
   await db.transaction(
     'rw',
-    [db.pantry, db.shopping, db.weights, db.essentials, db.workouts, db.mealStatus, db.mealOverride, db.prepLog, db.sprouts, db.customShopping, db.favorites, db.mealSide, db.settings],
+    [db.pantry, db.shopping, db.weights, db.essentials, db.workouts, db.mealStatus, db.mealOverride, db.prepLog, db.prepSlots, db.sprouts, db.customShopping, db.favorites, db.mealSide, db.settings],
     async () => {
       if (Array.isArray(data.pantry)) {
         await db.pantry.clear();
@@ -200,6 +205,10 @@ export async function importData(data: Partial<BackupData>): Promise<void> {
       if (Array.isArray(data.prepLog)) {
         await db.prepLog.clear();
         await db.prepLog.bulkPut(data.prepLog);
+      }
+      if (Array.isArray(data.prepSlots)) {
+        await db.prepSlots.clear();
+        await db.prepSlots.bulkPut(data.prepSlots);
       }
       if (Array.isArray(data.sprouts)) {
         await db.sprouts.clear();

@@ -12,6 +12,7 @@ import { getVacation, isVacationDay } from './lib/vacation';
 import { requestPersistentStorage } from './lib/storage';
 import { getSyncStatus, startAutoSync, SYNC_EVENT, syncInBackground } from './lib/sync';
 import { db } from './db/db';
+import { ensurePrepSeeded, migratePrepLegacy, processDuePrep } from './lib/prep';
 import { THEME_COLOR, useThemePref } from './components/useTheme';
 import { BottomNav, type ViewKey } from './components/BottomNav';
 import { Today } from './screens/Today';
@@ -72,6 +73,19 @@ function App() {
   // All'avvio: chiede storage persistente così il browser non cancella i dati locali.
   useEffect(() => {
     requestPersistentStorage();
+  }, []);
+
+  // Prep day: alla prima apertura semina i 5 posti; poi CONFERMA i prep marcati
+  // nei giorni scorsi (scala la dispensa + ruota i piatti) e ripulisce una volta
+  // il vecchio stato del toggle unico. Tutto idempotente.
+  useEffect(() => {
+    (async () => {
+      const todayISO = toISODate(new Date());
+      await ensurePrepSeeded();
+      await migratePrepLegacy(todayISO);
+      const intensity = await getSetting<Intensity>(INTENSITY_SETTING_KEY, 'moderata');
+      await processDuePrep(todayISO, INTENSITY_FACTOR[intensity]);
+    })();
   }, []);
 
   // Tema chiaro/scuro (toggle nella topbar): applica data-theme e aggiorna il
