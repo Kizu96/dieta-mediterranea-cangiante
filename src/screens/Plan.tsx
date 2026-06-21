@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Briefcase, CalendarDays, Flame, MapPin } from 'lucide-react';
+import { ArrowLeftRight, Briefcase, CalendarDays, Flame, MapPin } from 'lucide-react';
 import type { MealSlot, Recipe, Season } from '../data/types';
 import { db, type MealStatusValue } from '../db/db';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
@@ -13,9 +13,14 @@ import {
   toISODate,
   type OverrideMap,
 } from '../lib/planning';
+import { perishUrgency, type SwapContext } from '../lib/swap';
+import { surplusIngredients } from '../lib/shopping';
 import { Card } from '../components/Card';
 import { Modal } from '../components/Modal';
 import { RecipeDetail } from '../components/RecipeDetail';
+import { SwapMealModal } from '../components/SwapMealModal';
+import { useHaveSet, usePantryQty } from '../components/usePantry';
+import { useFavorites } from '../components/useFavorites';
 import { useIntensity } from '../components/useIntensity';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
@@ -32,6 +37,21 @@ export function Plan({ season }: { season: Season }) {
   const { includeExtra } = useExtraRecipes();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
+
+  // Contesto per lo scambio manuale: «usa prima ciò che va a male / hai in abbondanza».
+  const haveSet = useHaveSet();
+  const qtyMap = usePantryQty();
+  const favorites = useFavorites();
+  const pantryRows = useLiveQuery(() => db.pantry.toArray(), [], []);
+  const perish = useMemo(() => perishUrgency(pantryRows ?? []), [pantryRows]);
+  const surplus = useMemo(
+    () => surplusIngredients(qtyMap, today, 7, season, includeExtra, overrides, factor),
+    [qtyMap, today, season, includeExtra, overrides, factor],
+  );
+  const swapCtx: SwapContext = useMemo(
+    () => ({ surplus, perish, haveSet, qtyMap, favorites }),
+    [surplus, perish, haveSet, qtyMap, favorites],
+  );
 
   return (
     <div>
@@ -59,6 +79,7 @@ export function Plan({ season }: { season: Season }) {
           factor={factor}
           includeExtra={includeExtra}
           overrides={overrides}
+          swapCtx={swapCtx}
         />
       )}
 
@@ -95,6 +116,7 @@ function DayView({
   factor,
   includeExtra,
   overrides,
+  swapCtx,
 }: {
   date: Date;
   season: Season;
@@ -106,6 +128,7 @@ function DayView({
   factor: number;
   includeExtra: boolean;
   overrides: OverrideMap;
+  swapCtx: SwapContext;
 }) {
   const tpl = getDayTemplate(date, season);
   const meals = getRecipesForDate(date, season, includeExtra, overrides);
@@ -115,7 +138,10 @@ function DayView({
   // Oggi e giorni passati: si può segnare mangiato/metà/saltato anche a posteriori
   // (se ti scordi di segnare un pasto, lo recuperi da qui). Aggiorna anche la dispensa.
   const iso = toISODate(date);
-  const editable = iso <= toISODate(new Date());
+  const todayISO = toISODate(new Date());
+  const editable = iso <= todayISO;
+  const swappable = iso >= todayISO; // oggi e giorni futuri: scelgo io cosa mangiare
+  const [swap, setSwap] = useState<{ slot: MealSlot; current: string } | null>(null);
   const statusRows = useLiveQuery(
     () => db.mealStatus.where('date').equals(iso).toArray(),
     [iso],
@@ -176,21 +202,50 @@ function DayView({
                   {isWeekday && m.slot === 'pranzo' && m.recipe.office && (
                     <span className="pill olive" style={{ marginLeft: 6 }}><Briefcase size={12} className="ic" /> ufficio</span>
                   )}
+                  {overrides.get(`${iso}|${m.slot}`) != null && (
+                    <span className="pill" style={{ marginLeft: 6 }}>🔁 scambiato</span>
+                  )}
                 </span>
                 <span className="nowrap muted">{m.recipe.kcal} kcal ›</span>
               </div>
-              {editable && (
-                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                  <MealStatusButtons
-                    active={statusBySlot.get(m.slot)?.status}
-                    offPlanKcal={statusBySlot.get(m.slot)?.offPlanKcal}
-                    onSelect={(v, kcal) => setStatus(m.slot, m.recipe, v, kcal)}
-                  />
+              {(editable || swappable) && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {editable && (
+                    <MealStatusButtons
+                      active={statusBySlot.get(m.slot)?.status}
+                      offPlanKcal={statusBySlot.get(m.slot)?.offPlanKcal}
+                      onSelect={(v, kcal) => setStatus(m.slot, m.recipe, v, kcal)}
+                    />
+                  )}
+                  {swappable && (
+                    <button
+                      onClick={() => setSwap({ slot: m.slot, current: m.recipe.id })}
+                      className="btn ghost"
+                      style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem', flex: '0 0 auto' }}
+                    >
+                      <ArrowLeftRight size={14} className="ic" /> Scambia
+                    </button>
+                  )}
                 </div>
               )}
             </li>
           ))}
         </ul>
+      )}
+
+      {swap && (
+        <SwapMealModal
+          dateISO={iso}
+          slot={swap.slot}
+          currentId={swap.current}
+          whenLabel={iso === todayISO ? 'oggi' : formatLongDate(date).toLowerCase()}
+          season={season}
+          includeExtra={includeExtra}
+          ctx={swapCtx}
+          factor={factor}
+          isOverridden={overrides.get(`${iso}|${swap.slot}`) != null}
+          onClose={() => setSwap(null)}
+        />
       )}
     </Card>
   );

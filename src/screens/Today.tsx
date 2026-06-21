@@ -11,7 +11,6 @@ import {
   ListChecks,
   MonitorSmartphone,
   MoonStar,
-  Package,
   Play,
   Scale,
   ShoppingCart,
@@ -25,13 +24,7 @@ import { workoutWeeks } from '../data/workoutPlan';
 import { currentSeasonByDate } from '../lib/season';
 import { addDays, buildOverrideMap, getRecipesForDate, toISODate } from '../lib/planning';
 import { ingredientById, missingForDate, surplusIngredients } from '../lib/shopping';
-import {
-  mealsUsingIngredient,
-  perishUrgency,
-  rankReplacements,
-  usesExpiring,
-  usesSurplus,
-} from '../lib/swap';
+import { mealsUsingIngredient, perishUrgency } from '../lib/swap';
 import { setMealStatusWithPantry } from '../lib/pantryQty';
 import { essentialCoverage, leafyFillSuggestion } from '../lib/essentialsCoverage';
 import {
@@ -56,6 +49,7 @@ import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useFavorites } from '../components/useFavorites';
 import { useMealSwap } from '../components/useMealSwap';
 import { SwapResultView } from '../components/SwapResultView';
+import { SwapMealModal } from '../components/SwapMealModal';
 import { StockDot } from '../components/StockDot';
 import { useInstallPrompt } from '../components/useInstallPrompt';
 import { useIntensity } from '../components/useIntensity';
@@ -105,8 +99,12 @@ export function Today({
   const { includeExtra } = useExtraRecipes();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
+  const tomorrowISO = useMemo(() => toISODate(tomorrow), [tomorrow]);
   const overriddenToday = new Set(
     (overrideRows ?? []).filter((o) => o.date === todayISO).map((o) => o.slot),
+  );
+  const overriddenTomorrow = new Set(
+    (overrideRows ?? []).filter((o) => o.date === tomorrowISO).map((o) => o.slot),
   );
   const meals = getRecipesForDate(today, season, includeExtra, overrides);
   const mealsTomorrow = getRecipesForDate(tomorrow, season, includeExtra, overrides);
@@ -246,35 +244,16 @@ export function Today({
     }
   }, [sides]);
 
-  // --- Scambia pasto: sostituzione del pasto del piano solo per oggi ---
-  const [swap, setSwap] = useState<{ slot: MealSlot; current: string } | null>(null);
+  // --- Scambia pasto: sostituzione manuale del pasto del piano (oggi o domani) ---
+  const [swap, setSwap] = useState<{ dateISO: string; slot: MealSlot; current: string } | null>(null);
   // "Trova ricetta" dall'avviso frigo: ingrediente da cucinare oggi.
   const [freshSwap, setFreshSwap] = useState<Ingredient | null>(null);
 
-  // Candidate per lo scambio, ordinate col punteggio «va a male prima + abbondanza».
-  // Il «consigliato» è la migliore alternativa diversa dal pasto attuale, messa in cima.
-  const swapRanked = swap
-    ? rankReplacements(swap.slot, season, includeExtra, { surplus, perish, haveSet, qtyMap, favorites })
-    : [];
-  const swapRecommendedId = swap ? swapRanked.find((r) => r.id !== swap.current)?.id : undefined;
-  const swapOrdered =
-    swapRecommendedId == null
-      ? swapRanked
-      : [
-          ...swapRanked.filter((r) => r.id === swapRecommendedId),
-          ...swapRanked.filter((r) => r.id !== swapRecommendedId),
-        ];
   const setOverride = useCallback(
-    async (slot: MealSlot, recipeId: string) => {
-      await db.mealOverride.put({ date: todayISO, slot, recipeId, updatedAt: Date.now() });
+    async (dateISO: string, slot: MealSlot, recipeId: string) => {
+      await db.mealOverride.put({ date: dateISO, slot, recipeId, updatedAt: Date.now() });
     },
-    [todayISO],
-  );
-  const clearOverride = useCallback(
-    async (slot: MealSlot) => {
-      await db.mealOverride.delete([todayISO, slot]);
-    },
-    [todayISO],
+    [],
   );
 
   // --- Allenamento di oggi (deriva il giorno dal piano workout) ---
@@ -557,7 +536,7 @@ export function Today({
                         onSelect={(v, kcal) => setMealStatus(m.slot, m.recipe, v, kcal)}
                       />
                       <button
-                        onClick={() => setSwap({ slot: m.slot, current: m.recipe.id })}
+                        onClick={() => setSwap({ dateISO: todayISO, slot: m.slot, current: m.recipe.id })}
                         className="btn ghost"
                         style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem', flex: '0 0 auto' }}
                       >
@@ -641,15 +620,32 @@ export function Today({
         ) : (
           <ul className="clean">
             {mealsTomorrow.map((m, i) => (
-              <li key={i} className="meal-row" onClick={() => setDetail(m.recipe)} style={{ cursor: 'pointer' }}>
-                <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
-                <span className="grow">
-                  {m.recipe.name}
-                  {isWeekdayTomorrow && m.slot === 'pranzo' && m.recipe.office && (
-                    <span className="pill olive" style={{ marginLeft: 6 }}><Briefcase size={12} className="ic" /> ufficio</span>
-                  )}
-                </span>
-                <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
+              <li key={i} className="meal-row" style={{ display: 'block', cursor: 'default' }}>
+                <div
+                  onClick={() => setDetail(m.recipe)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+                >
+                  <span className="slot-tag">{SLOT_LABEL[m.slot]}</span>
+                  <span className="grow">
+                    {m.recipe.name}
+                    {isWeekdayTomorrow && m.slot === 'pranzo' && m.recipe.office && (
+                      <span className="pill olive" style={{ marginLeft: 6 }}><Briefcase size={12} className="ic" /> ufficio</span>
+                    )}
+                    {overriddenTomorrow.has(m.slot) && (
+                      <span className="pill" style={{ marginLeft: 6 }}>🔁 scambiato</span>
+                    )}
+                  </span>
+                  <span className="nowrap muted">{scaleRound(m.recipe.kcal, factor)} kcal ›</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setSwap({ dateISO: tomorrowISO, slot: m.slot, current: m.recipe.id })}
+                    className="btn ghost"
+                    style={{ minHeight: 34, padding: '0 12px', fontSize: '0.82rem', flex: '0 0 auto' }}
+                  >
+                    <ArrowLeftRight size={14} className="ic" /> Scambia
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -837,7 +833,7 @@ export function Today({
                     className="meal-row"
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      setOverride(targetSlot, r.id);
+                      setOverride(todayISO, targetSlot, r.id);
                       setFreshSwap(null);
                     }}
                   >
@@ -856,63 +852,22 @@ export function Today({
       )}
 
       {swap && (
-        <Modal title={`Scambia ${SLOT_LABEL[swap.slot]} di oggi`} onClose={() => setSwap(null)}>
-          <p className="small muted" style={{ marginTop: -4 }}>
-            Scegli cosa mangi davvero oggi al posto del pasto del piano. Vale <b>solo per oggi</b> e
-            aggiorna anche la lista della spesa. In cima trovi le ricette che smaltiscono ciò che
-            sta per scadere («in scadenza») o che hai in abbondanza («usa la dispensa»).
-          </p>
-          <ul className="clean">
-            {swapOrdered.map((r) => (
-              <li
-                key={r.id}
-                className="meal-row"
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  setOverride(swap.slot, r.id);
-                  setSwap(null);
-                }}
-              >
-                <span className="grow">
-                  {r.name}
-                  {r.id === swapRecommendedId && (
-                    <span
-                      className="pill"
-                      style={{ marginLeft: 6, background: 'var(--olive)', color: '#fff', borderColor: 'var(--olive)' }}
-                    >
-                      ★ consigliato
-                    </span>
-                  )}
-                  {r.id === swap.current && (
-                    <span className="pill olive" style={{ marginLeft: 6 }}>attuale</span>
-                  )}
-                  {favorites.has(r.id) && (
-                    <span className="pill terracotta" style={{ marginLeft: 6 }}>♥</span>
-                  )}
-                  {usesExpiring(r, perish) && (
-                    <span className="pill" style={{ marginLeft: 6 }}><Snowflake size={12} className="ic" /> in scadenza</span>
-                  )}
-                  {usesSurplus(r, surplus) && r.id !== swap.current && (
-                    <span className="pill" style={{ marginLeft: 6 }}><Package size={12} className="ic" /> usa la dispensa</span>
-                  )}
-                </span>
-                <span className="nowrap muted">{scaleRound(r.kcal, factor)} kcal</span>
-              </li>
-            ))}
-          </ul>
-          {overriddenToday.has(swap.slot) && (
-            <button
-              className="btn ghost block"
-              style={{ marginTop: 8 }}
-              onClick={() => {
-                clearOverride(swap.slot);
-                setSwap(null);
-              }}
-            >
-              ↩︎ Ripristina il pasto del piano
-            </button>
-          )}
-        </Modal>
+        <SwapMealModal
+          dateISO={swap.dateISO}
+          slot={swap.slot}
+          currentId={swap.current}
+          whenLabel={swap.dateISO === todayISO ? 'oggi' : 'domani'}
+          season={season}
+          includeExtra={includeExtra}
+          ctx={{ surplus, perish, haveSet, qtyMap, favorites }}
+          factor={factor}
+          isOverridden={
+            swap.dateISO === todayISO
+              ? overriddenToday.has(swap.slot)
+              : overriddenTomorrow.has(swap.slot)
+          }
+          onClose={() => setSwap(null)}
+        />
       )}
     </div>
   );
