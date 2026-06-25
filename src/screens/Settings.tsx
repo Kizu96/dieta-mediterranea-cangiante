@@ -25,6 +25,7 @@ import { Modal } from '../components/Modal';
 import { useHaveSet, usePantryQty } from '../components/usePantry';
 import { useVacation } from '../lib/vacation';
 import { useIntensity } from '../components/useIntensity';
+import { useCarbCycling } from '../components/useCarbCycling';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { INTENSITY_DESC } from '../lib/intensity';
 import {
@@ -59,6 +60,7 @@ export function Settings({
   const [vacFrom, setVacFrom] = useState('');
   const [vacTo, setVacTo] = useState('');
   const { intensity, factor, setIntensity } = useIntensity();
+  const { carbCycling, setCarbCycling } = useCarbCycling();
   const { includeExtra } = useExtraRecipes();
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_NOTIF_PREFS);
   const [perm, setPerm] = useState<NotificationPermission>(permissionStatus());
@@ -260,6 +262,21 @@ export function Settings({
       </div>
       <p className="small muted" style={{ marginTop: 6 }}>
         {INTENSITY_DESC[intensity]}
+      </p>
+
+      {/* Ciclizzazione carboidrati */}
+      <h3 className="section-label">Ciclizzazione carboidrati</h3>
+      <div className="segmented">
+        <button className={!carbCycling ? 'active' : ''} onClick={() => setCarbCycling(false)}>
+          Off
+        </button>
+        <button className={carbCycling ? 'active' : ''} onClick={() => setCarbCycling(true)}>
+          On
+        </button>
+      </div>
+      <p className="small muted" style={{ marginTop: 6 }}>
+        Quando è attiva, in <b>Oggi</b> ti consiglio più cereali nei giorni di allenamento e meno
+        in quelli di riposo. È solo un consiglio sulla porzione: il piano e i macro non cambiano.
       </p>
 
       {/* Vacanza */}

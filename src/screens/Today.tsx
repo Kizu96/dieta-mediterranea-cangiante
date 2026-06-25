@@ -53,6 +53,7 @@ import { SwapMealModal } from '../components/SwapMealModal';
 import { StockDot } from '../components/StockDot';
 import { useInstallPrompt } from '../components/useInstallPrompt';
 import { useIntensity } from '../components/useIntensity';
+import { useCarbCycling } from '../components/useCarbCycling';
 import { useExtraRecipes } from '../components/useExtraRecipes';
 import { scaleRound } from '../lib/intensity';
 import { hasExerciseVideo } from '../lib/exerciseVideo';
@@ -97,6 +98,7 @@ export function Today({
   const isWeekdayTomorrow = mondayIndex(tomorrow) < 5;
 
   const { includeExtra } = useExtraRecipes();
+  const { carbCycling } = useCarbCycling();
   const overrideRows = useLiveQuery(() => db.mealOverride.toArray(), [], []);
   const overrides = useMemo(() => buildOverrideMap(overrideRows ?? []), [overrideRows]);
   const tomorrowISO = useMemo(() => toISODate(tomorrow), [tomorrow]);
@@ -262,6 +264,9 @@ export function Today({
     if (!week || week.days.length === 0) return undefined;
     return week.days[mondayIndex(today) % week.days.length];
   }, [today]);
+
+  // Ciclizzazione carbo: cardio/forza = giorno di "carico" (più cereali); mobilità/riposo = leggero.
+  const carbLoadDay = todayWorkout?.type === 'cardio' || todayWorkout?.type === 'forza';
 
   const workoutLog = useLiveQuery(
     () => db.workouts.where('date').equals(todayISO).toArray(),
@@ -542,6 +547,22 @@ export function Today({
               <p className="small muted" style={{ margin: '6px 0 0' }}>
                 Nel piano di oggi: {plannedCarbs} g carbo · {plannedFat} g grassi · {plannedFiber} g fibre
               </p>
+              {carbCycling && (
+                <p className="small" style={{ margin: '6px 0 0', color: 'var(--olive-dark)' }}>
+                  🔄{' '}
+                  {carbLoadDay ? (
+                    <>
+                      <b>Giorno di carico</b> (allenamento): aggiungi ~30 g di cereali al pranzo
+                      (riso/farro/orzo) per avere più energia.
+                    </>
+                  ) : (
+                    <>
+                      <b>Giorno leggero</b> (riposo): tieni i cereali più bassi e riempi con verdura
+                      e proteine.
+                    </>
+                  )}
+                </p>
+              )}
             </div>
             <ul className="clean">
               {meals.map((m, i) => {
