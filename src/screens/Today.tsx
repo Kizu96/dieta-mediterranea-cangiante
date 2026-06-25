@@ -67,8 +67,8 @@ function InstallBanner() {
   if (!canInstall) return null;
   return (
     <div className="banner info">
-      <MonitorSmartphone size={15} className="ic" /> <b>Usala come app:</b> installala sul
-      dispositivo — icona sulla home, schermo intero senza barra del browser, funziona offline.
+      <MonitorSmartphone size={15} className="ic" /> <b>Installala come app.</b> Icona sulla home,
+      schermo intero, funziona anche offline.
       <div style={{ marginTop: 10 }}>
         <button className="btn" onClick={install}>
           Installa l'app
@@ -350,15 +350,15 @@ export function Today({
 
       {onVacationToday && vacation && (
         <div className="banner info">
-          🏖️ <b>Modalità vacanza fino al {vacation.to}:</b> niente avvisi di spesa, frigo o
-          prep day, e lo streak non si rompe. Goditela — si riprende al ritorno.
+          🏖️ <b>Vacanza fino al {vacation.to}.</b> Niente avvisi di spesa, frigo o prep — e lo
+          streak resta al sicuro. Si riprende al ritorno.
         </div>
       )}
 
       {!onVacationToday && mondayIndex(today) === 6 && (
         <div className="banner info">
-          <ChefHat size={15} className="ic" /> <b>Oggi è il prep day:</b> prepara in una sola sessione i 5 pranzi da ufficio della
-          settimana che inizia domani, così la sera cucini solo la cena.
+          <ChefHat size={15} className="ic" /> <b>Oggi è il prep day.</b> Cucina in un'unica
+          sessione i 5 pranzi della prossima settimana: poi, la sera, ti resta solo la cena.
           <div style={{ marginTop: 10 }}>
             <button className="btn" onClick={onGoPrep}>
               Apri il Prep Day
@@ -369,7 +369,7 @@ export function Today({
 
       {!onVacationToday && freshAlerts.length > 0 && (
         <div className="banner warn">
-          <b><AlarmClock size={15} className="ic" /> In frigo da troppo — cucinali oggi o congelali:</b>
+          <b><AlarmClock size={15} className="ic" /> In frigo da un po': usali oggi o congelali.</b>
           <ul className="clean" style={{ marginTop: 8 }}>
             {freshAlerts.map((a) => (
               <li key={a.ingredient.id} className="meal-row">
@@ -404,19 +404,19 @@ export function Today({
             ))}
           </ul>
           <p className="small muted" style={{ margin: '6px 0 0' }}>
-            «Congelato» = messo in freezer (ti ricorderò di scongelarlo quando serve) ·
-            «Gestito» = cucinato, mangiato o buttato.
+            <b>Congelato</b>: lo metti in freezer, ti avviso io quando scongelarlo. ·{' '}
+            <b>Gestito</b>: cucinato, mangiato o buttato.
           </p>
         </div>
       )}
 
       {!onVacationToday && frozenToday.length > 0 && (
         <div className="banner warn">
-          <b><Snowflake size={15} className="ic" /> Serve OGGI ma è in freezer:</b>{' '}
+          <b><Snowflake size={15} className="ic" /> Ti serve oggi, ma è nel freezer:</b>{' '}
           {frozenToday.map((i) => i.name).join(', ')}.
           <p className="small" style={{ margin: '6px 0 8px' }}>
-            Recupero rapido: microonde con funzione <b>scongelamento</b> (defrost) e cucinalo
-            subito dopo — oppure scambia il pasto (<ArrowLeftRight size={13} className="ic" />) con uno fattibile.
+            Veloce: scongela al microonde (tasto <b>defrost</b>) e cucina subito. Oppure scambia il
+            pasto (<ArrowLeftRight size={13} className="ic" />) con uno che puoi fare.
           </p>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {frozenToday.map((i) => (
@@ -435,9 +435,9 @@ export function Today({
 
       {!onVacationTomorrow && frozenTomorrow.length > 0 && (
         <div className="banner info">
-          <b><Snowflake size={15} className="ic" /> Stasera, prima di andare a letto:</b> sposta dal freezer al frigo{' '}
-          {frozenTomorrow.map((i) => i.name).join(', ')} — {frozenTomorrow.length === 1 ? 'serve' : 'servono'}{' '}
-          domani e lo scongelamento in frigo richiede una notte.
+          <b><Snowflake size={15} className="ic" /> Stasera sposta dal freezer al frigo:</b>{' '}
+          {frozenTomorrow.map((i) => i.name).join(', ')}. {frozenTomorrow.length === 1 ? 'Serve' : 'Servono'}{' '}
+          domani, e in frigo scongela in una notte.
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
             {frozenTomorrow.map((i) => (
               <button
@@ -455,10 +455,10 @@ export function Today({
 
       {!onVacationTomorrow && missing.length > 0 && (
         <div className="banner warn">
-          <b><ShoppingCart size={15} className="ic" /> Compra per domani.</b>
+          <b><ShoppingCart size={15} className="ic" /> Da comprare per domani.</b>
           <p className="small" style={{ margin: '6px 0 0' }}>
-            Non lo trovi al supermercato? Toccalo e scambio il pasto di domani con una ricetta
-            che usa ciò che hai in abbondanza o sta per scadere.
+            Non lo trovi? Toccalo: scambio il pasto di domani con una ricetta che usa quello che
+            hai già — in abbondanza o in scadenza.
           </p>
           <div className="chips">
             {missing.map((m) => (
@@ -552,8 +552,8 @@ export function Today({
                 {openableToday.length > 0 && (
                   <>
                     <p className="small muted" style={{ margin: '0 0 6px' }}>
-                      🥫 Apri un barattolo o una confezione per un pasto di oggi? Toccalo: riempio i
-                      prossimi giorni con ricette che lo usano, così lo finisci entro N giorni.
+                      🥫 <b>Apri un barattolo per un pasto di oggi?</b> Toccalo: riempio i prossimi
+                      giorni con ricette che lo usano, così lo finisci in tempo (i giorni li trovi sul tasto).
                     </p>
                     <div className="chips">
                       {openableToday.map((o) => (
@@ -654,8 +654,8 @@ export function Today({
 
       <Card title="Pilastri quotidiani" icon={<ListChecks />}>
         <p className="small muted" style={{ marginTop: -4 }}>
-          Cibi-chiave anti-grasso viscerale da assumere <b>ogni giorno</b>. Quelli già presenti
-          nei pasti di oggi sono segnati come <b>coperti</b>: ti resta da completare solo il resto.
+          I cibi-chiave anti-grasso viscerale, da prendere <b>ogni giorno</b>. Quelli già nei pasti
+          di oggi sono <b>coperti</b>: ti resta solo il resto.
         </p>
         {(() => {
           const covered = dailyEssentials.filter((e) => coverage.get(e.id)?.covered);
@@ -696,11 +696,11 @@ export function Today({
               <p className="small" style={{ margin: '14px 0 2px', fontWeight: 700 }}>Da completare oggi</p>
               {leafyMissing && (
                 <div className="banner warn" style={{ marginBottom: 8 }}>
-                  <b>Verdura a foglia:</b> oggi i pasti non la includono.
+                  <b>Verdura a foglia:</b> oggi non c'è nei pasti.
                   <div className="small" style={{ margin: '4px 0 8px' }}>
-                    Aggiungine ~{leafyFill.qty} g di{' '}
+                    Aggiungi ~{leafyFill.qty} g di{' '}
                     <b>{ingredientById(leafyFill.ingredientId)?.name ?? leafyFill.ingredientId}</b> al{' '}
-                    {SLOT_LABEL[leafyFill.slot]} (cruda, con un filo d’olio EVO).
+                    {SLOT_LABEL[leafyFill.slot]}, cruda con un filo d’olio EVO.
                   </div>
                   <button className="btn" style={{ minHeight: 38 }} onClick={addLeafySide}>
                     + Aggiungi al {SLOT_LABEL[leafyFill.slot]}
@@ -814,8 +814,8 @@ export function Today({
       {freshSwap && (
         <Modal title={`Cucina ${freshSwap.name} oggi`} onClose={() => setFreshSwap(null)}>
           <p className="small muted" style={{ marginTop: -4 }}>
-            Ricette del piano che lo usano: scegline una e prende il posto del pasto di oggi
-            (prima le cene). Quando poi segni il pasto come mangiato, l'avviso si spegne da solo.
+            Ricette che lo usano: scegline una e prende il posto di un pasto di oggi (prima le
+            cene). Quando segni quel pasto come mangiato, l'avviso sparisce.
           </p>
           <ul className="clean">
             {recipes
