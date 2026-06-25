@@ -318,6 +318,24 @@ export function Today({
   const consumedPct =
     plannedScaled > 0 ? Math.min(100, Math.round((consumedScaled / plannedScaled) * 100)) : 0;
 
+  // Macro: proteine consumate vs pianificate (come le kcal) + totali del giorno.
+  // Le proteine contano per la massa magra nel deficit, perciò hanno la loro barra.
+  const sumMacro = (key: 'protein' | 'carbs' | 'fat' | 'fiber') =>
+    meals.reduce((s, m) => s + (m.recipe[key] ?? 0), 0);
+  const consumedProteinRaw = meals.reduce((s, m) => {
+    const st = statusBySlot.get(m.slot)?.status;
+    if (st === 'eaten') return s + m.recipe.protein;
+    if (st === 'half') return s + m.recipe.protein / 2;
+    return s;
+  }, 0);
+  const plannedProtein = scaleRound(sumMacro('protein'), factor);
+  const consumedProtein = scaleRound(consumedProteinRaw, factor);
+  const proteinPct =
+    plannedProtein > 0 ? Math.min(100, Math.round((consumedProtein / plannedProtein) * 100)) : 0;
+  const plannedCarbs = scaleRound(sumMacro('carbs'), factor);
+  const plannedFat = scaleRound(sumMacro('fat'), factor);
+  const plannedFiber = scaleRound(sumMacro('fiber'), factor);
+
   return (
     <div>
       <Card>
@@ -507,6 +525,23 @@ export function Today({
               <div style={{ height: 8, borderRadius: 6, background: 'var(--line)', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${consumedPct}%`, background: 'var(--olive)', transition: 'width .25s' }} />
               </div>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <div
+                className="small"
+                style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, color: 'var(--ink-soft)' }}
+              >
+                <span>Proteine</span>
+                <span>
+                  <b style={{ color: 'var(--terracotta-dark)' }}>{consumedProtein}</b> / {plannedProtein} g
+                </span>
+              </div>
+              <div style={{ height: 8, borderRadius: 6, background: 'var(--line)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${proteinPct}%`, background: 'var(--terracotta)', transition: 'width .25s' }} />
+              </div>
+              <p className="small muted" style={{ margin: '6px 0 0' }}>
+                Nel piano di oggi: {plannedCarbs} g carbo · {plannedFat} g grassi · {plannedFiber} g fibre
+              </p>
             </div>
             <ul className="clean">
               {meals.map((m, i) => {
