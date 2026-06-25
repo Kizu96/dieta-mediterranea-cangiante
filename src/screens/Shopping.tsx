@@ -196,8 +196,8 @@ export function Shopping({
 
       {paused ? (
         <div className="banner info">
-          🏖️ <b>Modalità vacanza:</b> la spesa del piano è in pausa fino al {vacation?.to}.
-          Le voci libere qui sotto restano disponibili.
+          🏖️ <b>Vacanza fino al {vacation?.to}.</b> La spesa del piano è in pausa: restano solo
+          le voci libere qui sotto.
         </div>
       ) : totalItems === 0 ? (
         <div className="empty">

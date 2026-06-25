@@ -190,8 +190,8 @@ export function Pantry({ season }: { season: Season }) {
       {editing && (
         <Modal title={`Quantità · ${editing.name}`} onClose={() => setEditing(null)}>
           <p className="small muted" style={{ marginTop: -4 }}>
-            Quanto ne hai davvero in dispensa ({editing.unit})? Si scala da solo quando segni un
-            pasto come mangiato; correggi qui se il conteggio diverge dalla realtà.
+            Quanto ne hai davvero ({editing.unit})? Si scala da solo quando segni un pasto come
+            mangiato. Correggi qui se il conteggio non torna.
           </p>
           <div className="pill-row" style={{ marginBottom: 12 }}>
             {packPresetsFor(editing).map((p) => (
