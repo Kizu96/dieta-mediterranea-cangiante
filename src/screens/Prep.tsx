@@ -123,10 +123,15 @@ export function Prep({
     <div>
       <Card title={`Settimana del ${formatShortDate(monday)}`} icon={<ChefHat />}>
         <p className="small muted" style={{ marginTop: -4 }}>
-          Il prep day ha il suo <b>menù dedicato e rotante</b>, da mangiare <b>freddi</b>. Spunti i
-          pranzi che hai <b>davvero preparato</b> (gli altri restano in coda); è annullabile fino a
-          domani. Il <b>giorno dopo</b> la dispensa si scala e i piatti preparati <b>ruotano</b> con
-          alternative nuove. Il piano base non viene mai toccato.
+          Cucini in un'unica sessione i pranzi della settimana e li mangi <b>freddi</b> in ufficio.
+          Spunta <b>«L'ho preparato»</b> solo su quelli che cucini davvero: gli altri restano qui,
+          pronti per un'altra volta.
+        </p>
+        <p className="small muted">
+          <b>Domani</b> succederà questo: gli ingredienti dei pranzi spuntati vengono tolti dalla
+          dispensa, e quei piatti lasciano il posto a ricette nuove (per non mangiare sempre le
+          stesse cose). Puoi annullare una spunta <b>fino a fine giornata</b>; da domani è confermata.
+          Il piano base non si tocca mai.
         </p>
         <button
           className="btn ghost block"
@@ -246,9 +251,9 @@ export function Prep({
                     <li className="check-row checked" style={{ cursor: 'default' }}>
                       <span className="check-box" aria-hidden="true">✓</span>
                       <span className="check-main">
-                        <span className="check-title">Preparato</span>
+                        <span className="check-title">Preparato ✓</span>
                         <span className="check-detail">
-                          Dispensa scalata · piatto ruotato per la prossima volta
+                          Ingredienti tolti dalla dispensa · la prossima volta qui trovi un piatto nuovo
                         </span>
                       </span>
                     </li>
@@ -259,8 +264,8 @@ export function Prep({
                       detail={
                         done
                           ? editable
-                            ? 'Annullabile fino a domani'
-                            : 'In conferma…'
+                            ? 'Fatto ✓ — puoi annullare fino a fine giornata'
+                            : 'Verrà confermato alla prossima apertura'
                           : 'Spunta solo i pranzi che cucini davvero'
                       }
                       onToggle={() => {

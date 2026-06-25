@@ -13,22 +13,28 @@
 // iniziale = i primi 5 del pool. Tutti gli id esistono in recipes.ts.
 // ===========================================================================
 
-// Pool curato di pranzi adatti al prep: da ufficio, si mangiano FREDDI e si
-// conservano (frigo ≥2 gg o base congelabile). Ordine = ciclo di rotazione.
+// Pool curato di pranzi adatti al prep: da ufficio, ESTIVI, si mangiano FREDDI e
+// si conservano (frigo ≥2 gg o base congelabile). Ordine = ciclo di rotazione.
 // I PRIMI 5 sono il menù prep di partenza (Lun→Ven).
+//
+// REGOLA DEL POOL (vedi recipe-coverage + use-perishables-first): ogni piatto qui
+// deve usare SOLO ingredienti dello stesso "carrello" del menù base — cereali e
+// legumi da dispensa + verdura estiva comune (pomodorini, cetriolo, zucchine,
+// cipolla, carota), tonno/feta/pollo. NIENTE ingredienti fuori stagione o one-off
+// (melanzane fresche, finocchio, arancia, uvetta, aceto di mele…): la rotazione
+// non deve mai costringere a una spesa nuova.
 export const PREP_POOL: string[] = [
   'pranzo-orzo-pollo-feta', // insalata di orzo, pollo e feta — frigo 3 gg
   'pranzo-ceci-tonno', // insalata di ceci e tonno — frigo 2 gg
   'pranzo-polpette-lenticchie', // polpette di lenticchie (air fryer), fredde — frigo 3 gg
   'pranzo-insalata-lenticchie-farro', // insalata fredda lenticchie+farro — base congelabile
   'pranzo-farro-pollo-verdure', // insalata di farro con pollo — frigo 2-3 gg, congelabile
+  'pranzo-lenticchie-feta-estiva', // insalata di lenticchie con feta — frigo 3 gg, senza cottura
   'pranzo-cous-cous-cannellini', // cous cous con tonno e cannellini — frigo 3 gg
   'pranzo-riso-ceci-feta', // insalata di riso con ceci e feta — frigo 3 gg
-  'pranzo-lenticchie-feta-estiva', // insalata di lenticchie con feta — frigo 3 gg
-  'pranzo-orzo-feta-verdure', // insalata di orzo, feta e finocchio — frigo 3 gg
   'pranzo-cous-cous-feta', // cous cous con feta e cetriolo — frigo 2 gg
-  'pranzo-caponata-melanzane-ceci', // caponata di melanzane e ceci — frigo 3 gg, ottima fredda
-  'pranzo-finocchio-arancia-tonno', // insalata di finocchio, arancia e tonno — frigo 2 gg
+  'pranzo-pasta-tonno-verdure', // pasta integrale fredda con tonno e zucchine — frigo 2 gg
+  'pranzo-quinoa-gamberetti', // bowl di quinoa con gamberetti — frigo 2 gg
 ];
 
 // Seed iniziale dei 5 posti (Lun→Ven) = i primi 5 del pool. Da qui in poi lo

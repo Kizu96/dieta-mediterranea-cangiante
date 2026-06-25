@@ -110,16 +110,26 @@ export function nextPoolIndex(current: number, used: Set<number>, poolLen = POOL
   return current; // pool troppo piccolo per ruotare: resta dov'è
 }
 
-/** Semina i 5 posti mancanti dal seed iniziale (idempotente: non sovrascrive). */
+/**
+ * Semina i 5 posti mancanti dal seed iniziale e RIPARA quelli rotti: se un posto
+ * punta a una ricetta non più nel pool (es. pool ricurato), lo riporta al piatto
+ * di partenza di quella posizione. Idempotente: non tocca i posti già validi.
+ */
 export async function ensurePrepSeeded(): Promise<void> {
   const rows = await db.prepSlots.toArray();
-  const have = new Set(rows.map((r) => r.idx));
+  const byIdx = new Map(rows.map((r) => [r.idx, r]));
+  const poolSet = new Set(PREP_POOL);
   const now = Date.now();
-  const missing: PrepSlot[] = [];
+  const fixes: PrepSlot[] = [];
   for (let idx = 0; idx < 5; idx++) {
-    if (!have.has(idx)) missing.push({ idx, recipeId: PREP_MENU[idx], updatedAt: now });
+    const row = byIdx.get(idx);
+    if (!row) {
+      fixes.push({ idx, recipeId: PREP_MENU[idx], updatedAt: now }); // mancante → semina
+    } else if (!poolSet.has(row.recipeId)) {
+      fixes.push({ idx, recipeId: PREP_MENU[idx], updatedAt: now }); // fuori-pool → ripara
+    }
   }
-  if (missing.length) await db.prepSlots.bulkPut(missing);
+  if (fixes.length) await db.prepSlots.bulkPut(fixes);
 }
 
 // ===========================================================================

@@ -75,17 +75,32 @@ function App() {
     requestPersistentStorage();
   }, []);
 
-  // Prep day: alla prima apertura semina i 5 posti; poi CONFERMA i prep marcati
-  // nei giorni scorsi (scala la dispensa + ruota i piatti) e ripulisce una volta
-  // il vecchio stato del toggle unico. Tutto idempotente.
+  // Prep day: alla prima apertura semina/ripara i 5 posti e ripulisce una volta il
+  // vecchio stato del toggle unico. Poi CONFERMA i prep marcati nei giorni scorsi
+  // (scala la dispensa + ruota i piatti) — NON solo al montaggio ma anche quando
+  // l'app torna in primo piano: una PWA "il giorno dopo" di solito riprende dal
+  // background senza ricaricarsi, quindi senza questo la rotazione non scatterebbe.
+  // processDuePrep è idempotente (i prep marcati oggi non sono ancora "scaduti",
+  // i confermati vengono saltati): può girare a ogni resume senza danni.
   useEffect(() => {
-    (async () => {
-      const todayISO = toISODate(new Date());
-      await ensurePrepSeeded();
-      await migratePrepLegacy(todayISO);
+    let cancelled = false;
+    const runDuePrep = async () => {
       const intensity = await getSetting<Intensity>(INTENSITY_SETTING_KEY, 'moderata');
-      await processDuePrep(todayISO, INTENSITY_FACTOR[intensity]);
+      if (!cancelled) await processDuePrep(toISODate(new Date()), INTENSITY_FACTOR[intensity]);
+    };
+    (async () => {
+      await ensurePrepSeeded();
+      await migratePrepLegacy(toISODate(new Date()));
+      await runDuePrep();
     })();
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') runDuePrep();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   // Tema chiaro/scuro (toggle nella topbar): applica data-theme e aggiorna il

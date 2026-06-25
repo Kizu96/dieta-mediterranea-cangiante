@@ -351,8 +351,8 @@ export const recipes: Recipe[] = [
       { ingredientId: 'limone', qty: 0.5, unit: 'pz' },
     ],
     steps: [
-      'Versa il cous cous in una ciotola. Scalda un pari volume d’acqua (stessa quantità del cous cous) con un pizzico di sale finché bolle, poi versala sopra fino a coprirlo appena.',
-      'Copri subito con un piatto e lascia riposare 5 minuti: il cous cous assorbe l’acqua. Poi sgranalo con una forchetta per separare i chicchi.',
+      'Versa il cous cous in una ciotola. Porta a bollore circa 60 ml d’acqua (5-6 cucchiai) con un pizzico di sale e versala sul cous cous: deve coprirlo appena, di un paio di millimetri.',
+      'Copri subito con un piatto e lascia riposare 5 minuti: il cous cous assorbe tutta l’acqua e si gonfia. Poi sgranalo con una forchetta per separare i chicchi.',
       'Taglia cetriolo, pomodorini e peperoni a cubetti piccoli; sciacqua e scola i cannellini e sgocciola bene il tonno.',
       'Unisci verdure, cannellini e tonno al cous cous; condisci con olio EVO, succo di limone, sale e pepe e mescola.',
     ],
@@ -1233,7 +1233,7 @@ export const recipes: Recipe[] = [
       { ingredientId: 'limone', qty: 0.5, unit: 'pz' },
     ],
     steps: [
-      'Versa il cous cous in una ciotola, coprilo con un pari volume di acqua bollente salata, copri con un piatto e lascia 5 minuti; poi sgranalo con la forchetta.',
+      'Versa il cous cous in una ciotola e coprilo con circa 80 ml d’acqua bollente salata (7-8 cucchiai): deve restare coperto di un paio di millimetri. Metti un piatto sopra e lascia 5 minuti, poi sgranalo con la forchetta.',
       'Taglia pomodorini e cetriolo a cubetti piccoli e sbriciola la feta con le mani.',
       'Unisci tutto, condisci con olio EVO, succo di limone e pepe (assaggia prima di salare: la feta sala già).',
     ],
