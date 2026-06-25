@@ -133,6 +133,27 @@ export function Weight() {
     return { perWeekReal, eta: weeksLeft <= 200 ? addDays(new Date(), Math.round(weeksLeft * 7)) : null };
   }, [list, profile, current]);
 
+  // Media mobile a 7 giorni (numero) + variazione rispetto a 7 giorni prima: è il
+  // "trend vero" del peso, senza il rumore della singola pesata (acqua, sale…).
+  const media7 = useMemo(() => {
+    if (list.length === 0) return null;
+    const avgAt = (refMs: number): number | null => {
+      const win = list.filter((w) => {
+        const t = new Date(w.date + 'T00:00:00').getTime();
+        return t <= refMs && t > refMs - 7 * 86_400_000;
+      });
+      return win.length ? win.reduce((s, w) => s + w.kg, 0) / win.length : null;
+    };
+    const lastMs = Math.max(...list.map((w) => new Date(w.date + 'T00:00:00').getTime()));
+    const now = avgAt(lastMs);
+    if (now == null) return null;
+    const prev = avgAt(lastMs - 7 * 86_400_000);
+    return {
+      now: Math.round(now * 10) / 10,
+      delta: prev != null ? Math.round((now - prev) * 10) / 10 : null,
+    };
+  }, [list]);
+
   // Promemoria misura completa: l'ultima registrazione con grasso viscerale
   // risale a più di 30 giorni fa (o non c'è mai stata).
   const lastFullDate = useMemo(() => {
@@ -358,6 +379,18 @@ export function Weight() {
               <div className="stat-label">Settimane stimate</div>
             </div>
           </div>
+          {media7 && (
+            <p className="small" style={{ margin: '10px 0 0', textAlign: 'center' }}>
+              <span className="muted">Media 7 giorni:</span> <b>{media7.now} kg</b>
+              {media7.delta == null ? null : Math.abs(media7.delta) < 0.05 ? (
+                <span className="muted"> · stabile rispetto a settimana scorsa</span>
+              ) : (
+                <b style={{ color: media7.delta < 0 ? 'var(--olive-dark)' : 'var(--terracotta-dark)' }}>
+                  {' '}{media7.delta < 0 ? '▼' : '▲'} {Math.abs(media7.delta).toFixed(1)} kg vs settimana scorsa
+                </b>
+              )}
+            </p>
+          )}
 
           {(vfNow != null || bfNow != null || waistNow != null || muNow != null) && (
             <div className="stat-grid" style={{ marginTop: 10 }}>
