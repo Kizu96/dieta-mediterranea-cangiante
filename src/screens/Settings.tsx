@@ -193,6 +193,14 @@ export function Settings({
       db.weights.clear(),
       db.essentials.clear(),
       db.workouts.clear(),
+      db.mealStatus.clear(),
+      db.mealOverride.clear(),
+      db.prepLog.clear(),
+      db.prepSlots.clear(),
+      db.sprouts.clear(),
+      db.customShopping.clear(),
+      db.favorites.clear(),
+      db.mealSide.clear(),
       db.settings.clear(),
     ]);
     onSeasonOverride(null);
