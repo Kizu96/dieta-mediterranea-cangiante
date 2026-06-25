@@ -223,3 +223,50 @@ export function techniquesForIngredients(ingredientIds: string[]): CuttingTechni
   const ids = new Set(ingredientIds);
   return cuttingTechniques.filter((t) => t.ingredientIds.some((id) => ids.has(id)));
 }
+
+// Radici (minuscole) che, se compaiono nel testo di un passo, indicano che proprio
+// LÌ si taglia quell'ingrediente: servono ad agganciare la tecnica di taglio al suo
+// passo nella modalità cucina (non più tutte ammucchiate all'inizio).
+const STEP_MATCH: Record<string, string[]> = {
+  cipolla: ['cipoll'],
+  aglio: ['aglio'],
+  pomodorini: ['pomodorin'],
+  pomodori: ['pomodor'],
+  cetriolo: ['cetriol'],
+  peperoni: ['peperon'],
+  zucchine: ['zucchin'],
+  carota: ['carot'],
+  sedano: ['sedano'],
+  finocchio: ['finocch'],
+  broccolo: ['broccol'],
+  cavolfiore: ['cavolfior'],
+  'cavolo-nero': ['cavolo nero'],
+  funghi: ['fungh'],
+  mela: ['mela', 'mele'],
+  pera: ['pera', 'pere'],
+  cipollotto: ['cipollott'],
+  melanzane: ['melanzan'],
+  'cavolo-cappuccio': ['cappuccio'],
+  verza: ['verza'],
+  'patata-dolce': ['patata dolc', 'patate dolc'],
+  zenzero: ['zenzer'],
+  arancia: ['aranc'],
+  mandarino: ['mandarin'],
+  anguria: ['anguri'],
+  melone: ['melon'],
+};
+
+/**
+ * Tra le `techniques` di una ricetta, quelle che si riferiscono a QUESTO passo
+ * (il testo del passo nomina l'ingrediente da tagliare). Usato dalla modalità
+ * cucina per mostrare la guida al taglio proprio sotto il passo che la usa.
+ */
+export function techniquesForStep(
+  stepText: string,
+  techniques: CuttingTechnique[],
+): CuttingTechnique[] {
+  const t = stepText.toLowerCase();
+  return techniques.filter((tech) =>
+    tech.ingredientIds.some((id) => (STEP_MATCH[id] ?? []).some((kw) => t.includes(kw))),
+  );
+}

@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlarmClock, Check, ChefHat, Play, Utensils } from 'lucide-react';
 import type { Ingredient, Recipe } from '../data/types';
-import { KNIFE_BASICS, WASH_BASICS, techniquesForIngredients } from '../data/cuttingGuide';
+import type { CuttingTechnique } from '../data/cuttingGuide';
+import {
+  KNIFE_BASICS,
+  WASH_BASICS,
+  techniquesForIngredients,
+  techniquesForStep,
+} from '../data/cuttingGuide';
 import { ingredientById } from '../lib/shopping';
 import { stockStatus } from '../lib/stock';
 import { scaleQty } from '../lib/intensity';
@@ -129,13 +135,16 @@ export function CookMode({
     setTimers((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Fasi della modalità cucina: prima la PREPARAZIONE — nell'ordine giusto in cui
-  // si lavora davvero: 1) LAVA la verdura/frutta fresca, 2) sicurezza col coltello,
-  // 3) come tagliare ogni verdura della ricetta (dalla guida tagli) — poi i passi
-  // di cottura. Le ricette senza verdura/frutta fresca da preparare partono dritte
-  // dai passi (nessuna fase di preparazione).
-  const phases = useMemo(() => {
-    const prep: { kind: 'prep'; title: string; text: string }[] = [];
+  // Fasi della modalità cucina: prima la PREPARAZIONE generale — 1) LAVA la
+  // verdura/frutta fresca, 2) sicurezza col coltello — poi i passi di cottura.
+  // La guida al taglio di OGNI verdura NON sta più all'inizio: è agganciata al
+  // passo che la taglia davvero (techniquesForStep) e mostrata lì sotto. Le
+  // ricette senza verdura fresca partono dritte dai passi.
+  type Phase =
+    | { kind: 'prep'; title: string; text: string }
+    | { kind: 'cook'; n: number; text: string; cuts: CuttingTechnique[] };
+  const phases = useMemo<Phase[]>(() => {
+    const prep: Phase[] = [];
     // Verdura e frutta fresca presenti nella ricetta: vanno lavate prima di tagliarle.
     const washable = recipe.ingredients
       .map((ri) => ingredientById(ri.ingredientId))
@@ -146,13 +155,30 @@ export function CookMode({
     const techniques = techniquesForIngredients(recipe.ingredients.map((ri) => ri.ingredientId));
     if (techniques.length > 0) {
       prep.push({ kind: 'prep', title: 'Coltello in sicurezza', text: KNIFE_BASICS });
-      for (const t of techniques) {
-        prep.push({ kind: 'prep', title: `Come tagliare: ${t.title}`, text: t.how });
-      }
     }
-    const cook = recipe.steps.map((text, i) => ({ kind: 'cook' as const, n: i + 1, text }));
+    // Aggancia ogni tecnica al PRIMO passo che la nomina; quelle non nominate da
+    // nessun passo finiscono sul primo passo (così non si perdono).
+    const assigned = new Set<string>();
+    const cook = recipe.steps.map((text, i) => {
+      const cuts = techniquesForStep(text, techniques).filter((t) => !assigned.has(t.title));
+      cuts.forEach((t) => assigned.add(t.title));
+      return { kind: 'cook' as const, n: i + 1, text, cuts };
+    });
+    const leftover = techniques.filter((t) => !assigned.has(t.title));
+    if (leftover.length > 0 && cook.length > 0) cook[0].cuts = [...leftover, ...cook[0].cuts];
     return [...prep, ...cook];
   }, [recipe]);
+
+  // Schede-taglio inline: aperte di default (la spiegazione sta sotto il passo);
+  // si possono richiudere. Chiave per-passo così non si confondono tra passi.
+  const [collapsedCuts, setCollapsedCuts] = useState<Set<string>>(new Set());
+  const toggleCut = (key: string) =>
+    setCollapsedCuts((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   const cookCount = recipe.steps.length;
   const current = step >= 0 ? phases[step] : null;
@@ -330,6 +356,53 @@ export function CookMode({
                   ? `Timer del ${stepLabel.toLowerCase()} già attivo`
                   : `Avvia timer ${stepMinutes} min (${stepLabel.toLowerCase()})`}
               </button>
+            )}
+            {current?.kind === 'cook' && current.cuts.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                {current.cuts.map((t) => {
+                  const key = `${step}|${t.title}`;
+                  const open = !collapsedCuts.has(key);
+                  return (
+                    <div
+                      key={t.title}
+                      style={{
+                        marginBottom: 8,
+                        padding: '10px 12px',
+                        background: 'var(--card)',
+                        border: '1px solid var(--line)',
+                        borderRadius: 10,
+                      }}
+                    >
+                      <button
+                        onClick={() => toggleCut(key)}
+                        aria-expanded={open}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          gap: 8,
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          font: 'inherit',
+                          color: 'inherit',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <span>🔪 Come tagliare: {t.title}</span>
+                        <span aria-hidden="true" style={{ opacity: 0.6 }}>{open ? '▾' : '▸'}</span>
+                      </button>
+                      {open && (
+                        <p className="small" style={{ margin: '8px 0 0', lineHeight: 1.55 }}>
+                          {t.how}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </>
         )}
